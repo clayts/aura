@@ -1,5 +1,4 @@
 clear
-toilet -f future "Welcome to"
 toilet -f future --gay "aura"
 
 # Ask for every password before anything touches the disk
