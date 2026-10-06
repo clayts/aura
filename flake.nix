@@ -26,7 +26,7 @@
         inherit system;
         config.allowUnfree = true;
       };
-      style = import ./style { inherit pkgs; };
+      style = import ./home/style { inherit pkgs; };
       packages = {
         os = import ./os/packages { inherit inputs pkgs; };
         home = import ./home/packages { inherit pkgs; };
