@@ -15,6 +15,9 @@
     packages.home.sing
     grc
   ];
+  # gh writes config.yml itself, starting with the first login, so it can't be
+  # a read-only link
+  xdg.configFile."gh/config.yml".enable = false;
   programs = {
     ripgrep-all.enable = true;
     bat = {
