@@ -20,12 +20,12 @@
   };
   earthpaper = pkgs.writeShellApplication {
     name = "earthpaper";
-    runtimeEnv.ids = ./earthpaper.json;
+    runtimeEnv.ids = ./earthpaper/earthpaper.json;
     runtimeInputs = with pkgs; [
       jq
       curl
     ];
-    text = builtins.readFile ./earthpaper.sh;
+    text = builtins.readFile ./earthpaper/earthpaper.sh;
   };
   rizzlefetch = pkgs.writers.writePython3Bin "rizzlefetch" {
     libraries = ps: [ ps.terminaltexteffects ];
