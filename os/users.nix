@@ -10,6 +10,8 @@
     inputs.home-manager.nixosModules.default
   ];
 
+  # Password hashes are read from /data rather than /etc/passwords: the users
+  # activation script runs at boot before impermanence bind-mounts /etc/passwords.
   users = {
     defaultUserShell = pkgs.zsh;
     mutableUsers = false;
@@ -23,15 +25,15 @@
           "libvirtd"
           "networkmanager"
         ];
-        hashedPasswordFile = "/data/etc/nixos/passwords/user";
+        hashedPasswordFile = "/data/etc/passwords/user";
       };
       "guest" = {
         description = "Guest";
         isNormalUser = true;
         extraGroups = [ ];
-        hashedPasswordFile = "/data/etc/nixos/passwords/guest";
+        hashedPasswordFile = "/data/etc/passwords/guest";
       };
-      "root".hashedPasswordFile = "/data/etc/nixos/passwords/root";
+      "root".hashedPasswordFile = "/data/etc/passwords/root";
     };
   };
 

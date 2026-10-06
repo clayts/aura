@@ -21,6 +21,10 @@
       "/etc/NetworkManager/system-connections/"
       "/etc/ssh/"
       {
+        directory = "/etc/passwords/";
+        mode = "0700";
+      }
+      {
         directory = "/etc/nixos/";
         user = "user";
         group = "users";
