@@ -28,7 +28,7 @@
       };
       style = import ./home/style { inherit pkgs; };
       packages = {
-        os = import ./os/packages { inherit inputs pkgs; };
+        os = import ./os/packages { inherit pkgs; };
         home = import ./home/packages { inherit pkgs; };
       };
     in
@@ -40,7 +40,18 @@
           { nixpkgs.pkgs = pkgs; }
         ];
       };
-      packages.${system} = packages.os // packages.home;
+      packages.${system}.install = pkgs.writeShellApplication {
+        name = "install";
+        runtimeEnv.flake = "${inputs.self}";
+        runtimeInputs = [
+          # The CLI from the same disko as the module it reads the layout from
+          inputs.disko.packages.${system}.disko
+          pkgs.git
+          pkgs.mkpasswd
+          pkgs.toilet
+        ];
+        text = builtins.readFile ./install.sh;
+      };
       formatter.${system} = pkgs.nixfmt-tree;
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
