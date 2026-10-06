@@ -11,8 +11,6 @@
     inputs.home-manager.nixosModules.default
   ];
 
-  # Password hashes are read from /data rather than /etc/passwords: the users
-  # activation script runs at boot before impermanence bind-mounts /etc/passwords.
   users = {
     defaultUserShell = pkgs.zsh;
     mutableUsers = false;
@@ -26,17 +24,21 @@
           "libvirtd"
           "networkmanager"
         ];
-        hashedPasswordFile = "/data/etc/passwords/user";
+        hashedPasswordFile = "/etc/passwords/user";
       };
       "guest" = {
         description = "Guest";
         isNormalUser = true;
         uid = 1001;
-        hashedPasswordFile = "/data/etc/passwords/guest";
+        hashedPasswordFile = "/etc/passwords/guest";
       };
-      "root".hashedPasswordFile = "/data/etc/passwords/root";
+      "root".hashedPasswordFile = "/etc/passwords/root";
     };
   };
+
+  # Without ~/.gitconfig, git config --global writes to home-manager's
+  # read-only ~/.config/git/config
+  systemd.tmpfiles.rules = [ "f /home/user/.gitconfig :0644 user users -" ];
 
   home-manager = {
     useGlobalPkgs = true;

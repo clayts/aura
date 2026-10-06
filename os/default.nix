@@ -7,13 +7,11 @@
   imports = [
     ./gnome.nix
     ./hardware.nix
-    ./impermanence.nix
     ./users.nix
   ];
   networking.hostName = "aura";
   system.stateVersion = "26.11";
   environment.systemPackages = with pkgs; [
-    packages.os.persist
     packages.os.system
     hunspellDicts.en_GB-ize
     android-tools

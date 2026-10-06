@@ -35,7 +35,6 @@ in
 {
   imports = [ inputs.disko.nixosModules.default ];
 
-  fileSystems."/data".neededForBoot = true;
   disko.devices = {
     disk.main = {
       device = "/dev/disk/by-id/nvme-WD_PC_SN740_SDDQMQD-512G-1201_250260800158_1";
@@ -61,12 +60,12 @@ in
               resumeDevice = true;
             };
           };
-          data = {
+          root = {
             size = "100%";
             content = {
               type = "filesystem";
               format = "xfs";
-              mountpoint = "/data";
+              mountpoint = "/";
             };
           };
         };

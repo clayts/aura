@@ -16,6 +16,3 @@ This erases the disk declared in `os/hardware.nix`.
 - `--boot` makes either one take effect at the next boot instead. `system clean` collects garbage.
 - Passwords are hashes in `/etc/passwords/<name>`. To change one, run `mkpasswd | sudo tee /etc/passwords/<name>`, then `system sync`.
 - `nix fmt` formats the Nix files.
-
-## To Do
-- rename data -> static?
