@@ -14,7 +14,6 @@
   environment.systemPackages = with pkgs; [
     packages.os.system
     hunspellDicts.en_GB-ize
-    android-tools
   ];
   boot = {
     tmp.useTmpfs = true;
