@@ -3,16 +3,11 @@
   lib,
   config,
   style,
+  packages,
   ...
 }:
 let
-  extensions = with pkgs.gnomeExtensions; [
-    grand-theft-focus
-    appindicator
-    alphabetical-app-grid
-    just-perfection
-    auto-power-profile
-  ];
+  wallpaper = "${config.xdg.dataHome}/earthpaper/image.jpeg";
 in
 {
   gtk = {
@@ -23,28 +18,45 @@ in
         name = "adw-gtk3";
         package = pkgs.adw-gtk3;
       };
-      bookmarks = [
-        "file://${config.home.homeDirectory}/Desk"
-        "file://${config.home.homeDirectory}/Media"
-        "file://${config.home.homeDirectory}/Code"
-        "file://${config.home.homeDirectory}/Documents"
-      ];
+      bookmarks = map (dir: "file://${dir}") (
+        with config.xdg.userDirs;
+        [
+          desktop
+          music
+          projects
+          documents
+        ]
+      );
     };
     cursorTheme = style.cursors;
   };
   programs.gnome-shell = {
     enable = true;
-    extensions = map (extension: { package = extension; }) extensions;
+    extensions = map (package: { inherit package; }) (
+      with pkgs.gnomeExtensions;
+      [
+        grand-theft-focus
+        appindicator
+        alphabetical-app-grid
+        just-perfection
+        auto-power-profile
+      ]
+    );
   };
+  home.packages = [ packages.home.earthpaper ];
+  xdg.configFile."autostart/earthpaper.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=Earthpaper
+    Exec=${lib.getExe packages.home.earthpaper} ${wallpaper}
+    X-GNOME-Autostart-enabled=true
+    NoDisplay=true
+  '';
   dconf.settings = {
-    "org/gnome/shell" = {
-      disable-user-extensions = false;
-      enabled-extensions = map (extension: extension.extensionUuid) extensions;
-      favorite-apps = [
-        "firefox.desktop"
-        "org.gnome.Nautilus.desktop"
-      ];
-    };
+    "org/gnome/shell".favorite-apps = [
+      "firefox.desktop"
+      "org.gnome.Nautilus.desktop"
+    ];
     "org/gnome/shell/extensions/just-perfection" = {
       panel = false;
       panel-in-overview = true;
@@ -54,7 +66,6 @@ in
       quick-settings-airplane-mode = false;
       window-preview-caption = false;
       background-menu = false;
-      support-notifier-showed-version = pkgs.gnomeExtensions.just-perfection.version;
       support-notifier-type = 0;
     };
     "org/gnome/shell/window-switcher".current-workspace-only = false;
@@ -69,11 +80,11 @@ in
       monospace-font-name = "${mono.name} ${toString mono.size}";
       gtk-enable-primary-paste = false; # Disable middle-click paste as it can accidentally paste stuff when scrolling
       enable-hot-corners = false;
-      font-antialiasing = "greyscale";
-      font-hinting = "slight";
     };
-    "org/gnome/desktop/background".picture-uri =
-      "${config.home.homeDirectory}/.local/share/earthpaper/image.jpeg";
+    "org/gnome/desktop/background" = {
+      picture-uri = wallpaper;
+      picture-uri-dark = wallpaper;
+    };
     "org/gnome/desktop/peripherals/touchpad" = {
       disable-while-typing = false; # Required for touchpad/keyboard games
       speed = 0.1;

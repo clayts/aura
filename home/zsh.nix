@@ -11,7 +11,6 @@
     inputs.nix-index-database.homeModules.nix-index
   ];
   home.packages = with pkgs; [
-    packages.home.earthpaper
     packages.home.safe
     packages.home.sing
     grc
@@ -171,11 +170,9 @@
         diff = "batdiff";
         man = "batman --pager less";
         cat = "bat";
+        grep = "grep --color=auto";
       };
-      sessionVariables = {
-        GREP_OPTIONS = "--color=auto";
-        DIRENV_WARN_TIMEOUT = 0;
-      };
+      sessionVariables.DIRENV_WARN_TIMEOUT = 0;
       dotDir = "${config.xdg.stateHome}/zsh";
       historySubstringSearch.enable = true;
       syntaxHighlighting.enable = true;

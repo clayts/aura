@@ -8,7 +8,7 @@
     fsType = "tmpfs";
     options = [
       "defaults"
-      "size=32M"
+      "size=2G"
       "mode=755"
     ];
   };
@@ -42,10 +42,10 @@
         "Documents/"
 
         ".Public/"
-        ".local"
+        ".local/"
         ".config/mozilla/"
         ".config/goa-1.0/"
-        ".wine"
+        ".wine/"
         {
           directory = ".cache/";
           mode = "0700";
@@ -56,7 +56,6 @@
         }
       ];
       files = [
-        ".local/share/recently-used.xbel"
         {
           file = ".gitconfig";
           method = "symlink";
@@ -64,9 +63,6 @@
       ];
     };
   };
-  system.activationScripts.fix-config-files = {
-    text = ''
-      touch /data/home/user/.gitconfig
-    '';
-  };
+  # The symlinked ~/.gitconfig needs its target to exist
+  systemd.tmpfiles.rules = [ "f /data/home/user/.gitconfig :0644 user users -" ];
 }

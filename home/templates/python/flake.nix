@@ -1,5 +1,5 @@
 {
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   outputs = inputs: {
     devShells =
       let
@@ -10,8 +10,9 @@
         "${system}".default = pkgs.mkShell {
           packages = with pkgs; [
             nixd
-            alejandra
+            nixfmt
 
+            python3
             basedpyright
             ruff
           ];

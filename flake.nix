@@ -47,26 +47,17 @@
           { nixpkgs.pkgs = pkgs; }
         ];
       };
-      apps.${system}.install = {
-        type = "app";
-        program = "${packages.os.install}/bin/install";
-      };
+      packages.${system} = packages.os // packages.home;
+      formatter.${system} = pkgs.nixfmt-tree;
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
           nixd
           nixfmt
-
-          color-lsp
-
-          package-version-server
-
+          shellcheck
           vscode-langservers-extracted
-
-          superhtml
           basedpyright
           ruff
-          (python313.withPackages (ps: with ps; [ terminaltexteffects ]))
-
+          (python3.withPackages (ps: [ ps.terminaltexteffects ]))
           packages.os.update
         ];
       };

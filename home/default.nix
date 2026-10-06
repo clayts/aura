@@ -6,6 +6,10 @@
   config,
   ...
 }:
+let
+  homeDirectory = config.home.homeDirectory;
+  fonts = lib.attrValues style.fonts;
+in
 {
   imports = [
     ./firefox.nix
@@ -18,42 +22,33 @@
   home = {
     stateVersion = "26.11";
     packages =
-      let
-        applications = with pkgs; [
-          gnome-firmware
-          loupe
-          file-roller
-          gnome-calculator
-          gnome-characters
-          gnome-logs
-          gnome-clocks
-          gnome-calendar
-          eyedropper
-          celluloid
-          gitg
-          papers
-          impression
-          baobab
-          gnome-disk-utility
-          nautilus
-          nautilus-python
-          yelp
-          resources
-          snapshot
-          packages.home.sabaki
-          gnome-calendar
-        ];
-        fonts = with style.fonts; [
-          sans.package
-          serif.package
-          mono.package
-          emoji.package
-        ];
-      in
-      applications ++ fonts;
+      with pkgs;
+      [
+        gnome-firmware
+        loupe
+        file-roller
+        gnome-calculator
+        gnome-characters
+        gnome-logs
+        gnome-clocks
+        gnome-calendar
+        eyedropper
+        celluloid
+        gitg
+        papers
+        impression
+        baobab
+        gnome-disk-utility
+        yelp
+        resources
+        snapshot
+        packages.home.sabaki
+      ]
+      ++ map (font: font.package) fonts;
     sessionVariables = {
       EDITOR = "micro";
       GOPATH = "$HOME/.local/share/go";
+      CARGO_HOME = "$HOME/.local/share/cargo";
       npm_config_cache = "$HOME/.cache/npm";
     };
     file = {
@@ -65,28 +60,20 @@
     userDirs = {
       enable = true;
       createDirectories = true;
-      templates = "${config.home.homeDirectory}/.Templates";
-      publicShare = "${config.home.homeDirectory}/.Public";
-      desktop = "${config.home.homeDirectory}/Desk";
-      download = "${config.home.homeDirectory}/Desk";
-      music = "${config.home.homeDirectory}/Media";
-      pictures = "${config.home.homeDirectory}/Media";
-      videos = "${config.home.homeDirectory}/Media";
-      projects = "${config.home.homeDirectory}/Code";
-      documents = "${config.home.homeDirectory}/Documents";
+      templates = "${homeDirectory}/.Templates";
+      publicShare = "${homeDirectory}/.Public";
+      desktop = "${homeDirectory}/Desk";
+      download = "${homeDirectory}/Desk";
+      music = "${homeDirectory}/Media";
+      pictures = "${homeDirectory}/Media";
+      videos = "${homeDirectory}/Media";
+      projects = "${homeDirectory}/Code";
+      documents = "${homeDirectory}/Documents";
     };
     desktopEntries.cups = {
       name = "";
       noDisplay = true;
     };
-    configFile."autostart/earthpaper.desktop".text = ''
-      [Desktop Entry]
-      Type=Application
-      Name=Earthpaper
-      Exec=${packages.home.earthpaper}/bin/earthpaper
-      X-GNOME-Autostart-enabled=true
-      NoDisplay=true
-    '';
   };
   fonts.fontconfig = {
     defaultFonts = with style.fonts; {
@@ -102,33 +89,26 @@
         mono.name
         emoji.name
       ];
-      emoji = [
-        emoji.name
-        emoji.name
-      ];
+      emoji = [ emoji.name ];
     };
     configFile.features.text = ''
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
       <fontconfig>
         <description>Set features</description>
-        ${lib.concatStringsSep "\n" (
-          lib.mapAttrsToList (
-            role: font:
-            if font.features == [ ] then
-              ""
-            else
-              ''
-                <match target="font">
-                  <test name="family" compare="eq">
-                    <string>${font.name}</string>
-                  </test>
-                  <edit name="fontfeatures" mode="append">
-                    ${lib.concatMapStrings (f: "<string>${f} on</string>") font.features}
-                  </edit>
-                </match>''
-          ) style.fonts
-        )}
+        ${lib.concatMapStrings (
+          font:
+          lib.optionalString (font.features != [ ]) ''
+            <match target="font">
+              <test name="family" compare="eq">
+                <string>${font.name}</string>
+              </test>
+              <edit name="fontfeatures" mode="append">
+                ${lib.concatMapStrings (feature: "<string>${feature} on</string>") font.features}
+              </edit>
+            </match>
+          ''
+        ) fonts}
       </fontconfig>
     '';
   };

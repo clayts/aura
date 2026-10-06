@@ -1,18 +1,16 @@
+{ style, ... }:
 {
-  pkgs,
-  style,
-  ...
-}:
-{
-  # This allows gnome to use ghostty as a default terminal when running
-  # .desktop files that require a terminal
-  home.packages = [ (pkgs.writeShellScriptBin "xterm" "${pkgs.ghostty} $*") ];
+  # Lets GNOME run .desktop files that need a terminal in ghostty
+  xdg.terminal-exec = {
+    enable = true;
+    settings.default = [ "com.mitchellh.ghostty.desktop" ];
+  };
 
   programs.ghostty = {
     enable = true;
     themes = {
       "Custom" = with style.colors; {
-        background = x9;
+        background = "#000000";
         foreground = x5;
         cursor-color = x5;
         selection-background = x2;
@@ -50,7 +48,6 @@
       adjust-cell-height = -2;
       font-feature = style.fonts.mono.features;
       theme = "Custom";
-      background = "000000";
       command = "SHLVL=0; zsh";
       window-theme = "ghostty";
       gtk-toolbar-style = "flat";

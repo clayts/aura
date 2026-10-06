@@ -5,7 +5,7 @@
   ...
 }:
 {
-  home.file.".config/mozilla/managed-storage/uBlock0@raymondhill.net.json".text = builtins.toJSON {
+  xdg.configFile."mozilla/managed-storage/uBlock0@raymondhill.net.json".text = builtins.toJSON {
     name = "uBlock0@raymondhill.net";
     description = "_";
     type = "storage";
@@ -20,11 +20,9 @@
   };
   programs.firefox = {
     enable = true;
-    # package = pkgs.firefox-beta;
     policies = {
       DisableTelemetry = true;
       DisableFirefoxStudies = true;
-      DisablePocket = true;
       ExtensionSettings = {
         "uBlock0@raymondhill.net" = {
           install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
@@ -65,19 +63,16 @@
           "sidebar.verticalTabs" = false;
           "sidebar.main.tools" = "";
           "sidebar.revamp" = false;
-          "sidebar.revamp.round-content-area" = false;
           "browser.tabs.groups.enabled" = false;
-          "extensions.pocket.enabled" = false;
           "browser.newtabpage.pinned" = "";
           "browser.topsites.contile.enabled" = false;
           "browser.newtabpage.activity-stream.showSponsored" = false;
           "browser.newtabpage.activity-stream.system.showSponsored" = false;
           "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
           "browser.toolbars.bookmarks.visibility" = "never";
-          "media.ffmpeg.vaapi.enabled" = true;
           "browser.aboutConfig.showWarning" = false;
-          # "browser.cache.disk.enable" = false; # Be kind to hard drive
           "browser.cache.disk.enable" = true;
+          "browser.cache.disk.smart_size.enabled" = false; # Otherwise capacity is ignored
           "browser.cache.disk.capacity" = 256 * 1024;
           "browser.cache.disk.parent_directory" = "/run/user/${toString config.home.uid}/firefox";
           "gnomeTheme.hideSingleTab" = true;
@@ -90,16 +85,19 @@
                 "forward-button"
                 "stop-reload-button"
                 "customizableui-special-spring1"
+                "vertical-spacer"
                 "firefox-view-button"
                 "urlbar-container"
                 "new-tab-button"
                 "customizableui-special-spring2"
                 "downloads-button"
                 "unified-extensions-button"
+                "reset-pbm-toolbar-button"
               ];
               "toolbar-menubar" = [ "menubar-items" ];
               "TabsToolbar" = [
                 "tabbrowser-tabs"
+                "customizableui-special-spring3"
                 "alltabs-button"
               ];
               "vertical-tabs" = [ ];
@@ -108,7 +106,9 @@
                 "personal-bookmarks"
               ];
             };
-            "currentVersion" = 20;
+            # Firefox's own layout version; an older one makes it re-run its
+            # migrations on this state at every start
+            "currentVersion" = 26;
           };
           "browser.newtabpage.activity-stream.feeds.section.highlights" = false;
           "browser.newtabpage.activity-stream.feeds.section.topstories" = false;

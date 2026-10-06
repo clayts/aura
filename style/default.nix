@@ -2,23 +2,8 @@
 {
   fonts = import ./fonts.nix { inherit pkgs; };
   colors =
-    ## Terminal Color List
-    # black
-    # red
-    # green
-    # yellow
-    # blue
-    # purple
-    # cyan
-    # white
-    # bright-black
-    # bright-red
-    # bright-green
-    # bright-yellow
-    # bright-blue
-    # bright-purple
-    # bright-cyan
-    # bright-white
+    # x0-x7: greys, dark to light
+    # x8 red, x9 yellow, xA orange, xB green, xC cyan, xD blue, xE purple, xF highlight
     builtins.fromJSON (builtins.readFile ./colors.json);
   icons = {
     name = "MoreWaita";

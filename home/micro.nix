@@ -20,7 +20,7 @@
       ruler = false;
     };
   };
-  home.file.".config/micro/colorschemes/custom.micro".text = with style.colors; ''
+  xdg.configFile."micro/colorschemes/custom.micro".text = with style.colors; ''
     color-link default "${x5}"
     color-link comment "${x4}"
     color-link identifier "bold ${xC}"
@@ -57,7 +57,7 @@
     color-link tab-error "${x8}"
     color-link trailingws "${x8}"
   '';
-  home.file.".config/micro/bindings.json".text = ''
+  xdg.configFile."micro/bindings.json".text = ''
     {
         "Alt-/": "lua:comment.comment",
     }

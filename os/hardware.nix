@@ -87,7 +87,6 @@ in
       kernelModules = [ "xe" ];
     };
     kernelModules = [ "kvm-intel" ];
-    kernelParams = [ "i915.enable_guc=3" ];
   };
 
   hardware = {
@@ -102,18 +101,14 @@ in
         intel-media-driver
       ];
     };
-    ipu6 = {
+    ipu7 = {
       enable = true;
-      platform = "ipu6";
+      platform = "ipu7x";
     };
   };
 
   services.fprintd.enable = true;
 
-  environment.sessionVariables = {
-    LIBVA_DRIVER_NAME = "iHD"; # Prefer the modern iHD backend
-  };
-
-  home-manager.sharedModules = [ { home.file.".config/monitors.xml".source = monitors; } ];
-  systemd.tmpfiles.rules = [ "L+ /run/gdm/.config/monitors.xml - - - - ${monitors}" ];
+  # Read by mutter for the login screen and for every user without their own
+  environment.etc."xdg/monitors.xml".source = monitors;
 }

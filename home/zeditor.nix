@@ -17,16 +17,11 @@
       "color-highlight"
       "xml"
     ];
-    package = pkgs.symlinkJoin {
-      name = "zed-editor-bundle";
-      paths = [
-        pkgs.zed-editor
-        pkgs.color-lsp
-        style.fonts.sans.package
-        style.fonts.mono.package
-        style.fonts.emoji.package
-      ];
-    };
+    extraPackages = with pkgs; [
+      color-lsp
+      nixd
+      nixfmt
+    ];
 
     userSettings = {
       hard_tabs = true;
@@ -111,13 +106,13 @@
       };
       lsp_document_colors = "background";
       lsp = {
+        nixd.binary.arguments = [ "--semantic-tokens=true" ];
         nixd.settings =
           let
-            system-flake = ''(builtins.getFlake "/etc/nixos")'';
+            system-flake = ''(builtins.getFlake "${osConfig.programs.nh.flake}")'';
             nixos-options = "${system-flake}.nixosConfigurations.${osConfig.networking.hostName}.options";
           in
           {
-            args = [ "--semantic-tokens=true" ];
             nixpkgs.expr = "import ${system-flake}.inputs.nixpkgs { }";
             formatting.command = [ "nixfmt" ];
             options = {

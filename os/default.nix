@@ -1,6 +1,5 @@
 {
   pkgs,
-  inputs,
   packages,
   ...
 }:
@@ -42,6 +41,7 @@
   };
   virtualisation.libvirtd.enable = true;
   time.timeZone = "Europe/London";
+  i18n.defaultLocale = "en_GB.UTF-8";
   console.useXkbConfig = true;
   services = {
     xserver.xkb.layout = "gb";
@@ -49,18 +49,15 @@
     avahi.nssmdns4 = true;
     ipp-usb.enable = true;
     fwupd.enable = true;
-    printing = {
-      enable = true;
-      drivers = with pkgs; [
-        cups-filters
-        cups-browsed
-      ];
-    };
+    printing.enable = true;
   };
   systemd.sleep.settings.Sleep.HibernateDelaySec = "24h";
   programs = {
     zsh.enable = true;
-    nh.enable = true;
+    nh = {
+      enable = true;
+      flake = "/etc/nixos";
+    };
     steam = {
       enable = true;
       remotePlay.openFirewall = true;
@@ -73,8 +70,8 @@
   };
   documentation.nixos.enable = false;
   nix = {
+    channel.enable = false;
     settings = {
-      nix-path = [ "nixpkgs=${inputs.nixpkgs}" ];
       download-buffer-size = 256 * 1024 * 1024;
       experimental-features = [
         "nix-command"

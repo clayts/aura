@@ -31,6 +31,7 @@
       "guest" = {
         description = "Guest";
         isNormalUser = true;
+        uid = 1001;
         hashedPasswordFile = "/data/etc/passwords/guest";
       };
       "root".hashedPasswordFile = "/data/etc/passwords/root";
@@ -42,8 +43,6 @@
     useUserPackages = true;
     extraSpecialArgs = { inherit inputs style packages; };
     backupFileExtension = "home-manager-backup";
-    users = lib.genAttrs [ "root" "user" "guest" ] (user: {
-      imports = [ ../home ];
-    });
+    users = lib.genAttrs [ "root" "user" "guest" ] (_: ../home);
   };
 }
