@@ -3,14 +3,15 @@ usage() {
 Usage: system <command> [--boot]
 
 Commands:
-  sync     Build the system in $flake and switch to it
+  test     Build the system in $flake as it is and switch to it
+  sync     Pull $flake and switch to it, without updating its inputs
   update   Pull $flake, update its inputs, switch, then commit and push flake.lock
   clean    Delete old generations, collect garbage, optimise the store and
            prune old boot entries
 
 Options:
-  --boot   (sync, update) Use the new system from the next boot instead of
-           switching now
+  --boot   (test, sync, update) Use the new system from the next boot instead
+           of switching now
 USAGE
 }
 
@@ -47,7 +48,11 @@ rebuild() {
 }
 
 case "$cmd" in
+    test)
+        rebuild
+        ;;
     sync)
+        git -C "$flake" pull --ff-only
         rebuild
         ;;
     update)
