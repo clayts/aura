@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import colorsys
 import platform
 import random
@@ -46,13 +47,10 @@ def merge_frames(
         empty_line = " " * max_w
         return [empty_line] * max_h
 
-    def pad_frames(
-        frames: list[list[str]], max_h: int, max_w: int
-    ) -> list[list[str]]:
+    def pad_frames(frames: list[list[str]], max_h: int, max_w: int) -> list[list[str]]:
         empty_line: str = " " * max_w
         return [
-            [pad_line(line, max_w) for line in f]
-            + ([empty_line] * (max_h - len(f)))
+            [pad_line(line, max_w) for line in f] + ([empty_line] * (max_h - len(f)))
             for f in frames
         ]
 
@@ -72,9 +70,7 @@ def merge_frames(
     padded_left = [left_empty[:] for _ in range(num_pad_left)] + padded_left
 
     num_pad_right = max(0, max_frames - len(padded_right))
-    padded_right = [
-        right_empty[:] for _ in range(num_pad_right)
-    ] + padded_right
+    padded_right = [right_empty[:] for _ in range(num_pad_right)] + padded_right
 
     # Merge frames (vertically pad to max height per frame)
     merged_height = max(left_h, right_h)
@@ -85,12 +81,8 @@ def merge_frames(
     for i in range(max_frames):
         frame: list[str] = []
         for j in range(merged_height):
-            left_line: str = (
-                padded_left[i][j] if j < left_h else left_empty_line
-            )
-            right_line: str = (
-                padded_right[i][j] if j < right_h else right_empty_line
-            )
+            left_line: str = padded_left[i][j] if j < left_h else left_empty_line
+            right_line: str = padded_right[i][j] if j < right_h else right_empty_line
             frame.append(left_line + right_line)
         merged.append(frame)
     return merged
@@ -135,9 +127,7 @@ def separator_keyframe() -> list[str]:
 def separator() -> list[list[str]]:
     effect = Slide("\n".join(separator_keyframe()))
     effect.effect_config.movement_speed = 0.04
-    effect.effect_config.final_gradient_direction = (
-        Gradient.Direction.HORIZONTAL
-    )
+    effect.effect_config.final_gradient_direction = Gradient.Direction.HORIZONTAL
     effect.terminal_config.frame_rate = 0
     effect.effect_config.final_gradient_steps = 1
     effect.effect_config.final_gradient_frames = 1
@@ -186,9 +176,7 @@ def info_keyframe() -> list[str]:
 def info() -> list[list[str]]:
     effect = Slide("\n".join(info_keyframe()))
     effect.effect_config.movement_speed = 2
-    effect.effect_config.final_gradient_direction = (
-        Gradient.Direction.HORIZONTAL
-    )
+    effect.effect_config.final_gradient_direction = Gradient.Direction.HORIZONTAL
     effect.terminal_config.frame_rate = 0
     effect.effect_config.final_gradient_steps = 10
     effect.effect_config.final_gradient_frames = 1

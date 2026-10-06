@@ -27,13 +27,21 @@
     ];
     text = builtins.readFile ./earthpaper/earthpaper.sh;
   };
-  rizzlefetch = pkgs.writers.writePython3Bin "rizzlefetch" {
-    libraries = ps: [ ps.terminaltexteffects ];
+  rizzlefetch = pkgs.python3Packages.buildPythonApplication {
+    pname = "rizzlefetch";
+    version = "0";
+    pyproject = false;
+    src = ./rizzlefetch.py;
+    dontUnpack = true;
+    dependencies = [ pkgs.python3Packages.terminaltexteffects ];
+    installPhase = ''
+      install -Dm755 $src $out/bin/rizzlefetch
+    '';
     makeWrapperArgs = [
       "--prefix"
       "PATH"
       ":"
       (pkgs.lib.makeBinPath [ pkgs.toilet ])
     ];
-  } (builtins.readFile ./rizzlefetch.py);
+  };
 }
