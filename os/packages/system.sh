@@ -1,110 +1,86 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
 usage() {
-    cat <<EOF
+    cat <<USAGE
 Usage:
-  system sync [--boot] [--input <input> <path>]
+  system sync [--boot] [--input <input> <path>]...
   system clean
 
 Commands:
-  sync                     Rebuild the system (via nh os)
-  clean                    Run garbage collection / store optimisation
+  sync    Pull the flake in \$NH_FLAKE and rebuild the system (via nh os)
+  clean   Collect garbage, optimise the store and prune old boot entries
 
 Options:
-  --boot                 (sync only) Apply on next boot instead of switching now
-  --input <input> <path>   (sync only) Override a flake input with a local path,
-                           e.g. --input nixpkgs ~/nixpkgs
-EOF
+  --boot                   (sync only) Apply on next boot instead of switching now
+  --input <input> <path>   (sync only, repeatable) Override a flake input with a
+                           local path instead of pulling, e.g. --input nixpkgs ~/nixpkgs
+USAGE
 }
 
-MODE=""
-BOOT=0
-INPUT_NAME=""
-INPUT_PATH=""
+flake=$NH_FLAKE
 
-# --- parse args -------------------------------------------------------
+do_sync() {
+    local subcmd=switch
+    local overrides=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --boot)
+                subcmd=boot
+                shift
+                ;;
+            --input)
+                if [[ $# -lt 3 || -z $2 || -z $3 || $2 == --* || $3 == --* ]]; then
+                    echo "Error: --input requires two values: <input> <path>" >&2
+                    exit 1
+                fi
+                echo "Overriding $2 with path:$3"
+                overrides+=(--override-input "$2" "path:$3")
+                shift 3
+                ;;
+            -h | --help)
+                usage
+                exit 0
+                ;;
+            *)
+                echo "Unknown argument: $1" >&2
+                usage >&2
+                exit 1
+                ;;
+        esac
+    done
+    if [[ ${#overrides[@]} -eq 0 ]]; then
+        git -C "$flake" pull --ff-only
+    fi
+    nh os "$subcmd" "$flake" -- --quiet "${overrides[@]}"
+}
+
+do_clean() {
+    if [[ $# -gt 0 ]]; then
+        echo "Error: clean takes no options" >&2
+        exit 1
+    fi
+    nh clean all --optimise
+    # Reinstall the bootloader so entries for collected generations go
+    sudo /nix/var/nix/profiles/system/bin/switch-to-configuration boot
+}
+
 case "${1:-}" in
-    sync|clean)
-        MODE="$1"
+    sync)
         shift
+        do_sync "$@"
         ;;
-    -h|--help)
+    clean)
+        shift
+        do_clean "$@"
+        ;;
+    -h | --help)
         usage
-        exit 0
         ;;
     "")
-        echo "Error: must specify a command: sync or clean" >&2
-        usage
+        usage >&2
         exit 1
         ;;
     *)
         echo "Unknown command: $1" >&2
-        usage
+        usage >&2
         exit 1
         ;;
-esac
-
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --boot)
-            BOOT=1
-            shift
-            ;;
-        --input)
-            if [[ -z "${2:-}" || "$2" == --* || -z "${3:-}" || "$3" == --* ]]; then
-                echo "Error: --input requires two values: <input> <path>" >&2
-                exit 1
-            fi
-            INPUT_NAME="$2"
-            INPUT_PATH="$3"
-            shift 3
-            ;;
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        *)
-            echo "Unknown argument: $1" >&2
-            usage
-            exit 1
-            ;;
-    esac
-done
-
-# --- validate -----------------------------------------------------------
-if [[ "$MODE" == "clean" ]]; then
-    if [[ $BOOT -eq 1 || -n "$INPUT_NAME" ]]; then
-        echo "Error: --boot and --input are only valid with sync" >&2
-        exit 1
-    fi
-fi
-
-FLAKE_DIR="/etc/nixos"
-
-# --- actions --------------------------------------------------------
-
-do_sync() {
-    local subcmd="switch"
-    if [[ $BOOT -eq 1 ]]; then
-        subcmd="boot"
-    fi
-
-    if [[ -n "$INPUT_NAME" ]]; then
-        echo "Overriding $INPUT_NAME with path:$INPUT_PATH"
-        nh os "$subcmd" "$FLAKE_DIR" -- --quiet --override-input "$INPUT_NAME" "path:$INPUT_PATH"
-    else
-        git -C "$FLAKE_DIR" pull --ff-only
-        nh os "$subcmd" "$FLAKE_DIR" -- --quiet
-    fi
-}
-
-do_clean() {
-    nh clean all --optimise
-    nh os boot
-}
-
-case "$MODE" in
-    sync)  do_sync ;;
-    clean) do_clean ;;
 esac

@@ -1,6 +1,3 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
 usage() {
     cat <<EOF
 Usage:
@@ -84,7 +81,6 @@ check_in_sync() {
         exit 1
     fi
 
-    # Drop this block if you'd rather let the push fail on non-fast-forward.
     if [[ -n "$(git log --oneline HEAD.."$upstream")" ]]; then
         echo "Error: behind $upstream; pull before using --push" >&2
         git log --oneline HEAD.."$upstream" >&2
@@ -116,7 +112,5 @@ git add flake.lock
 git commit -m "Update flake.lock"
 
 if [[ $PUSH -eq 1 ]]; then
-    git push origin HEAD
-    # Give the remote a moment before anything (e.g. system sync) fetches it.
-    sleep 3
+    git push
 fi

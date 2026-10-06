@@ -58,11 +58,12 @@ let
   sabaki = pkgs.writeShellApplication {
     name = "sabaki";
     text = ''
-      if [[ ! -d "$XDG_CONFIG_HOME/Sabaki" ]]; then
-        mkdir -p "$XDG_CONFIG_HOME/Sabaki"
-        cat ${sabaki-config} > "$XDG_CONFIG_HOME/Sabaki/settings.json"
+      config="''${XDG_CONFIG_HOME:-$HOME/.config}/Sabaki"
+      if [[ ! -d "$config" ]]; then
+        mkdir -p "$config"
+        cat ${sabaki-config} > "$config/settings.json"
       fi
-      ${sabaki-unwrapped}/bin/sabaki "$@"
+      exec ${sabaki-unwrapped}/bin/sabaki "$@"
     '';
   };
   sabaki-desktop = pkgs.makeDesktopItem {

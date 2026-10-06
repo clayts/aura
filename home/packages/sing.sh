@@ -1,29 +1,32 @@
-[[ $# -ge 1 ]] || fail "usage: ${0##*/} <query…>"
+if [[ $# -eq 0 ]]; then
+    echo "usage: ${0##*/} <query…>" >&2
+    exit 1
+fi
 
 cache="$HOME/.cache/sing"
 query="$*"
-if [[ ! -L "$cache/queries/$query" ]]; then
+# '/' can't appear in a file name, so it becomes '_' in cache entries
+link="$cache/queries/${query//\//_}"
+if [[ ! -e $link ]]; then
     echo " $query"
     json=$(yt-dlp --dump-json --no-playlist "ytsearch1:$query")
-    id=$(echo "$json" | jq -r '.id')
-    mp3="$(echo "$json" | jq -r '.title').mp3"
-    if [[ ! -f "$cache/mp3s/$mp3" ]]; then
+    id=$(jq -r '.id' <<<"$json")
+    title=$(jq -r '.title' <<<"$json")
+    mp3="$cache/mp3s/${title//\//_}.mp3"
+    if [[ ! -f $mp3 ]]; then
         echo " https://www.youtube.com/watch?v=$id"
         mkdir -p "$cache/mp3s"
+        # yt-dlp reads % as the start of a template field
         yt-dlp \
             -q \
             -t mp3 \
             --no-playlist \
-            --output "$cache/mp3s/$mp3" \
+            --output "${mp3//\%/%%}" \
             -- "https://www.youtube.com/watch?v=$id"
     fi
     mkdir -p "$cache/queries"
-    ln -s "$cache/mp3s/$mp3" "$cache/queries/$query"
+    ln -sfn "$mp3" "$link"
 fi
-mp3=$(basename "$(readlink -f "$cache/queries/$query")")
-echo " $mp3"
-mpv \
-    --really-quiet \
-    --scripts-add="$mpris/share/mpv/scripts/mpris.so" \
-    "$cache/mp3s/$mp3"
-exit 0
+mp3=$(readlink "$link")
+echo " ${mp3##*/}"
+mpv --really-quiet "$mp3"

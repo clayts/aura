@@ -2,12 +2,12 @@ import colorsys
 import platform
 import random
 import re
+import socket
 import subprocess
 import sys
 import time
 from pathlib import Path
 
-# from terminaltexteffects.effects.effect_expand import Expand
 from terminaltexteffects.effects.effect_random_sequence import RandomSequence
 from terminaltexteffects.effects.effect_slide import Slide
 from terminaltexteffects.utils.graphics import Color, Gradient
@@ -38,8 +38,8 @@ def merge_frames(
         return s.ljust(max_w)
 
     def get_dims(frames: list[list[str]]) -> tuple[int, int]:
-        max_h = max((len(f) for f in frames))
-        max_w = max((visible_length(line) for f in frames for line in f))
+        max_h = max(len(f) for f in frames)
+        max_w = max(visible_length(line) for f in frames for line in f)
         return max_h, max_w
 
     def make_empty_frame(max_h: int, max_w: int) -> list[str]:
@@ -99,21 +99,14 @@ def rainbow(n: int) -> tuple[Color, ...]:
     )
 
 
-def hostname() -> str:
-    return subprocess.run(
-        ["hostname"], capture_output=True, text=True, check=True
-    ).stdout.rstrip("\n")
-
-
 def logo_keyframe() -> list[str]:
-    return big_text(hostname())
+    return big_text(socket.gethostname())
 
 
 def logo() -> list[list[str]]:
     effect = RandomSequence("\n".join(logo_keyframe()))
     effect.terminal_config.frame_rate = 0
     effect.effect_config.starting_color = Color("ffffff")
-    # effect.effect_config.movement_speed = 0.25
     effect.effect_config.final_gradient_stops = rainbow(3)
     effect.effect_config.final_gradient_direction = Gradient.Direction.DIAGONAL
     effect.effect_config.final_gradient_frames = 12
@@ -128,21 +121,6 @@ def separator_keyframe() -> list[str]:
         "  󰏗 ❯",
         "  󰻀 ❯",
     ]
-
-
-# def separator() -> list[list[str]]:
-#     effect = RandomSequence("\n".join(separator_keyframe()))
-#     effect.terminal_config.frame_rate = 0
-#     effect.effect_config.starting_color = Color("000000")
-#     # effect.effect_config.movement_speed = 0.25
-#     # effect.effect_config.final_gradient_stops = rainbow(3)
-#     effect.effect_config.final_gradient_stops = (
-#         Color("333333"),
-#         Color("555555"),
-#     )
-#     effect.effect_config.final_gradient_direction = Gradient.Direction.DIAGONAL
-#     effect.effect_config.final_gradient_frames = 3
-#     return [frame.split("\n") for frame in effect]
 
 
 def separator() -> list[list[str]]:
@@ -170,7 +148,7 @@ def hardware_name() -> str:
         version = (base / "product_version").read_text().strip()
         parts = [p for p in (vendor, product, version) if p]
         return " ".join(parts) if parts else "Unknown"
-    except Exception:
+    except OSError:
         return "Unknown"
 
 
@@ -179,8 +157,6 @@ def distro_name() -> str:
     name = release["PRETTY_NAME"]
     if "BUILD_ID" in release:
         name += " " + release["BUILD_ID"]
-    # print(release)
-    # quit()
     return name
 
 
@@ -196,21 +172,6 @@ def info_keyframe() -> list[str]:
     ]
 
 
-# def info() -> list[list[str]]:
-#     effect = RandomSequence("\n".join(info_keyframe()))
-#     effect.terminal_config.frame_rate = 0
-#     effect.effect_config.starting_color = Color("ffffff")
-#     # effect.effect_config.movement_speed = 0.25
-#     # effect.effect_config.final_gradient_stops = rainbow(3)
-#     effect.effect_config.final_gradient_stops = (
-#         # Color("333333"),
-#         Color("cccccc"),
-#     )
-#     effect.effect_config.final_gradient_direction = Gradient.Direction.VERTICAL
-#     effect.effect_config.final_gradient_frames = 3
-#     return [frame.split("\n") for frame in effect]
-
-
 def info() -> list[list[str]]:
     effect = Slide("\n".join(info_keyframe()))
     effect.effect_config.movement_speed = 2
@@ -219,21 +180,8 @@ def info() -> list[list[str]]:
     effect.effect_config.final_gradient_steps = 10
     effect.effect_config.final_gradient_frames = 1
     effect.effect_config.reverse_direction = False
-    effect.effect_config.final_gradient_stops = (
-        # Color("333333"),
-        Color("cccccc"),
-    )
+    effect.effect_config.final_gradient_stops = (Color("cccccc"),)
     return [[line + " " for line in frame.split("\n")] for frame in effect]
-
-
-# def info() -> list[list[str]]:
-#     effect = Slide("\n".join(info_keyframe()))
-#     effect.terminal_config.frame_rate = 0
-#     effect.effect_config.movement_speed = 1
-#     effect.effect_config.final_gradient_frames = 2
-#     effect.effect_config.final_gradient_stops = (Color("eeeeee"),)
-#     effect.effect_config.final_gradient_direction = Gradient.Direction.HORIZONTAL
-#     return [frame.split("\n") for frame in effect]
 
 
 # COMPOSE ##########################################################################################
