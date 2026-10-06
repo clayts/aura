@@ -1,7 +1,7 @@
 {
   pkgs,
   lib,
-  assets,
+  style,
   osConfig,
   ...
 }:
@@ -22,9 +22,9 @@
       paths = [
         pkgs.zed-editor
         pkgs.color-lsp
-        assets.style.fonts.sans.package
-        assets.style.fonts.mono.package
-        assets.style.fonts.emoji.package
+        style.fonts.sans.package
+        style.fonts.mono.package
+        style.fonts.emoji.package
       ];
     };
 
@@ -78,13 +78,13 @@
         code_actions = true;
       };
       restore_on_startup = "empty_tab";
-      buffer_font_family = assets.style.fonts.mono.name;
-      buffer_font_features = lib.genAttrs assets.style.fonts.mono.features (f: true);
+      buffer_font_family = style.fonts.mono.name;
+      buffer_font_features = lib.genAttrs style.fonts.mono.features (f: true);
       buffer_font_weight = 400;
-      buffer_font_size = assets.style.fonts.mono.size * 4.0 / 3.0;
+      buffer_font_size = style.fonts.mono.size * 4.0 / 3.0;
       buffer_line_height.custom = 1.23;
       ui_font_family = lib.mkForce ".SystemUIFont"; # style.fonts.sans.name;
-      ui_font_size = assets.style.fonts.sans.size * 3.0 / 2.0;
+      ui_font_size = style.fonts.sans.size * 3.0 / 2.0;
       ui_font_weight = 400;
       soft_wrap = "editor_width";
       preferred_line_length = 100;
@@ -128,7 +128,7 @@
         rust-analyzer.initialization_options.check.command = "clippy";
       };
     };
-    themes.custom = with assets.style.colors; {
+    themes.custom = with style.colors; {
       "$schema" = "https://zed.dev/schema/themes/v0.2.0.json";
       "name" = "custom";
       "author" = "";

@@ -30,49 +30,21 @@
     let
       system = "x86_64-linux";
       pkgs = import inputs.nixpkgs { inherit system; };
-      assets = import ./assets { inherit inputs pkgs; };
+      style = import ./style { inherit pkgs; };
+      packages = {
+        os = import ./os/packages { inherit inputs pkgs; };
+        home = import ./home/packages { inherit pkgs; };
+      };
     in
     {
-      apps.${system} = {
-        install-system = {
-          type = "app";
-          program = "${assets.packages.install-system}/bin/install-system";
-        };
-        install-home = {
-          type = "app";
-          program = "${assets.packages.install-home}/bin/install-home";
-        };
+      nixosConfigurations.aura = inputs.nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs style packages; };
+        modules = [ ./os ];
       };
-      nixosSystem =
-        {
-          name,
-          foundation,
-          hardware,
-          imports ? [ ],
-          specialArgs ? { },
-        }:
-        {
-          nixosConfigurations = {
-            "${name}" = inputs.nixpkgs.lib.nixosSystem {
-              specialArgs = {
-                inherit inputs assets;
-              }
-              // specialArgs;
-              modules = [
-                {
-                  networking.hostName = "${name}";
-                  system.stateVersion = "${foundation.system}";
-                  home-manager.sharedModules = [ { home.stateVersion = "${foundation.homes}"; } ];
-                  imports = [
-                    ./nixos
-                    hardware
-                  ]
-                  ++ imports;
-                }
-              ];
-            };
-          };
-        };
+      apps.${system}.install = {
+        type = "app";
+        program = "${packages.os.install}/bin/install";
+      };
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
           nixd
@@ -89,7 +61,7 @@
           ruff
           (python313.withPackages (ps: with ps; [ terminaltexteffects ]))
 
-          assets.packages.update
+          packages.os.update
         ];
       };
     };

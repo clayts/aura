@@ -41,7 +41,7 @@
     extraSpecialArgs = specialArgs;
     backupFileExtension = "home-manager-backup";
     users = lib.genAttrs [ "root" "user" "guest" ] (user: {
-      imports = [ ../home-manager ];
+      imports = [ ../home ];
     });
   };
 }

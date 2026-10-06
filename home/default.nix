@@ -1,6 +1,7 @@
 {
   pkgs,
-  assets,
+  style,
+  packages,
   lib,
   config,
   ...
@@ -15,6 +16,7 @@
     ./zsh.nix
   ];
   home = {
+    stateVersion = "26.11";
     packages =
       let
         applications = with pkgs; [
@@ -38,10 +40,10 @@
           yelp
           resources
           snapshot
-          assets.packages.sabaki
+          packages.home.sabaki
           gnome-calendar
         ];
-        fonts = with assets.style.fonts; [
+        fonts = with style.fonts; [
           sans.package
           serif.package
           mono.package
@@ -81,14 +83,14 @@
       [Desktop Entry]
       Type=Application
       Name=Earthpaper
-      Exec=${assets.packages.earthpaper}/bin/earthpaper
+      Exec=${packages.home.earthpaper}/bin/earthpaper
       X-GNOME-Autostart-enabled=true
       NoDisplay=true
     '';
   };
   fonts.fontconfig = {
     enable = true;
-    defaultFonts = with assets.style.fonts; {
+    defaultFonts = with style.fonts; {
       sansSerif = [
         sans.name
         emoji.name
@@ -128,7 +130,7 @@
                       ${lib.concatMapStrings (f: "<string>${f} on</string>") font.features}
                     </edit>
                   </match>''
-            ) assets.style.fonts
+            ) style.fonts
           )}
         </fontconfig>
       '';

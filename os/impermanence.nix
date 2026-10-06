@@ -20,7 +20,11 @@
       "/var/"
       "/etc/NetworkManager/system-connections/"
       "/etc/ssh/"
-      "/etc/nixos/"
+      {
+        directory = "/etc/nixos/";
+        user = "user";
+        group = "users";
+      }
     ];
     files = [
       "/etc/machine-id"

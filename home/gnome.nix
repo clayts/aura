@@ -2,7 +2,7 @@
   pkgs,
   lib,
   config,
-  assets,
+  style,
   ...
 }:
 let
@@ -17,7 +17,7 @@ in
 {
   gtk = {
     enable = true;
-    iconTheme = assets.style.icons;
+    iconTheme = style.icons;
     gtk4.theme = null;
     gtk3 = {
       theme = {
@@ -31,14 +31,14 @@ in
         "file://${config.home.homeDirectory}/Documents"
       ];
     };
-    cursorTheme = assets.style.cursors;
+    cursorTheme = style.cursors;
   };
   programs.gnome-shell = {
     enable = true;
     extensions = map (extension: { package = extension; }) extensions;
   };
   dconf.settings = {
-    "org/gnome/desktop/interface" = with assets.style.fonts; {
+    "org/gnome/desktop/interface" = with style.fonts; {
       font-name = "${sans.name} ${toString sans.size}";
       document-font-name = "${serif.name} ${toString serif.size}";
       monospace-font-name = "${mono.name} ${toString mono.size}";

@@ -94,9 +94,7 @@ do_sync() {
         echo "Overriding $INPUT_NAME with path:$INPUT_PATH"
         nh os "$subcmd" "$FLAKE_DIR" -- --quiet --override-input "$INPUT_NAME" "path:$INPUT_PATH"
     else
-        # --refresh: without it, nix may reuse a cached resolution (tarball-ttl,
-        # root's cache under sudo) and miss an input revision pushed moments ago.
-        sudo nix flake update --refresh --flake "$FLAKE_DIR"
+        git -C "$FLAKE_DIR" pull --ff-only
         nh os "$subcmd" "$FLAKE_DIR" -- --quiet
     fi
 }

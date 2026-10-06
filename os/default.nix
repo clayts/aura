@@ -1,7 +1,7 @@
 {
   pkgs,
   inputs,
-  assets,
+  packages,
   ...
 }:
 {
@@ -11,10 +11,11 @@
     ./impermanence.nix
     ./users.nix
   ];
+  networking.hostName = "aura";
+  system.stateVersion = "26.11";
   environment.systemPackages = with pkgs; [
-    assets.packages.persist
-    assets.packages.system
-    assets.packages.scan
+    packages.os.persist
+    packages.os.system
     hunspellDicts.en_GB-ize
     android-tools
   ];
@@ -90,7 +91,7 @@
   nix = {
     enable = true;
     settings = {
-    	nix-path = [ "nixpkgs=${inputs.nixpkgs}" ];
+      nix-path = [ "nixpkgs=${inputs.nixpkgs}" ];
       download-buffer-size = 256 * 1024 * 1024;
       experimental-features = [
         "nix-command"

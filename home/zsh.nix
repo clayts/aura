@@ -3,7 +3,7 @@
   lib,
   config,
   inputs,
-  assets,
+  packages,
   ...
 }:
 {
@@ -11,9 +11,9 @@
     inputs.nix-index-database.homeModules.nix-index
   ];
   home.packages = with pkgs; [
-    assets.packages.earthpaper
-    assets.packages.safe
-    assets.packages.sing
+    packages.home.earthpaper
+    packages.home.safe
+    packages.home.sing
     grc
   ];
   programs = {
@@ -61,7 +61,7 @@
         name = {
           "desk" = "󱈹";
           "code" = "";
-          "universe" = "";
+          "aura" = "";
           "${config.home.username}" = "";
         };
       };
@@ -192,7 +192,7 @@
       syntaxHighlighting.enable = true;
       autosuggestion.enable = true;
       initContent = ''
-        [[ -o interactive ]] && [[ -n $DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${assets.packages.rizzlefetch}/bin/rizzlefetch && echo
+        [[ -o interactive ]] && [[ -n $DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${packages.home.rizzlefetch}/bin/rizzlefetch && echo
         echo
 
         # keybindings

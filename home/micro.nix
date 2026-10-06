@@ -1,6 +1,6 @@
 {
   pkgs,
-  assets,
+  style,
   ...
 }:
 {
@@ -20,7 +20,7 @@
       ruler = false;
     };
   };
-  home.file.".config/micro/colorschemes/custom.micro".text = with assets.style.colors; ''
+  home.file.".config/micro/colorschemes/custom.micro".text = with style.colors; ''
     color-link default "${x5}"
     color-link comment "${x4}"
     color-link identifier "bold ${xC}"
