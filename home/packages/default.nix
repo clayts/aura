@@ -29,11 +29,7 @@
   };
   rizzlefetch = pkgs.writers.writePython3Bin "rizzlefetch" {
     libraries = ps: [ ps.terminaltexteffects ];
-    # Replaces flake8's default ignores; W503 clashes with ruff's line breaks
-    flakeIgnore = [
-      "E501"
-      "W503"
-    ];
+    flakeIgnore = [ "E501" ]; # ruff formats to 88 columns, flake8 checks 79
     makeWrapperArgs = [
       "--prefix"
       "PATH"

@@ -11,9 +11,11 @@ From a NixOS installer, run `nix run --experimental-features "nix-command flakes
 This erases the disk declared in `os/hardware.nix`.
 
 ## Use
-- `system sync` pulls `/etc/nixos` and switches to it; `system clean` collects garbage.
-- Passwords are hashes in `/etc/passwords/<name>`. To change one, run `mkpasswd | sudo tee /etc/passwords/<name>`, then `system sync`.
-- `nix fmt` formats the Nix files. In the dev shell, `update --commit --push` updates `flake.lock`.
+- `system switch` builds `/etc/nixos` and switches to it.
+- `system update` pulls `/etc/nixos`, updates its inputs, switches, then commits and pushes `flake.lock`.
+- `--boot` makes either one take effect at the next boot instead. `system clean` collects garbage.
+- Passwords are hashes in `/etc/passwords/<name>`. To change one, run `mkpasswd | sudo tee /etc/passwords/<name>`, then `system switch`.
+- `nix fmt` formats the Nix files.
 
 ## To Do
 - rename data -> static?

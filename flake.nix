@@ -58,7 +58,6 @@
           basedpyright
           ruff
           (python3.withPackages (ps: [ ps.terminaltexteffects ]))
-          packages.os.update
         ];
       };
     };

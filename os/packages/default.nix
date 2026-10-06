@@ -21,11 +21,7 @@
     text = builtins.readFile ./system.sh;
   };
   persist = pkgs.writers.writePython3Bin "persist" {
-    # Replaces flake8's default ignores; W503 clashes with ruff's line breaks
-    flakeIgnore = [
-      "E501"
-      "W503"
-    ];
+    flakeIgnore = [ "E501" ]; # ruff formats to 88 columns, flake8 checks 79
     makeWrapperArgs = [
       "--prefix"
       "PATH"
@@ -36,9 +32,4 @@
       ])
     ];
   } (builtins.readFile ./persist.py);
-  update = pkgs.writeShellApplication {
-    name = "update";
-    runtimeInputs = [ pkgs.git ];
-    text = builtins.readFile ./update.sh;
-  };
 }
