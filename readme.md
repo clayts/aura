@@ -11,10 +11,10 @@ From a NixOS installer, run `nix run --experimental-features "nix-command flakes
 This erases the disk declared in `os/hardware.nix`.
 
 ## Use
-- `system switch` builds `/etc/nixos` and switches to it.
+- `system sync` builds `/etc/nixos` and switches to it.
 - `system update` pulls `/etc/nixos`, updates its inputs, switches, then commits and pushes `flake.lock`.
 - `--boot` makes either one take effect at the next boot instead. `system clean` collects garbage.
-- Passwords are hashes in `/etc/passwords/<name>`. To change one, run `mkpasswd | sudo tee /etc/passwords/<name>`, then `system switch`.
+- Passwords are hashes in `/etc/passwords/<name>`. To change one, run `mkpasswd | sudo tee /etc/passwords/<name>`, then `system sync`.
 - `nix fmt` formats the Nix files.
 
 ## To Do

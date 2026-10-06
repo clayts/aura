@@ -29,7 +29,6 @@
   };
   rizzlefetch = pkgs.writers.writePython3Bin "rizzlefetch" {
     libraries = ps: [ ps.terminaltexteffects ];
-    flakeIgnore = [ "E501" ]; # ruff formats to 88 columns, flake8 checks 79
     makeWrapperArgs = [
       "--prefix"
       "PATH"

@@ -21,7 +21,6 @@
     text = builtins.readFile ./system.sh;
   };
   persist = pkgs.writers.writePython3Bin "persist" {
-    flakeIgnore = [ "E501" ]; # ruff formats to 88 columns, flake8 checks 79
     makeWrapperArgs = [
       "--prefix"
       "PATH"
