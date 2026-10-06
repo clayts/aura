@@ -33,10 +33,7 @@
     };
     loader = {
       systemd-boot.enable = true;
-      efi = {
-        efiSysMountPoint = "/boot";
-        canTouchEfiVariables = true;
-      };
+      efi.canTouchEfiVariables = true;
       timeout = 0;
     };
     plymouth.enable = true;
@@ -49,17 +46,7 @@
   services = {
     xserver.xkb.layout = "gb";
     logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
-    avahi = {
-      enable = true;
-      nssmdns4 = true;
-      openFirewall = true;
-    };
-    pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-    };
+    avahi.nssmdns4 = true;
     ipp-usb.enable = true;
     fwupd.enable = true;
     printing = {
@@ -80,16 +67,12 @@
       dedicatedServer.openFirewall = true;
     };
   };
-  security = {
-    sudo = {
-      wheelNeedsPassword = false;
-      extraConfig = "Defaults:root,%wheel env_keep+=SHLVL";
-    };
-    rtkit.enable = true;
+  security.sudo = {
+    wheelNeedsPassword = false;
+    extraConfig = "Defaults:root,%wheel env_keep+=SHLVL";
   };
   documentation.nixos.enable = false;
   nix = {
-    enable = true;
     settings = {
       nix-path = [ "nixpkgs=${inputs.nixpkgs}" ];
       download-buffer-size = 256 * 1024 * 1024;
@@ -99,7 +82,5 @@
       ];
     };
   };
-  nixpkgs.config.allowUnfree = true;
   hardware.enableAllFirmware = true;
-  networking.networkmanager.enable = true;
 }

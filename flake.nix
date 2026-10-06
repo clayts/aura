@@ -29,7 +29,10 @@
     inputs:
     let
       system = "x86_64-linux";
-      pkgs = import inputs.nixpkgs { inherit system; };
+      pkgs = import inputs.nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
       style = import ./style { inherit pkgs; };
       packages = {
         os = import ./os/packages { inherit inputs pkgs; };
@@ -39,7 +42,10 @@
     {
       nixosConfigurations.aura = inputs.nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs style packages; };
-        modules = [ ./os ];
+        modules = [
+          ./os
+          { nixpkgs.pkgs = pkgs; }
+        ];
       };
       apps.${system}.install = {
         type = "app";

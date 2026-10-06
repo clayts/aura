@@ -10,8 +10,6 @@
 
   programs.ghostty = {
     enable = true;
-    enableZshIntegration = true;
-    systemd.enable = true;
     themes = {
       "Custom" = with style.colors; {
         background = x9;

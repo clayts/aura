@@ -34,9 +34,6 @@
     };
     profiles = {
       default = {
-        id = 0;
-        name = "default";
-        isDefault = true;
         userChrome = ''
           @import "${inputs.firefox-theme}/userChrome.css";
           #nav-bar-overflow-button {

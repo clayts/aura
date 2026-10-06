@@ -17,9 +17,7 @@
     grc
   ];
   programs = {
-    ripgrep-all = {
-      enable = true;
-    };
+    ripgrep-all.enable = true;
     bat = {
       enable = true;
       extraPackages = with pkgs.bat-extras; [
@@ -39,24 +37,16 @@
       enableZshIntegration = false; # slow - just use comma
     };
     nix-index-database.comma.enable = true;
-    zoxide = {
-      enable = true;
-      enableZshIntegration = true;
-    };
+    zoxide.enable = true;
     direnv = {
       enable = true;
-      enableZshIntegration = true;
       nix-direnv.enable = true;
       silent = true;
     };
     git.enable = true;
-    fzf = {
-      enable = true;
-      enableZshIntegration = true;
-    };
+    fzf.enable = true;
     lsd = {
       enable = true;
-      enableZshIntegration = true;
       icons = {
         name = {
           "desk" = "󱈹";
@@ -70,7 +60,6 @@
     fd.enable = true;
     starship = {
       enable = true;
-      enableZshIntegration = true;
       presets = [ "no-runtime-versions" ];
       settings = {
         add_newline = false;

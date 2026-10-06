@@ -74,7 +74,7 @@ let
     categories = [ "Game" ];
   };
 in
-(pkgs.symlinkJoin {
+pkgs.symlinkJoin {
   name = "sabaki";
   paths = [
     sabaki
@@ -84,4 +84,4 @@ in
     install -Dm644 ${sabaki-icon} \
       $out/share/icons/hicolor/256x256/apps/sabaki.png
   '';
-})
+}

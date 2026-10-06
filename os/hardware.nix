@@ -35,8 +35,6 @@ in
 {
   imports = [ inputs.disko.nixosModules.default ];
 
-  nixpkgs.hostPlatform = "x86_64-linux";
-
   fileSystems."/data".neededForBoot = true;
   disko.devices = {
     disk.main = {
@@ -95,13 +93,11 @@ in
   hardware = {
     cpu.intel.updateMicrocode = true;
     graphics = {
-      enable = true;
       extraPackages = with pkgs; [
         intel-media-driver # VA-API (iHD) userspace
         vpl-gpu-rt # oneVPL (QSV) runtime
         intel-compute-runtime # OpenCL (NEO) + Level Zero for Arc/Xe
       ];
-      enable32Bit = true;
       extraPackages32 = with pkgs.pkgsi686Linux; [
         intel-media-driver
       ];

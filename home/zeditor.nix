@@ -30,7 +30,7 @@
 
     userSettings = {
       hard_tabs = true;
-      cli_default_open_behavior= "new_window";
+      cli_default_open_behavior = "new_window";
       git = {
         inline_blame = {
           show_commit_summary = true;
@@ -79,11 +79,11 @@
       };
       restore_on_startup = "empty_tab";
       buffer_font_family = style.fonts.mono.name;
-      buffer_font_features = lib.genAttrs style.fonts.mono.features (f: true);
+      buffer_font_features = lib.genAttrs style.fonts.mono.features (_: true);
       buffer_font_weight = 400;
       buffer_font_size = style.fonts.mono.size * 4.0 / 3.0;
       buffer_line_height.custom = 1.23;
-      ui_font_family = lib.mkForce ".SystemUIFont"; # style.fonts.sans.name;
+      ui_font_family = ".SystemUIFont";
       ui_font_size = style.fonts.sans.size * 3.0 / 2.0;
       ui_font_weight = 400;
       soft_wrap = "editor_width";

@@ -1,7 +1,8 @@
 {
   pkgs,
   inputs,
-  specialArgs,
+  style,
+  packages,
   lib,
   ...
 }:
@@ -30,7 +31,6 @@
       "guest" = {
         description = "Guest";
         isNormalUser = true;
-        extraGroups = [ ];
         hashedPasswordFile = "/data/etc/passwords/guest";
       };
       "root".hashedPasswordFile = "/data/etc/passwords/root";
@@ -40,7 +40,7 @@
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = specialArgs;
+    extraSpecialArgs = { inherit inputs style packages; };
     backupFileExtension = "home-manager-backup";
     users = lib.genAttrs [ "root" "user" "guest" ] (user: {
       imports = [ ../home ];

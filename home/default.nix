@@ -89,7 +89,6 @@
     '';
   };
   fonts.fontconfig = {
-    enable = true;
     defaultFonts = with style.fonts; {
       sansSerif = [
         sans.name
@@ -108,32 +107,29 @@
         emoji.name
       ];
     };
-    configFile.features = {
-      enable = true;
-      text = ''
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
-        <fontconfig>
-          <description>Set features</description>
-          ${lib.concatStringsSep "\n" (
-            lib.mapAttrsToList (
-              role: font:
-              if font.features == [ ] then
-                ""
-              else
-                ''
-                  <match target="font">
-                    <test name="family" compare="eq">
-                      <string>${font.name}</string>
-                    </test>
-                    <edit name="fontfeatures" mode="append">
-                      ${lib.concatMapStrings (f: "<string>${f} on</string>") font.features}
-                    </edit>
-                  </match>''
-            ) style.fonts
-          )}
-        </fontconfig>
-      '';
-    };
+    configFile.features.text = ''
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+      <fontconfig>
+        <description>Set features</description>
+        ${lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (
+            role: font:
+            if font.features == [ ] then
+              ""
+            else
+              ''
+                <match target="font">
+                  <test name="family" compare="eq">
+                    <string>${font.name}</string>
+                  </test>
+                  <edit name="fontfeatures" mode="append">
+                    ${lib.concatMapStrings (f: "<string>${f} on</string>") font.features}
+                  </edit>
+                </match>''
+          ) style.fonts
+        )}
+      </fontconfig>
+    '';
   };
 }
