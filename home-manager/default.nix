@@ -55,7 +55,7 @@
       npm_config_cache = "$HOME/.cache/npm";
     };
     file = {
-      "${config.xdg.userDirs.templates}".source = assets.templates;
+      "${config.xdg.userDirs.templates}".source = ./templates;
     };
   };
   xdg = {
