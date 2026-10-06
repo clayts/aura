@@ -4,6 +4,7 @@
   style,
   packages,
   lib,
+  config,
   ...
 }:
 {
@@ -34,6 +35,18 @@
       };
       "root".hashedPasswordFile = "/etc/passwords/root";
     };
+  };
+
+  # Empty at every boot; home-manager fills it before logins are allowed
+  fileSystems."/home/guest" = {
+    device = "none";
+    fsType = "tmpfs";
+    options = [
+      "size=1G"
+      "mode=700"
+      "uid=${toString config.users.users.guest.uid}"
+      "gid=${toString config.users.groups.users.gid}"
+    ];
   };
 
   # Without ~/.gitconfig, git config --global writes to home-manager's
