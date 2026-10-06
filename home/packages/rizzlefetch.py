@@ -107,7 +107,6 @@ def logo_keyframe() -> list[str]:
 def logo() -> list[list[str]]:
     effect = RandomSequence("\n".join(logo_keyframe()))
     effect.terminal_config.frame_rate = 0
-    effect.effect_config.starting_color = Color("ffffff")
     effect.effect_config.final_gradient_stops = rainbow(3)
     effect.effect_config.final_gradient_direction = Gradient.Direction.DIAGONAL
     effect.effect_config.final_gradient_frames = 12
