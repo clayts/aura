@@ -51,7 +51,7 @@
 
   # Without ~/.gitconfig, git config --global writes to home-manager's
   # read-only ~/.config/git/config
-  systemd.tmpfiles.rules = [ "f /home/user/.gitconfig :0644 user users -" ];
+  system.userActivationScripts.gitconfig = "touch ~/.gitconfig";
 
   home-manager = {
     useGlobalPkgs = true;
