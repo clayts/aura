@@ -10,5 +10,10 @@ NixOS configuration for `aura`, kept at `/etc/nixos` (owned by `user`).
 From a NixOS installer, run `nix run --experimental-features "nix-command flakes" github:clayts/aura#install`.
 This erases the disk declared in `os/hardware.nix`.
 
+## Use
+- `system sync` pulls `/etc/nixos` and switches to it; `system clean` collects garbage.
+- Passwords are hashes in `/etc/passwords/<name>`. To change one, run `mkpasswd | sudo tee /etc/passwords/<name>`, then `system sync`.
+- `nix fmt` formats the Nix files. In the dev shell, `update --commit --push` updates `flake.lock`.
+
 ## To Do
 - rename data -> static?
