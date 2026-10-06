@@ -25,23 +25,12 @@ in
       with pkgs;
       [
         gnome-firmware
-        loupe
         file-roller
-        gnome-calculator
-        gnome-characters
-        gnome-logs
-        gnome-clocks
-        gnome-calendar
         eyedropper
         celluloid
         gitg
-        papers
         impression
-        baobab
-        gnome-disk-utility
-        yelp
         resources
-        snapshot
         packages.home.sabaki
       ]
       ++ map (font: font.package) fonts;
