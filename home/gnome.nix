@@ -8,6 +8,9 @@
 }:
 let
   wallpaper = "${config.xdg.dataHome}/earthpaper/image.jpeg";
+  blankWallpaper = pkgs.runCommand "blank-wallpaper.jpeg" { } ''
+    ${lib.getExe' pkgs.imagemagick "magick"} -size 1x1 'xc:${style.colors.x0}' $out
+  '';
 in
 {
   gtk = {
@@ -51,6 +54,13 @@ in
     Exec=${lib.getExe packages.home.earthpaper} ${wallpaper}
     X-GNOME-Autostart-enabled=true
     NoDisplay=true
+  '';
+  # GNOME Shell only notices the wallpaper changing if it existed at login, so
+  # leave a blank one for earthpaper to overwrite
+  home.activation.earthpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [[ ! -e ${lib.escapeShellArg wallpaper} ]]; then
+      run install -D -m 644 ${blankWallpaper} ${lib.escapeShellArg wallpaper}
+    fi
   '';
   dconf.settings = {
     "org/gnome/shell".favorite-apps = [
