@@ -13,6 +13,17 @@ let
   '';
 in
 {
+  home.packages = with pkgs; [
+    gnome-firmware
+    file-roller
+    eyedropper
+    celluloid
+    gitg
+    impression
+    resources
+    packages.sabaki
+    packages.earthpaper
+  ];
   gtk = {
     enable = true;
     iconTheme = style.icons;
@@ -46,7 +57,6 @@ in
       ]
     );
   };
-  home.packages = [ packages.earthpaper ];
   xdg.configFile."autostart/earthpaper.desktop".text = ''
     [Desktop Entry]
     Type=Application

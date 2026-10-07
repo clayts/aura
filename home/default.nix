@@ -6,7 +6,6 @@
 }:
 let
   style = import ./style { inherit pkgs; };
-  packages = import ./packages { inherit pkgs; };
   homeDirectory = config.home.homeDirectory;
   fonts = lib.attrValues style.fonts;
 in
@@ -21,19 +20,7 @@ in
   ];
   home = {
     stateVersion = "26.11";
-    packages =
-      with pkgs;
-      [
-        gnome-firmware
-        file-roller
-        eyedropper
-        celluloid
-        gitg
-        impression
-        resources
-        packages.sabaki
-      ]
-      ++ map (font: font.package) fonts;
+    packages = map (font: font.package) fonts;
     sessionVariables = {
       EDITOR = "micro";
       GOPATH = "$HOME/.local/share/go";

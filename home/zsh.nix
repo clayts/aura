@@ -15,6 +15,7 @@ in
   home.packages = with pkgs; [
     packages.safe
     packages.sing
+    packages.system
     grc
   ];
   # gh writes config.yml itself, starting with the first login, so it can't be
