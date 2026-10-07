@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   services = {
     desktopManager.gnome.enable = true;
@@ -29,4 +29,22 @@
   programs.dconf.profiles.gdm.databases = [
     { settings."org/gnome/login-screen".enable-fingerprint-authentication = false; }
   ];
+  # Turn on "Preserve Battery Health" (UPower's charge threshold) at every boot
+  systemd.services.preserve-battery-health = {
+    description = "Enable UPower battery charge threshold";
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "upower.service" ];
+    after = [ "upower.service" ];
+    path = [
+      config.services.upower.package
+      config.systemd.package
+    ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      for battery in $(upower --enumerate | grep battery_); do
+        busctl call org.freedesktop.UPower "$battery" org.freedesktop.UPower.Device \
+          EnableChargeThreshold b true
+      done
+    '';
+  };
 }
