@@ -45,8 +45,8 @@
           "spellchecker.dictionary_path" = "${pkgs.hunspellDicts.en_GB-ize}/share/hunspell";
           "spellchecker.dictionary" = "en-GB,en_GB";
           "intl.accept_languages" = "en-GB,en";
-          # The camera is only usable through PipeWire, not as a plain V4L2 device
-          "media.webrtc.camera.allow-pipewire" = true;
+          "media.webrtc.camera.allow-pipewire" = true; # lets camera work
+          "browser.urlbar.scotchBonnet.enableOverride" = false; # disable search engine dropdown in address bar
           "browser.uiCustomization.navBarWhenVerticalTabs" = [
             "sidebar-button"
             "back-button"
