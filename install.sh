@@ -1,6 +1,7 @@
-clear
 host="aura"
 url="https://github.com/clayts/$host"
+
+clear
 toilet -f future "Installing..."
 toilet -f future --gay "$host"
 
