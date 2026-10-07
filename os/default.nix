@@ -44,23 +44,6 @@
     printing.enable = true;
   };
   systemd.sleep.settings.Sleep.HibernateDelaySec = "24h";
-  systemd.services.preserve-battery-health = {
-    description = "Enable UPower battery charge threshold";
-    wantedBy = [ "multi-user.target" ];
-    wants = [ "upower.service" ];
-    after = [ "upower.service" ];
-    path = [
-      config.services.upower.package
-      config.systemd.package
-    ];
-    serviceConfig.Type = "oneshot";
-    script = ''
-      for battery in $(upower --enumerate | grep battery_); do
-        busctl call org.freedesktop.UPower "$battery" org.freedesktop.UPower.Device \
-          EnableChargeThreshold b true
-      done
-    '';
-  };
   programs = {
     zsh.enable = true;
     nh = {
