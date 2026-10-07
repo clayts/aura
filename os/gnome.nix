@@ -5,8 +5,7 @@
     displayManager.gdm.enable = true;
   };
   environment = {
-    # Nautilus loads extensions only from the system profile
-    systemPackages = [ pkgs.nautilus-python ];
+    systemPackages = [ pkgs.nautilus-python ]; # Nautilus loads extensions only from the system profile
     gnome.excludePackages = with pkgs; [
       decibels
       epiphany
