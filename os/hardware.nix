@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   inputs,
   ...
@@ -86,6 +87,9 @@ in
       kernelModules = [ "xe" ];
     };
     kernelModules = [ "kvm-intel" ];
+    # The camera's IMX471 sensor has no driver in the kernel or ipu7-drivers;
+    # ipu6-drivers carries one
+    extraModulePackages = [ config.boot.kernelPackages.ipu6-drivers ];
   };
 
   hardware = {
