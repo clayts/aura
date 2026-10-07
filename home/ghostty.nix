@@ -1,4 +1,7 @@
-{ style, ... }:
+{ pkgs, ... }:
+let
+  style = import ./style { inherit pkgs; };
+in
 {
   # Lets GNOME run .desktop files that need a terminal in ghostty
   xdg.terminal-exec = {

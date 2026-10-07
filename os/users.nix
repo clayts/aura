@@ -1,7 +1,6 @@
 {
   pkgs,
   inputs,
-  style,
   lib,
   config,
   ...
@@ -55,7 +54,7 @@
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = { inherit inputs style; };
+    extraSpecialArgs = { inherit inputs; };
     backupFileExtension = "home-manager-backup";
     users = lib.genAttrs [ "root" "user" "guest" ] (_: ../home);
   };

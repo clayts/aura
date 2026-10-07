@@ -1,10 +1,12 @@
 {
   pkgs,
   lib,
-  style,
   osConfig,
   ...
 }:
+let
+  style = import ./style { inherit pkgs; };
+in
 {
   programs.zed-editor = {
     enable = true;

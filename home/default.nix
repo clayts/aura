@@ -1,11 +1,11 @@
 {
   pkgs,
-  style,
   lib,
   config,
   ...
 }:
 let
+  style = import ./style { inherit pkgs; };
   packages = import ./packages { inherit pkgs; };
   homeDirectory = config.home.homeDirectory;
   fonts = lib.attrValues style.fonts;

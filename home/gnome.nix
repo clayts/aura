@@ -2,10 +2,10 @@
   pkgs,
   lib,
   config,
-  style,
   ...
 }:
 let
+  style = import ./style { inherit pkgs; };
   packages = import ./packages { inherit pkgs; };
   wallpaper = "${config.xdg.dataHome}/earthpaper/image.jpeg";
   blankWallpaper = pkgs.runCommand "blank-wallpaper.jpeg" { } ''
