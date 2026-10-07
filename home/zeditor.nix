@@ -26,6 +26,7 @@ in
     ];
 
     userSettings = {
+      format_on_save= "on";
       hard_tabs = true;
       cli_default_open_behavior = "new_window";
       git = {
