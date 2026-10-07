@@ -4,37 +4,10 @@
   inputs,
   ...
 }:
-let
-  monitors = builtins.toFile "monitors.xml" ''
-    <monitors version="2">
-      <configuration>
-        <layoutmode>logical</layoutmode>
-        <logicalmonitor>
-          <x>0</x>
-          <y>0</y>
-          <scale>2</scale>
-          <primary>yes</primary>
-          <monitor>
-            <monitorspec>
-              <connector>eDP-1</connector>
-              <vendor>SDC</vendor>
-              <product>ATNA53JB01-0 </product>
-              <serial>0x00000000</serial>
-            </monitorspec>
-            <mode>
-              <width>2880</width>
-              <height>1800</height>
-              <rate>120.000</rate>
-              <!-- <ratemode>variable</ratemode> -->
-            </mode>
-          </monitor>
-        </logicalmonitor>
-      </configuration>
-    </monitors>
-  '';
-in
 {
-  imports = [ inputs.disko.nixosModules.default ];
+  imports = [
+    inputs.disko.nixosModules.default
+  ];
 
   disko.devices = {
     disk.main = {
@@ -74,6 +47,34 @@ in
     };
   };
 
+  environment.etc."xdg/monitors.xml".text = ''
+    <monitors version="2">
+      <configuration>
+        <layoutmode>logical</layoutmode>
+        <logicalmonitor>
+          <x>0</x>
+          <y>0</y>
+          <scale>2</scale>
+          <primary>yes</primary>
+          <monitor>
+            <monitorspec>
+              <connector>eDP-1</connector>
+              <vendor>SDC</vendor>
+              <product>ATNA53JB01-0 </product>
+              <serial>0x00000000</serial>
+            </monitorspec>
+            <mode>
+              <width>2880</width>
+              <height>1800</height>
+              <rate>120.000</rate>
+              <!-- <ratemode>variable</ratemode> -->
+            </mode>
+          </monitor>
+        </logicalmonitor>
+      </configuration>
+    </monitors>
+  '';
+
   boot = {
     initrd = {
       availableKernelModules = [
@@ -87,8 +88,6 @@ in
       kernelModules = [ "xe" ];
     };
     kernelModules = [ "kvm-intel" ];
-    # The camera's IMX471 sensor has no driver in the kernel or ipu7-drivers;
-    # ipu6-drivers carries one
     extraModulePackages = [ config.boot.kernelPackages.ipu6-drivers ];
   };
 
@@ -108,8 +107,6 @@ in
       enable = true;
       platform = "ipu7x";
     };
-    # The ambient light sensor sits behind the ISH; GNOME reads it through
-    # iio-sensor-proxy, which its module does not enable
     sensor.iio.enable = true;
     # The ISH rejects Intel's generic firmware and needs Lenovo's signed one.
     # linux-firmware links that under a product_family CRC this machine doesn't
@@ -124,7 +121,4 @@ in
   };
 
   services.fprintd.enable = true;
-
-  # Read by mutter for the login screen and for every user without their own
-  environment.etc."xdg/monitors.xml".source = monitors;
 }
