@@ -54,6 +54,7 @@ in
         alphabetical-app-grid
         just-perfection
         auto-power-profile
+        preserve-battery-health
       ]
     );
   };
@@ -65,18 +66,28 @@ in
     X-GNOME-Autostart-enabled=true
     NoDisplay=true
   '';
-  # GNOME Shell only notices the wallpaper changing if it existed at login, so
-  # leave a blank one for earthpaper to overwrite
   home.activation.earthpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [[ ! -e ${lib.escapeShellArg wallpaper} ]]; then
       run install -D -m 644 ${blankWallpaper} ${lib.escapeShellArg wallpaper}
     fi
   '';
+  xdg.desktopEntries = {
+    "org.gnome.Extensions" = {
+      name = "Extensions";
+      noDisplay = true;
+    };
+    "cups" = {
+      name = "Cups";
+      noDisplay = true;
+    };
+  };
   dconf.settings = {
     "org/gnome/shell".favorite-apps = [
       "firefox.desktop"
       "org.gnome.Nautilus.desktop"
     ];
+    "org/gnome/settings-daemon/plugins/power".ambient-enabled = false;
+    "org/gnome/shell/extensions/auto-power-profile".bat = "power-saver";
     "org/gnome/shell/extensions/just-perfection" = {
       panel = false;
       panel-in-overview = true;

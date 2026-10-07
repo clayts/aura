@@ -46,10 +46,6 @@ in
       projects = "${homeDirectory}/Code";
       documents = "${homeDirectory}/Documents";
     };
-    desktopEntries.cups = {
-      name = "";
-      noDisplay = true;
-    };
   };
   fonts.fontconfig = {
     defaultFonts = with style.fonts; {
