@@ -108,6 +108,9 @@ in
       enable = true;
       platform = "ipu7x";
     };
+    # The ambient light sensor sits behind the ISH; GNOME reads it through
+    # iio-sensor-proxy, which its module does not enable
+    sensor.iio.enable = true;
   };
 
   services.fprintd.enable = true;
