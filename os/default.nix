@@ -44,7 +44,6 @@
     printing.enable = true;
   };
   systemd.sleep.settings.Sleep.HibernateDelaySec = "24h";
-  # Turn on "Preserve Battery Health" (UPower's charge threshold) at every boot
   systemd.services.preserve-battery-health = {
     description = "Enable UPower battery charge threshold";
     wantedBy = [ "multi-user.target" ];
