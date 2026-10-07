@@ -1,9 +1,6 @@
 # Aura
 
-NixOS configuration for `aura`, kept at `/etc/nixos` (owned by `user`).
-
-- `os/` NixOS modules, with system packages in `os/packages/`
-- `home/` Home Manager modules (shared by `root`, `user` and `guest`), with user packages in `home/packages/` and fonts, colours, icons and cursors in `home/style/`
+NixOS configuration for `aura`
 
 ## Install
 From a NixOS installer, run `nix run --experimental-features "nix-command flakes" github:clayts/aura#install`, which runs `install.sh`.
