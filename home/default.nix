@@ -1,12 +1,12 @@
 {
   pkgs,
   style,
-  packages,
   lib,
   config,
   ...
 }:
 let
+  packages = import ./packages { inherit pkgs; };
   homeDirectory = config.home.homeDirectory;
   fonts = lib.attrValues style.fonts;
 in
@@ -31,7 +31,7 @@ in
         gitg
         impression
         resources
-        packages.home.sabaki
+        packages.sabaki
       ]
       ++ map (font: font.package) fonts;
     sessionVariables = {

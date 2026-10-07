@@ -3,10 +3,10 @@
   lib,
   config,
   style,
-  packages,
   ...
 }:
 let
+  packages = import ./packages { inherit pkgs; };
   wallpaper = "${config.xdg.dataHome}/earthpaper/image.jpeg";
   blankWallpaper = pkgs.runCommand "blank-wallpaper.jpeg" { } ''
     ${lib.getExe' pkgs.imagemagick "magick"} -size 1x1 'xc:${style.colors.x0}' $out
@@ -46,12 +46,12 @@ in
       ]
     );
   };
-  home.packages = [ packages.home.earthpaper ];
+  home.packages = [ packages.earthpaper ];
   xdg.configFile."autostart/earthpaper.desktop".text = ''
     [Desktop Entry]
     Type=Application
     Name=Earthpaper
-    Exec=${lib.getExe packages.home.earthpaper} ${wallpaper}
+    Exec=${lib.getExe packages.earthpaper} ${wallpaper}
     X-GNOME-Autostart-enabled=true
     NoDisplay=true
   '';

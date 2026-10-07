@@ -27,14 +27,10 @@
         config.allowUnfree = true;
       };
       style = import ./home/style { inherit pkgs; };
-      packages = {
-        os = import ./os/packages { inherit pkgs; };
-        home = import ./home/packages { inherit pkgs; };
-      };
     in
     {
       nixosConfigurations.aura = inputs.nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs style packages; };
+        specialArgs = { inherit inputs style; };
         modules = [
           ./os
           { nixpkgs.pkgs = pkgs; }

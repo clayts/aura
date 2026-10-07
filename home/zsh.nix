@@ -3,16 +3,18 @@
   lib,
   config,
   inputs,
-  packages,
   ...
 }:
+let
+  packages = import ./packages { inherit pkgs; };
+in
 {
   imports = [
     inputs.nix-index-database.homeModules.nix-index
   ];
   home.packages = with pkgs; [
-    packages.home.safe
-    packages.home.sing
+    packages.safe
+    packages.sing
     grc
   ];
   # gh writes config.yml itself, starting with the first login, so it can't be
@@ -181,7 +183,7 @@
       syntaxHighlighting.enable = true;
       autosuggestion.enable = true;
       initContent = ''
-        [[ -o interactive ]] && [[ -n $DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${packages.home.rizzlefetch}/bin/rizzlefetch && echo
+        [[ -o interactive ]] && [[ -n $DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${packages.rizzlefetch}/bin/rizzlefetch && echo
         echo
 
         # keybindings

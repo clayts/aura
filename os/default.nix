@@ -1,8 +1,7 @@
-{
-  pkgs,
-  packages,
-  ...
-}:
+{ pkgs, ... }:
+let
+  packages = import ./packages { inherit pkgs; };
+in
 {
   imports = [
     ./gnome.nix
@@ -12,7 +11,7 @@
   networking.hostName = "aura";
   system.stateVersion = "26.11";
   environment.systemPackages = with pkgs; [
-    packages.os.system
+    packages.system
     hunspellDicts.en_GB-ize
   ];
   boot = {
