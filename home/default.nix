@@ -27,12 +27,11 @@ in
       CARGO_HOME = "$HOME/.local/share/cargo";
       npm_config_cache = "$HOME/.cache/npm";
     };
-    file = {
-      "${config.xdg.userDirs.templates}".source = ./templates;
-    };
   };
   xdg = {
     enable = true;
+    dataFile."nautilus-python/extensions/project-templates.py".source =
+      pkgs.replaceVars ./nautilus/project-templates.py { templates = ./templates; };
     userDirs = {
       enable = true;
       createDirectories = true;
