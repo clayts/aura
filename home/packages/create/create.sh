@@ -1,3 +1,5 @@
+: "${templates:?}" # Set by runtimeEnv in home/packages/default.nix
+
 usage() {
     echo "usage: ${0##*/} --go|--node|--python|--rust|--rust-lib <name>" >&2
     exit 1
@@ -17,7 +19,6 @@ if [[ -e $name ]]; then
 fi
 
 # Templates come from the read-only Nix store
-# shellcheck disable=SC2154 # templates is set via runtimeEnv
 cp -rL --no-preserve=mode "$templates/$template" "$name"
 cd "$name" || exit
 git init -q
