@@ -78,6 +78,14 @@
       (pkgs.lib.makeBinPath [ pkgs.toilet ])
     ];
   };
+  preview = pkgs.writeShellApplication {
+    name = "preview";
+    runtimeInputs = with pkgs; [
+      bat
+      lsd
+    ];
+    text = builtins.readFile ./preview.sh;
+  };
   system = pkgs.writeShellApplication {
     name = "system";
     runtimeInputs = [ pkgs.git ];

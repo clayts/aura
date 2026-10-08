@@ -65,15 +65,14 @@ in
     };
     fzf = {
       enable = true;
-      defaultCommand = "fd --type f --hidden --exclude .git";
+      defaultCommand = "fd --hidden";
+      # Bound to Ctrl-F below instead of Ctrl-T
       fileWidget = {
-        command = "fd --type f --hidden --exclude .git";
-        options = [ "--preview 'bat --color=always {}'" ];
+        command = "fd --hidden";
+        options = [ "--preview '${lib.getExe packages.preview} {}'" ];
       };
-      changeDirWidget = {
-        command = "fd --type d --hidden --exclude .git";
-        options = [ "--preview 'lsd -1 --color=always --icon=always {}'" ];
-      };
+      # An empty command turns off Alt-C
+      changeDirWidget.command = "";
       colors = with style.colors; {
         fg = x5;
         "fg+" = x7;
@@ -257,7 +256,13 @@ in
         zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
         # fzf-tab: preview directories when completing cd (an alias for z)
-        zstyle ':fzf-tab:complete:(cd|z|__zoxide_z):*' fzf-preview 'lsd -1 --color=always --icon=always $realpath'
+        zstyle ':fzf-tab:complete:(cd|z|__zoxide_z):*' fzf-preview '${lib.getExe packages.preview} $realpath'
+
+        # fzf: find files and folders with Ctrl-F rather than Ctrl-T
+        for keymap in emacs vicmd viins; do
+          bindkey -M $keymap -r '^T'
+          bindkey -M $keymap '^F' fzf-file-widget
+        done
 
         # batpipe
         eval "$(batpipe)"
