@@ -17,8 +17,9 @@ if [[ -e $name ]]; then
 fi
 
 # Templates come from the read-only Nix store
+# shellcheck disable=SC2154 # templates is set via runtimeEnv
 cp -rL --no-preserve=mode "$templates/$template" "$name"
-cd "$name"
+cd "$name" || exit
 git init -q
 case "$kind" in
     go) go mod init "$name" ;;
