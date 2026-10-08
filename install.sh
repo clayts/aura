@@ -1,19 +1,14 @@
-# Set by runtimeEnv in flake.nix
-: "${flake:?}"
-
 host="aura"
 url="https://github.com/clayts/$host"
+: "${flake:?}" # Set by runtimeEnv in flake.nix
 
 clear
 toilet -f future "Installing..."
 toilet -f future --gay "$host"
-
 set -x
 sudo disko --mode destroy,format,mount --flake "$flake#$host"
 sudo install -d -m 700 /mnt/etc/passwords
-
-# Tracing would echo the passwords
-set +x
+set +x # Tracing would echo the passwords
 for name in root user guest; do
     while true; do
         IFS= read -rsp "Password for $name: " password && echo
@@ -25,7 +20,6 @@ for name in root user guest; do
 done
 unset password confirm
 set -x
-
 sudo nixos-install --no-channel-copy --no-root-password --flake "$flake#$host"
 sudo git clone $url /mnt/etc/nixos
 sudo chown -R 1000:100 /mnt/etc/nixos
