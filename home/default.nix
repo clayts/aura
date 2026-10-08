@@ -27,14 +27,7 @@ in
       CARGO_HOME = "$HOME/.local/share/cargo";
       npm_config_cache = "$HOME/.cache/npm";
     };
-    file = {
-      "${config.xdg.userDirs.templates}" = {
-        source = ./templates/files;
-        recursive = true;
-      };
-      # Hidden, so Nautilus doesn't list it among file templates
-      "${config.xdg.userDirs.templates}/.Folders".source = ./templates/folders;
-    };
+    file."${config.xdg.userDirs.templates}".source = ./templates/files;
   };
   xdg = {
     enable = true;

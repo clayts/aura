@@ -1,5 +1,5 @@
 usage() {
-    echo "usage: ${0##*/} --node|--python|--rust|--rust-lib <name>" >&2
+    echo "usage: ${0##*/} --go|--node|--python|--rust|--rust-lib <name>" >&2
     exit 1
 }
 
@@ -7,7 +7,7 @@ usage() {
 kind=${1#--}
 name=$2
 case "$kind" in
-    node | python | rust) template=$kind ;;
+    go | node | python | rust) template=$kind ;;
     rust-lib) template=rust ;;
     *) usage ;;
 esac
@@ -21,6 +21,10 @@ cp -rL --no-preserve=mode "$templates/$template" "$name"
 cd "$name"
 git init -q
 case "$kind" in
+    go)
+        go mod init "$name"
+        printf 'package main\n\nfunc main() {\n}\n' >main.go
+        ;;
     node) npm init -y >/dev/null ;;
     python) touch "$name.py" ;;
     rust) cargo init -q --vcs none --bin ;;

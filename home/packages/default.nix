@@ -16,6 +16,7 @@
     runtimeInputs = with pkgs; [
       git
       direnv
+      go
       nodejs
       cargo
     ];
