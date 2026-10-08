@@ -137,6 +137,9 @@ in
       name = "Game";
       categories = [ "Game" ];
     };
+    # Nautilus reads its "Sort Folders Before Files" from the GTK 4 key
+    "org/gtk/gtk4/settings/file-chooser".sort-directories-first = true;
+    "org/gtk/settings/file-chooser".sort-directories-first = true;
     "org/gnome/nautilus/icon-view".default-zoom-level = "medium";
     "org/gnome/nautilus/list-view".use-tree-view = true;
     "org/gnome/nautilus/preferences".show-delete-permanently = true;

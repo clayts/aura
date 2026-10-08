@@ -28,7 +28,11 @@
       timeout = 0;
     };
     plymouth.enable = true;
-    initrd.verbose = false;
+    initrd = {
+      # Starts plymouth earlier for a smoother, flicker-free boot
+      systemd.enable = true;
+      verbose = false;
+    };
     consoleLogLevel = 0;
   };
   time.timeZone = "Europe/London";

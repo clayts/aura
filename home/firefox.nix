@@ -46,6 +46,8 @@
           "spellchecker.dictionary" = "en-GB,en_GB";
           "intl.accept_languages" = "en-GB,en";
           "browser.tabs.insertAfterCurrent" = true;
+          # Firefox has its own middle-click paste setting, so follow GNOME's
+          "middlemouse.paste" = config.dconf.settings."org/gnome/desktop/interface".gtk-enable-primary-paste;
           "media.webrtc.camera.allow-pipewire" = true; # lets camera work
           "browser.urlbar.scotchBonnet.enableOverride" = false; # disable search engine dropdown in address bar
           "browser.uiCustomization.navBarWhenVerticalTabs" = [

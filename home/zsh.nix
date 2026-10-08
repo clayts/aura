@@ -6,6 +6,7 @@
   ...
 }:
 let
+  style = import ./style { inherit pkgs; };
   packages = import ./packages { inherit pkgs; };
 in
 {
@@ -50,9 +51,43 @@ in
       silent = true;
     };
     git.enable = true;
-    fzf.enable = true;
+    delta = {
+      enable = true;
+      enableGitIntegration = true;
+      options = {
+        syntax-theme = "base16";
+        navigate = true;
+      };
+    };
+    fzf = {
+      enable = true;
+      defaultCommand = "fd --type f --hidden --exclude .git";
+      fileWidget = {
+        command = "fd --type f --hidden --exclude .git";
+        options = [ "--preview 'bat --color=always {}'" ];
+      };
+      changeDirWidget = {
+        command = "fd --type d --hidden --exclude .git";
+        options = [ "--preview 'lsd -1 --color=always --icon=always {}'" ];
+      };
+      colors = with style.colors; {
+        fg = x5;
+        "fg+" = x7;
+        "bg+" = x2;
+        hl = xC;
+        "hl+" = xC;
+        info = x4;
+        prompt = xD;
+        pointer = xB;
+        marker = xB;
+        spinner = xE;
+        header = x4;
+        border = x2;
+      };
+    };
     lsd = {
       enable = true;
+      settings.hyperlink = "auto";
       icons = {
         name = {
           "desk" = "󱈹";
@@ -179,11 +214,26 @@ in
         cat = "bat";
         grep = "grep --color=auto";
       };
-      sessionVariables.DIRENV_WARN_TIMEOUT = 0;
+      sessionVariables = {
+        DIRENV_WARN_TIMEOUT = 0;
+        BATDIFF_USE_DELTA = "true";
+      };
       dotDir = "${config.xdg.stateHome}/zsh";
+      history = {
+        size = 100000;
+        save = 100000;
+        ignoreAllDups = true;
+        ignoreSpace = true;
+      };
       historySubstringSearch.enable = true;
       syntaxHighlighting.enable = true;
-      autosuggestion.enable = true;
+      autosuggestion = {
+        enable = true;
+        strategy = [
+          "history"
+          "completion"
+        ];
+      };
       initContent = ''
         [[ -o interactive ]] && [[ -n $DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${packages.rizzlefetch}/bin/rizzlefetch && echo
         echo
@@ -194,6 +244,9 @@ in
         bindkey  "^[[H"   beginning-of-line
         bindkey  "^[[F"   end-of-line
         bindkey  "^[[3~"  delete-char
+
+        # fzf-tab: preview directories when completing cd (an alias for z)
+        zstyle ':fzf-tab:complete:(cd|z|__zoxide_z):*' fzf-preview 'lsd -1 --color=always --icon=always $realpath'
 
         # batpipe
         eval "$(batpipe)"
