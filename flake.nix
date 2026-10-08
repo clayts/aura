@@ -57,7 +57,11 @@
           package-version-server
           basedpyright
           ruff
-          (python3.withPackages (ps: [ ps.terminaltexteffects ]))
+          (python3.withPackages (ps: [
+            ps.terminaltexteffects
+            ps.pygobject3
+            ps.pygobject-stubs
+          ]))
         ];
       };
     };

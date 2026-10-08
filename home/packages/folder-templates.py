@@ -5,7 +5,10 @@ import stat
 import gi
 
 gi.require_version("Nautilus", "4.0")
-from gi.repository import GObject, Nautilus
+from gi.repository import (
+    GObject,  # pyright: ignore[reportMissingModuleSource]
+    Nautilus,  # pyright: ignore[reportAttributeAccessIssue]
+)
 
 TEMPLATES = "@templates@"
 
@@ -33,7 +36,7 @@ def create(_item, template, folder):
     make_writable(target)
 
 
-class ProjectTemplates(GObject.GObject, Nautilus.MenuProvider):
+class FolderTemplates(GObject.GObject, Nautilus.MenuProvider):
     def get_background_items(self, current_folder):
         folder = current_folder.get_location().get_path()
         if folder is None:
@@ -41,10 +44,12 @@ class ProjectTemplates(GObject.GObject, Nautilus.MenuProvider):
         submenu = Nautilus.Menu()
         for template in sorted(os.listdir(TEMPLATES)):
             item = Nautilus.MenuItem(
-                name=f"ProjectTemplates::{template}", label=template
+                name=f"FolderTemplates::{template}", label=template
             )
             item.connect("activate", create, template, folder)
             submenu.append_item(item)
-        menu = Nautilus.MenuItem(name="ProjectTemplates", label="New Project")
+        menu = Nautilus.MenuItem(
+            name="FolderTemplates", label="New Folder From Template"
+        )
         menu.set_submenu(submenu)
         return [menu]

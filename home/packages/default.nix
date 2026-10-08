@@ -1,6 +1,7 @@
 { pkgs }:
 {
   sabaki = import ./sabaki.nix { inherit pkgs; };
+  folder-templates = pkgs.replaceVars ./folder-templates.py { templates = ../templates/folders; };
   sing = pkgs.writeShellApplication {
     name = "sing";
     runtimeInputs = with pkgs; [

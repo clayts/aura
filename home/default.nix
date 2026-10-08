@@ -6,6 +6,7 @@
 }:
 let
   style = import ./style { inherit pkgs; };
+  packages = import ./packages { inherit pkgs; };
   homeDirectory = config.home.homeDirectory;
   fonts = lib.attrValues style.fonts;
 in
@@ -27,11 +28,11 @@ in
       CARGO_HOME = "$HOME/.local/share/cargo";
       npm_config_cache = "$HOME/.cache/npm";
     };
+    file."${config.xdg.userDirs.templates}".source = ./templates/files;
   };
   xdg = {
     enable = true;
-    dataFile."nautilus-python/extensions/project-templates.py".source =
-      pkgs.replaceVars ./nautilus/project-templates.py { templates = ./templates; };
+    dataFile."nautilus-python/extensions/folder-templates.py".source = packages.folder-templates;
     userDirs = {
       enable = true;
       createDirectories = true;
