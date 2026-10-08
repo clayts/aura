@@ -20,7 +20,6 @@
         uid = 1000;
         extraGroups = [
           "wheel"
-          "libvirtd"
           "networkmanager"
         ];
         hashedPasswordFile = "/etc/passwords/user";
