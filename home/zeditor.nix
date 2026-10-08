@@ -93,6 +93,8 @@ in
         dark = "custom";
       };
       node.path = "${pkgs.nodejs}/bin/node";
+      # take language servers from the project's devshell via direnv
+      load_direnv = "direct";
       languages = {
         Nix.language_servers = [
           "nixd"
@@ -124,8 +126,6 @@ in
             };
           };
         rust-analyzer.initialization_options.check.command = "clippy";
-        # zed downloads a dynamically linked build when it can't find one on PATH, which fails on nixos
-        package-version-server.binary.path = "${pkgs.package-version-server}/bin/package-version-server";
       };
     };
     themes.custom = with style.colors; {
