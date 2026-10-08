@@ -96,7 +96,6 @@ in
         name = {
           "desk" = "󱈹";
           "code" = "";
-          "aura" = "";
           "nixos" = "";
           "${config.home.username}" = "";
         };
