@@ -8,14 +8,14 @@ Usage: ${0##*/} <language> <name>
 Create a project in ./<name>, with git and direnv set up.
 
 Languages:
-  go        Go module with main.go
-  node      Node package with index.js
-  python    Python script <name>.py
+  go        Go module
+  node      Node package
+  python    Python script
   rust      Rust binary crate
   rust-lib  Rust library crate
 
 Options:
-  -h, --help  Show this help
+  -h, --help  Show help
 EOF
 }
 
