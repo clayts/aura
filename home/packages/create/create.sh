@@ -21,10 +21,7 @@ cp -rL --no-preserve=mode "$templates/$template" "$name"
 cd "$name"
 git init -q
 case "$kind" in
-    go)
-        go mod init "$name"
-        printf 'package main\n\nfunc main() {\n}\n' >main.go
-        ;;
+    go) go mod init "$name" ;;
     node) npm init -y >/dev/null ;;
     python) touch "$name.py" ;;
     rust) cargo init -q --vcs none --bin ;;

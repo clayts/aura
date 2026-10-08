@@ -12,7 +12,7 @@
   };
   create = pkgs.writeShellApplication {
     name = "create";
-    runtimeEnv.templates = ../templates/folders;
+    runtimeEnv.templates = ./create;
     runtimeInputs = with pkgs; [
       git
       direnv
@@ -20,7 +20,7 @@
       nodejs
       cargo
     ];
-    text = builtins.readFile ./create.sh;
+    text = builtins.readFile ./create/create.sh;
   };
   safe = pkgs.writeShellApplication {
     name = "safe";

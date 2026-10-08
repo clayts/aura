@@ -27,7 +27,7 @@ in
       CARGO_HOME = "$HOME/.local/share/cargo";
       npm_config_cache = "$HOME/.cache/npm";
     };
-    file."${config.xdg.userDirs.templates}".source = ./templates/files;
+    file."${config.xdg.userDirs.templates}".source = ./templates;
   };
   xdg = {
     enable = true;
