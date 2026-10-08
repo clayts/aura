@@ -10,18 +10,40 @@
     ];
     text = builtins.readFile ./sing.sh;
   };
-  create = pkgs.writeShellApplication {
-    name = "create";
-    runtimeEnv.templates = ./create;
-    runtimeInputs = with pkgs; [
-      git
-      direnv
-      go
-      nodejs
-      cargo
-    ];
-    text = builtins.readFile ./create/create.sh;
-  };
+  create =
+    let
+      # Lock new projects to the system's nixpkgs, which is already in the store
+      systemLock = builtins.fromJSON (builtins.readFile ../../flake.lock);
+      lock = (pkgs.formats.json { }).generate "flake.lock" {
+        nodes = {
+          nixpkgs = systemLock.nodes.${systemLock.nodes.root.inputs.nixpkgs};
+          root.inputs.nixpkgs = "nixpkgs";
+        };
+        root = "root";
+        version = 7;
+      };
+    in
+    pkgs.symlinkJoin {
+      name = "create";
+      paths = [
+        (pkgs.writeShellApplication {
+          name = "create";
+          runtimeEnv = {
+            templates = ./create;
+            inherit lock;
+          };
+          runtimeInputs = with pkgs; [
+            git
+            direnv
+            go
+            nodejs
+            cargo
+          ];
+          text = builtins.readFile ./create/create.sh;
+        })
+        (pkgs.writeTextDir "share/zsh/site-functions/_create" (builtins.readFile ./create/_create))
+      ];
+    };
   safe = pkgs.writeShellApplication {
     name = "safe";
     runtimeInputs = with pkgs; [

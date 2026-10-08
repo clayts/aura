@@ -1,7 +1,8 @@
 : "${templates:?}" # Set by runtimeEnv in home/packages/default.nix
+: "${lock:?}" # Set by runtimeEnv in home/packages/default.nix
 
 usage() {
-    cat >&2 <<EOF
+    cat <<EOF
 Usage: ${0##*/} <language> <name>
 
 Create a project in ./<name>, with git and direnv set up.
@@ -12,17 +13,31 @@ Languages:
   python    Python script <name>.py
   rust      Rust binary crate
   rust-lib  Rust library crate
+
+Options:
+  -h, --help  Show this help
 EOF
-    exit 1
 }
 
-[[ $# -eq 2 ]] || usage
+case "${1:-}" in
+    -h | --help)
+        usage
+        exit
+        ;;
+esac
+if [[ $# -ne 2 ]]; then
+    usage >&2
+    exit 1
+fi
 kind=$1
 name=$2
 case "$kind" in
     go | node | python | rust) template=$kind ;;
     rust-lib) template=rust ;;
-    *) usage ;;
+    *)
+        usage >&2
+        exit 1
+        ;;
 esac
 if [[ -e $name ]]; then
     echo "$name already exists" >&2
@@ -30,6 +45,7 @@ if [[ -e $name ]]; then
 fi
 
 cp -rL --no-preserve=mode "$templates/$template" "$name"
+cp --no-preserve=mode "$lock" "$name/flake.lock"
 cd "$name" || exit
 git init -q
 case "$kind" in

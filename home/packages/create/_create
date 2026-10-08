@@ -1,0 +1,6 @@
+#compdef create
+
+_arguments \
+    '(- :)'{-h,--help}'[show help]' \
+    '1:language:((go\:"Go module" node\:"Node package" python\:"Python script" rust\:"Rust binary crate" rust-lib\:"Rust library crate"))' \
+    '2:name: '
