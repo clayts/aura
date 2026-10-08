@@ -29,13 +29,11 @@ if [[ -e $name ]]; then
     exit 1
 fi
 
-# Templates come from the read-only Nix store
 cp -rL --no-preserve=mode "$templates/$template" "$name"
 cd "$name" || exit
 git init -q
 case "$kind" in
     go)
-        # go mod init always suggests go mod tidy, so only show its output on failure
         out=$(go mod init "$name" 2>&1) || {
             echo "$out" >&2
             exit 1
@@ -46,7 +44,6 @@ case "$kind" in
     rust) cargo init -q --vcs none --bin ;;
     rust-lib) cargo init -q --vcs none --lib ;;
 esac
-# Flakes in a git repo only see tracked files
 git add -A
 direnv allow
 echo "Created $name"
