@@ -1,4 +1,5 @@
 target="${1:-$HOME/.local/share/earthpaper/image.jpeg}"
+# shellcheck disable=SC2154 # ids is set via runtimeEnv
 id=$(jq -r '.[]' "$ids" | shuf -n 1)
 
 echo "Fetching image data..."
