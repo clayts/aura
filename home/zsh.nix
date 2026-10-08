@@ -17,22 +17,6 @@ in
     packages.sing
     packages.system
     grc
-    (pkgs.stdenv.mkDerivation {
-      pname = "scribble";
-      version = "1.11";
-
-      src = pkgs.fetchurl {
-        url = "https://sourcefiles.org{version}.tar.gz";
-        sha256 = "PLACE_CORRECT_SHA256_HERE"; # Run nix-prefetch-url to find the hash
-      };
-
-      buildInputs = [ pkgs.ncurses ];
-
-      installPhase = ''
-        mkdir -p $out/bin
-        cp scribble $out/bin/
-      '';
-    })
   ];
   # gh writes config.yml itself, starting with the first login, so it can't be
   # a read-only link
