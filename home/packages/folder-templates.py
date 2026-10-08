@@ -2,13 +2,10 @@ import os
 import shutil
 import stat
 
-import gi
+import gi  # pyright: ignore[reportMissingImports]
 
 gi.require_version("Nautilus", "4.0")
-from gi.repository import (
-    GObject,  # pyright: ignore[reportMissingModuleSource]
-    Nautilus,  # pyright: ignore[reportAttributeAccessIssue]
-)
+from gi.repository import GObject, Nautilus  # pyright: ignore[reportMissingImports]
 
 TEMPLATES = "@templates@"
 
