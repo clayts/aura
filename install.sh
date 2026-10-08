@@ -1,3 +1,6 @@
+# Set by runtimeEnv in flake.nix
+: "${flake:?}"
+
 host="aura"
 url="https://github.com/clayts/$host"
 
