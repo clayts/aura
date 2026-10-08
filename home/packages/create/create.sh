@@ -34,7 +34,13 @@ cp -rL --no-preserve=mode "$templates/$template" "$name"
 cd "$name" || exit
 git init -q
 case "$kind" in
-    go) go mod init "$name" 2>/dev/null ;;
+    go)
+        # go mod init always suggests go mod tidy, so only show its output on failure
+        out=$(go mod init "$name" 2>&1) || {
+            echo "$out" >&2
+            exit 1
+        }
+        ;;
     node) npm init -y >/dev/null ;;
     python) mv main.py "$name.py" ;;
     rust) cargo init -q --vcs none --bin ;;
