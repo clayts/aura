@@ -124,6 +124,8 @@ in
             };
           };
         rust-analyzer.initialization_options.check.command = "clippy";
+        # zed downloads a dynamically linked build when it can't find one on PATH, which fails on nixos
+        package-version-server.binary.path = "${pkgs.package-version-server}/bin/package-version-server";
       };
     };
     themes.custom = with style.colors; {
