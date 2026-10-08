@@ -83,6 +83,7 @@
     runtimeInputs = with pkgs; [
       bat
       lsd
+      file
     ];
     text = builtins.readFile ./preview.sh;
   };
