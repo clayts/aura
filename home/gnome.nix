@@ -32,15 +32,6 @@ in
         name = "adw-gtk3";
         package = pkgs.adw-gtk3;
       };
-      bookmarks = map (dir: "file://${dir}") (
-        with config.xdg.userDirs;
-        [
-          desktop
-          music
-          projects
-          documents
-        ]
-      );
     };
     cursorTheme = style.cursors;
   };
