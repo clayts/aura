@@ -4,8 +4,10 @@ Usage: system <command> [--boot]
 
 Commands:
   test     Build the system in $flake as it is and switch to it
-  sync     Pull $flake and switch to it, without updating its inputs
-  update   Pull $flake, update its inputs, switch, then commit and push flake.lock
+  sync     Pull $flake and switch to it, without updating its inputs; does
+           nothing if the pull brings in no new commits
+  update   Pull $flake, update its inputs, switch, then commit and push
+           flake.lock; does nothing if neither brings in any changes
   clean    Delete old generations, collect garbage, optimise the store and
            prune old boot entries
 
@@ -47,17 +49,37 @@ rebuild() {
     nh os "$mode" "$flake" -- --quiet
 }
 
+# Pull $flake and report whether that brought in any new commits. The
+# explicit exit is needed because errexit is ignored when this is the
+# condition of an if
+pull() {
+    local before
+    before=$(git -C "$flake" rev-parse HEAD)
+    git -C "$flake" pull --ff-only || exit
+    [[ $(git -C "$flake" rev-parse HEAD) != "$before" ]]
+}
+
 case "$cmd" in
     test)
         rebuild
         ;;
     sync)
-        git -C "$flake" pull --ff-only
+        if ! pull; then
+            echo "Already up to date, nothing to build"
+            exit 0
+        fi
         rebuild
         ;;
     update)
-        git -C "$flake" pull --ff-only
+        pulled=false
+        if pull; then
+            pulled=true
+        fi
         nix flake update --flake "$flake"
+        if ! $pulled && git -C "$flake" diff --quiet -- flake.lock; then
+            echo "Already up to date, nothing to build"
+            exit 0
+        fi
         rebuild
         # Only publish the new lock once the system has built with it
         if ! git -C "$flake" diff --quiet -- flake.lock; then
