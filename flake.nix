@@ -54,6 +54,7 @@
           nixfmt
           shellcheck
           vscode-langservers-extracted
+          package-version-server
           basedpyright
           ruff
           (python3.withPackages (ps: [ ps.terminaltexteffects ]))
