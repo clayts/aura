@@ -3,7 +3,7 @@ usage() {
 Usage: system <command> [--boot]
 
 Commands:
-  test     Build the system in $flake as it is and switch to it
+  switch   Build the system in $flake as it is and switch to it
   sync     Pull $flake and switch to it, without updating its inputs; does
            nothing if the pull brings in no new commits
   update   Pull $flake, update its inputs, switch, then commit and push
@@ -12,7 +12,7 @@ Commands:
            prune old boot entries
 
 Options:
-  --boot   (test, sync, update) Use the new system from the next boot instead
+  --boot   (switch, sync, update) Use the new system from the next boot instead
            of switching now
 USAGE
 }
@@ -60,7 +60,7 @@ pull() {
 }
 
 case "$cmd" in
-    test)
+    switch)
         rebuild
         ;;
     sync)
