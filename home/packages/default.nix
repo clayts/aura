@@ -1,7 +1,6 @@
 { pkgs }:
 {
   sabaki = import ./sabaki.nix { inherit pkgs; };
-  folder-templates = pkgs.replaceVars ./folder-templates.py { templates = ../templates/folders; };
   sing = pkgs.writeShellApplication {
     name = "sing";
     runtimeInputs = with pkgs; [
@@ -10,6 +9,17 @@
       (mpv.override { scripts = [ mpvScripts.mpris ]; })
     ];
     text = builtins.readFile ./sing.sh;
+  };
+  create = pkgs.writeShellApplication {
+    name = "create";
+    runtimeEnv.templates = ../templates/folders;
+    runtimeInputs = with pkgs; [
+      git
+      direnv
+      nodejs
+      cargo
+    ];
+    text = builtins.readFile ./create.sh;
   };
   safe = pkgs.writeShellApplication {
     name = "safe";

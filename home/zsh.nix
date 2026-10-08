@@ -13,6 +13,7 @@ in
     inputs.nix-index-database.homeModules.nix-index
   ];
   home.packages = with pkgs; [
+    packages.create
     packages.safe
     packages.sing
     packages.system

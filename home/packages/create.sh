@@ -1,0 +1,32 @@
+usage() {
+    echo "usage: ${0##*/} --node|--python|--rust|--rust-lib <name>" >&2
+    exit 1
+}
+
+[[ $# -eq 2 ]] || usage
+kind=${1#--}
+name=$2
+case "$kind" in
+    node | python | rust) template=$kind ;;
+    rust-lib) template=rust ;;
+    *) usage ;;
+esac
+if [[ -e $name ]]; then
+    echo "$name already exists" >&2
+    exit 1
+fi
+
+# Templates come from the read-only Nix store
+cp -rL --no-preserve=mode "$templates/$template" "$name"
+cd "$name"
+git init -q
+case "$kind" in
+    node) npm init -y >/dev/null ;;
+    python) touch "$name.py" ;;
+    rust) cargo init -q --vcs none --bin ;;
+    rust-lib) cargo init -q --vcs none --lib ;;
+esac
+# Flakes in a git repo only see tracked files
+git add -A
+direnv allow
+echo "Created $name"

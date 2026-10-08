@@ -6,7 +6,6 @@
 }:
 let
   style = import ./style { inherit pkgs; };
-  packages = import ./packages { inherit pkgs; };
   homeDirectory = config.home.homeDirectory;
   fonts = lib.attrValues style.fonts;
 in
@@ -39,7 +38,6 @@ in
   };
   xdg = {
     enable = true;
-    dataFile."nautilus-python/extensions/folder-templates.py".source = packages.folder-templates;
     userDirs = {
       enable = true;
       createDirectories = true;
