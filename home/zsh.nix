@@ -54,9 +54,13 @@ in
     delta = {
       enable = true;
       enableGitIntegration = true;
-      options = {
+      options = with style; {
         syntax-theme = "base16";
         navigate = true;
+        minus-style = "syntax ${darken 0.25 colors.x8}";
+        minus-emph-style = "syntax ${darken 0.5 colors.x8}";
+        plus-style = "syntax ${darken 0.25 colors.xB}";
+        plus-emph-style = "syntax ${darken 0.5 colors.xB}";
       };
     };
     fzf = {
@@ -98,6 +102,10 @@ in
       };
     };
     gh.enable = true;
+    tealdeer = {
+      enable = true;
+      settings.updates.auto_update = true;
+    };
     fd.enable = true;
     starship = {
       enable = true;
@@ -244,6 +252,9 @@ in
         bindkey  "^[[H"   beginning-of-line
         bindkey  "^[[F"   end-of-line
         bindkey  "^[[3~"  delete-char
+
+        # case-insensitive completion
+        zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
         # fzf-tab: preview directories when completing cd (an alias for z)
         zstyle ':fzf-tab:complete:(cd|z|__zoxide_z):*' fzf-preview 'lsd -1 --color=always --icon=always $realpath'

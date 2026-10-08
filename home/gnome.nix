@@ -145,7 +145,17 @@ in
     "org/gnome/nautilus/preferences".show-delete-permanently = true;
     "org/gnome/settings-daemon/plugins/housekeeping".donation-reminder-enabled = false;
     "org/gnome/settings-daemon/plugins/power".power-button-action = "hibernate";
-    "org/gnome/settings-daemon/plugins/media-keys".play = [ "<Shift><Super>F23" ];
+    "org/gnome/settings-daemon/plugins/media-keys" = {
+      play = [ "<Shift><Super>F23" ];
+      custom-keybindings = [
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/terminal/"
+      ];
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/terminal" = {
+      name = "Terminal";
+      binding = "<Super>Return";
+      command = "ghostty +new-window";
+    };
     "org/gnome/evolution-data-server/calendar".notify-enable-audio = false; # Silences annoying daily beeps
   };
 }
