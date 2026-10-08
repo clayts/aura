@@ -49,6 +49,7 @@
   systemd.sleep.settings.Sleep.HibernateDelaySec = "24h";
   programs = {
     zsh.enable = true;
+    gamemode.enable = true; # Steam launch options: gamemoderun %command%
     nh = {
       enable = true;
       flake = "/etc/nixos";

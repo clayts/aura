@@ -21,6 +21,7 @@
         extraGroups = [
           "wheel"
           "networkmanager"
+          "gamemode" # Lets gamemoded change the CPU governor without a password
         ];
         hashedPasswordFile = "/etc/passwords/user";
       };
