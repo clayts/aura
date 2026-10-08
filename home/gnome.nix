@@ -57,15 +57,6 @@ in
     X-GNOME-Autostart-enabled=true
     NoDisplay=true
   '';
-  # xdg-user-dirs-gtk adds bookmarks for the XDG folders at every login if
-  # there are none, so turn it off to keep Nautilus' sidebar empty. Its other job,
-  # renaming those folders when the language changes, doesn't apply here
-  xdg.configFile."autostart/user-dirs-update-gtk.desktop".text = ''
-    [Desktop Entry]
-    Type=Application
-    Name=User folders update
-    Hidden=true
-  '';
   # Nautilus only gives GLib's special folders their own icon, and projects isn't
   # one, so give it a custom icon. That lives in GVfs metadata, which needs the
   # session running, so set it at login. Nautilus' sidebar ignores custom icons

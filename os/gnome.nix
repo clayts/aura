@@ -23,6 +23,7 @@
       showtime
       simple-scan
       sushi
+      xdg-user-dirs-gtk # Recreates bookmarks for the XDG folders whenever there are none
     ];
   };
   programs.dconf.profiles.gdm.databases = [
