@@ -7,17 +7,17 @@ Usage: ${0##*/} <language> <name>
 Create a project in ./<name>, with git and direnv set up.
 
 Languages:
-  --go        Go module with main.go
-  --node      Node package with index.js
-  --python    Python script <name>.py
-  --rust      Rust binary crate
-  --rust-lib  Rust library crate
+  go        Go module with main.go
+  node      Node package with index.js
+  python    Python script <name>.py
+  rust      Rust binary crate
+  rust-lib  Rust library crate
 EOF
     exit 1
 }
 
 [[ $# -eq 2 ]] || usage
-kind=${1#--}
+kind=$1
 name=$2
 case "$kind" in
     go | node | python | rust) template=$kind ;;
