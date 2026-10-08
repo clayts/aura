@@ -97,6 +97,7 @@ in
           "desk" = "󱈹";
           "code" = "";
           "aura" = "";
+          "nixos" = "";
           "${config.home.username}" = "";
         };
       };
