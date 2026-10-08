@@ -25,4 +25,11 @@
       sushi
     ];
   };
+  programs.dconf.profiles.gdm.databases = [
+    {
+      settings = {
+        "org/gnome/login-screen".enable-fingerprint-authentication = false;
+      };
+    }
+  ];
 }
