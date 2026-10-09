@@ -1,9 +1,23 @@
 {
   inputs,
   config,
+  lib,
   pkgs,
   ...
 }:
+let
+  # Firefox's own toolbar layout version, read from the installed Firefox. An
+  # older one in browser.uiCustomization.state makes Firefox re-run its
+  # migrations on that state at every start, as home-manager rewrites it each time
+  layoutVersion = lib.toInt (
+    builtins.readFile (
+      pkgs.runCommand "firefox-layout-version" { nativeBuildInputs = [ pkgs.python3 ]; } ''
+        python3 ${./firefox-layout-version.py} \
+          ${config.programs.firefox.package.unwrapped}/lib/firefox/omni.ja >$out
+      ''
+    )
+  );
+in
 {
   xdg.configFile."mozilla/managed-storage/uBlock0@raymondhill.net.json".text = builtins.toJSON {
     name = "uBlock0@raymondhill.net";
@@ -110,9 +124,7 @@
                 "personal-bookmarks"
               ];
             };
-            # Firefox's own layout version; an older one makes it re-run its
-            # migrations on this state at every start
-            "currentVersion" = 26;
+            "currentVersion" = layoutVersion;
           };
           "browser.newtabpage.activity-stream.feeds.section.highlights" = false;
           "browser.newtabpage.activity-stream.feeds.section.topstories" = false;
