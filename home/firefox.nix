@@ -6,13 +6,14 @@
   ...
 }:
 let
+  packages = import ./packages { inherit pkgs; };
   # Firefox's own toolbar layout version, read from the installed Firefox. An
   # older one in browser.uiCustomization.state makes Firefox re-run its
   # migrations on that state at every start, as home-manager rewrites it each time
   layoutVersion = lib.toInt (
     builtins.readFile (
-      pkgs.runCommand "firefox-layout-version" { nativeBuildInputs = [ pkgs.python3 ]; } ''
-        python3 ${./firefox-layout-version.py} \
+      pkgs.runCommand "firefox-layout-version" { } ''
+        ${lib.getExe packages.firefox-layout-version} \
           ${config.programs.firefox.package.unwrapped}/lib/firefox/omni.ja >$out
       ''
     )

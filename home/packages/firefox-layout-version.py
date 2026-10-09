@@ -1,11 +1,14 @@
+#!/usr/bin/env python3
 # Print Firefox's toolbar layout version (kVersion in CustomizableUI.sys.mjs)
 # from its omni.ja. Firefox's jars put the central directory first, which
 # zipfile rejects, so walk the local file headers instead
 import re
 import sys
 import zlib
+from pathlib import Path
 
-data = open(sys.argv[1], "rb").read()
+with Path(sys.argv[1]).open("rb") as jar:
+    data = jar.read()
 i = 0
 while (i := data.find(b"PK\x03\x04", i)) >= 0:
     method = int.from_bytes(data[i + 8 : i + 10], "little")
@@ -17,7 +20,10 @@ while (i := data.find(b"PK\x03\x04", i)) >= 0:
         start = i + 30 + name_len + extra_len
         body = data[start : start + size]
         text = (zlib.decompress(body, -15) if method == 8 else body).decode()
-        print(re.search(r"\bvar kVersion = (\d+);", text)[1], end="")
+        version = re.search(r"\bvar kVersion = (\d+);", text)
+        if version is None:
+            sys.exit("kVersion not found in CustomizableUI.sys.mjs")
+        print(version[1], end="")
         sys.exit()
     i += 4
 sys.exit("CustomizableUI.sys.mjs not found")
