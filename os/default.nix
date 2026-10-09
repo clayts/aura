@@ -29,6 +29,7 @@
     };
     plymouth.enable = true;
     initrd = {
+      systemd.enable = true;
       verbose = false;
     };
     consoleLogLevel = 0;

@@ -103,21 +103,7 @@
         intel-media-driver
       ];
     };
-    ipu7 = {
-      enable = true;
-      platform = "ipu7x";
-    };
     sensor.iio.enable = true;
-    # The ISH rejects Intel's generic firmware and needs Lenovo's signed one.
-    # linux-firmware links that under a product_family CRC this machine doesn't
-    # match, so also offer it under the vendor-only name the kernel tries next
-    firmware = [
-      (pkgs.runCommand "ish-firmware-lenovo-x9-15" { } ''
-        mkdir -p $out/lib/firmware/intel/ish
-        cp -L ${pkgs.linux-firmware}/lib/firmware/LENOVO/ish/ish_lnlm_lenovo_x9-15_2025_5.8.0.7720.bin \
-          $out/lib/firmware/intel/ish/ish_lnlm_53c4ffad.bin
-      '')
-    ];
   };
 
   services.fprintd.enable = true;
