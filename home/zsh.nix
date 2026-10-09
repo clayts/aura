@@ -20,8 +20,7 @@ in
     packages.system
     grc
   ];
-  # gh writes config.yml itself, starting with the first login, so it can't be
-  # a read-only link
+  # gh writes config.yml itself, starting with the first login, so it can't be a read-only link
   xdg.configFile."gh/config.yml".enable = false;
   programs = {
     ripgrep-all.enable = true;
@@ -71,8 +70,7 @@ in
         command = "fd --hidden";
         options = [ "--preview '${lib.getExe packages.preview} {}'" ];
       };
-      # An empty command turns off Alt-C
-      changeDirWidget.command = "";
+      changeDirWidget.command = ""; # An empty command turns off Alt-C
       colors = with style.colors; {
         fg = x5;
         "fg+" = x7;

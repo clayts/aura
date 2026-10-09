@@ -91,7 +91,6 @@ in
         dark = "custom";
       };
       node.path = "${pkgs.nodejs}/bin/node";
-      # take language servers from the project's devshell via direnv
       load_direnv = "direct";
       languages = {
         Nix.language_servers = [

@@ -12,7 +12,6 @@
   };
   create =
     let
-      # Lock new projects to the system's nixpkgs, which is already in the store
       systemLock = builtins.fromJSON (builtins.readFile ../../flake.lock);
       lock = (pkgs.formats.json { }).generate "flake.lock" {
         nodes = {

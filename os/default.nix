@@ -29,7 +29,6 @@
     };
     plymouth.enable = true;
     initrd = {
-      # Starts plymouth earlier for a smoother, flicker-free boot
       systemd.enable = true;
       verbose = false;
     };
@@ -49,7 +48,7 @@
   systemd.sleep.settings.Sleep.HibernateDelaySec = "24h";
   programs = {
     zsh.enable = true;
-    gamemode.enable = true; # Steam launch options: gamemoderun %command%
+    gamemode.enable = true;
     nh = {
       enable = true;
       flake = "/etc/nixos";

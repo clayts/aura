@@ -51,10 +51,8 @@ in
       adjust-cell-height = -2;
       font-feature = style.fonts.mono.features;
       theme = "Custom";
-      # Derive the 256-colour palette from the theme's 16, so programs using it match
       palette-generate = true;
       command = "SHLVL=0; zsh";
-      # Not detected from the command above, so name the shell
       shell-integration = "zsh";
       shell-integration-features = "sudo";
       mouse-hide-while-typing = true;

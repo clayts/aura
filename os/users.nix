@@ -21,7 +21,7 @@
         extraGroups = [
           "wheel"
           "networkmanager"
-          "gamemode" # Lets gamemoded change the CPU governor without a password
+          "gamemode"
         ];
         hashedPasswordFile = "/etc/passwords/user";
       };
@@ -35,7 +35,6 @@
     };
   };
 
-  # Empty at every boot; home-manager fills it before logins are allowed
   fileSystems."/home/guest" = {
     device = "none";
     fsType = "tmpfs";
@@ -47,8 +46,7 @@
     ];
   };
 
-  # Without ~/.gitconfig, git config --global writes to home-manager's
-  # read-only ~/.config/git/config
+  # Without ~/.gitconfig, git config --global writes to home-manager's read-only ~/.config/git/config
   system.userActivationScripts.gitconfig = "touch ~/.gitconfig";
 
   home-manager = {
