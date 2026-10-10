@@ -3,6 +3,10 @@
   inputs,
   ...
 }:
+let
+  # Written by the installer and gone once it finishes
+  secrets = "/run/aura-install";
+in
 {
   imports = [
     inputs.disko.nixosModules.default
@@ -34,8 +38,21 @@
             content = {
               type = "luks";
               name = "crypted";
-              extraFormatArgs = [ "--hw-opal-only" ];
-              settings.crypttabExtraOpts = [ "tpm2-device=auto" ];
+              passwordFile = "${secrets}/disk-password";
+              # Lets the installed system seal the disk key to the TPM without asking for the password
+              additionalKeyFiles = [ "${secrets}/tpm-key" ];
+              extraFormatArgs = [
+                "--hw-opal-only"
+                # cryptsetup reads the drive's OPAL admin password from stdin; it's the disk password too
+                "<"
+                "${secrets}/disk-password"
+              ];
+              settings.crypttabExtraOpts = [
+                "tpm2-device=auto"
+                # Measure the unlocked disk into PCR 15, which the TPM seal requires to still be zero,
+                # so a planted volume unlocked first leaves the real disk's seal unusable
+                "tpm2-measure-pcr=yes"
+              ];
               content = {
                 type = "lvm_pv";
                 vg = "aura";
