@@ -23,5 +23,8 @@ set -x
 sudo nixos-install --no-channel-copy --no-root-password --flake "$flake#$host"
 sudo git clone $url /mnt/etc/nixos
 sudo chown -R 1000:100 /mnt/etc/nixos
-sudo mkdir -p /mnt/etc/NetworkManager
-sudo cp -r /etc/NetworkManager/system-connections /mnt/etc/NetworkManager/
+# Carry over Wi-Fi connections made in the installer; there are none on a wired install
+if [[ -d /etc/NetworkManager/system-connections ]]; then
+    sudo mkdir -p /mnt/etc/NetworkManager
+    sudo cp -r /etc/NetworkManager/system-connections /mnt/etc/NetworkManager/
+fi

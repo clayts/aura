@@ -12,7 +12,8 @@ if [[ ! -e $link ]]; then
     json=$(yt-dlp --dump-json --no-playlist "ytsearch1:$query")
     id=$(jq -r '.id' <<<"$json")
     title=$(jq -r '.title' <<<"$json")
-    mp3="$cache/mp3s/${title//\//_}.mp3"
+    # The id keeps different videos with the same title apart
+    mp3="$cache/mp3s/${title//\//_} [$id].mp3"
     if [[ ! -f $mp3 ]]; then
         echo " https://www.youtube.com/watch?v=$id"
         mkdir -p "$cache/mp3s"
