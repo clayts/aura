@@ -21,8 +21,8 @@ let
     searchFactorWhenWinningThreshold = 0.95
   '';
   neural-network = pkgs.fetchurl {
-    url = "https://media.katagotraining.org/uploaded/networks/models/kata1/kata1-tf3-b11c768-s11003M-d5973M-7gres.bin.gz";
-    hash = "sha256-k722Ojv65KcNsMtSZSh0lez8ELG6HMaBT+66HN8FWHE=";
+    url = "https://media.katagotraining.org/uploaded/networks/models/kata1/kata1-zhizi-b28c512nbt-muonfd2.bin.gz";
+    hash = "sha256-s3+aVqmxBRWaGW+bpyxTKHdvtc8wAUSV5NisilsHZUs=";
   };
   sabaki-unwrapped = pkgs.appimageTools.wrapType2 {
     pname = "sabaki";
