@@ -88,6 +88,10 @@ in
       name = "Cups";
       noDisplay = true;
     };
+    "btop" = {
+      name = "btop++";
+      noDisplay = true;
+    };
   };
   dconf.settings = {
     "org/gnome/shell".favorite-apps = [

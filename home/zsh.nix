@@ -19,10 +19,6 @@
     grc
     dust
   ];
-  xdg.desktopEntries."btop" = {
-    name = "btop++";
-    noDisplay = true;
-  };
   # gh writes config.yml itself, starting with the first login, so it can't be a read-only link
   xdg.configFile."gh/config.yml".enable = false;
   programs = {
