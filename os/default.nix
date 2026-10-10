@@ -59,9 +59,19 @@
       dedicatedServer.openFirewall = true;
     };
   };
-  security.sudo = {
-    wheelNeedsPassword = false;
-    extraConfig = "Defaults:root,%wheel env_keep+=SHLVL";
+  security = {
+    sudo = {
+      wheelNeedsPassword = false;
+      extraConfig = "Defaults:root,%wheel env_keep+=SHLVL";
+    };
+    # Mission Center runs nethogs from PATH to show each process's network usage,
+    # which needs these capabilities
+    wrappers.nethogs = {
+      source = "${pkgs.nethogs}/bin/nethogs";
+      capabilities = "cap_net_admin,cap_net_raw,cap_dac_read_search,cap_sys_ptrace+ep";
+      owner = "root";
+      group = "root";
+    };
   };
   documentation.nixos.enable = false;
   nix = {
