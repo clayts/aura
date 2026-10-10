@@ -44,6 +44,12 @@
     ipp-usb.enable = true;
     fwupd.enable = true;
     printing.enable = true;
+    # Let wheel read the CPU energy counters, for Mission Center's power draw.
+    # They're root-only because of the Platypus side channel, but wheel can
+    # sudo without a password anyway, so this only keeps them from guest
+    udev.extraRules = ''
+      ACTION=="add", SUBSYSTEM=="powercap", KERNEL=="intel-rapl*", RUN+="${pkgs.coreutils}/bin/chgrp wheel /sys%p/energy_uj", RUN+="${pkgs.coreutils}/bin/chmod g+r /sys%p/energy_uj"
+    '';
   };
   systemd.sleep.settings.Sleep.HibernateDelaySec = "24h";
   programs = {
