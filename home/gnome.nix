@@ -26,7 +26,6 @@ in
     celluloid
     gitg
     impression
-    resources
     mission-center
     packages.sabaki
     packages.earthpaper
