@@ -165,6 +165,10 @@ in
       command = "ghostty +new-window";
     };
     "org/gnome/evolution-data-server/calendar".notify-enable-audio = false; # Silences annoying daily beeps
-    "io/missioncenter/MissionCenter".first-time-running = false; # Skips the setup dialog; nethogs is set up in os/default.nix
+    "io/missioncenter/MissionCenter" = {
+      first-time-running = false; # Skips the setup dialog; nethogs is set up in os/default.nix
+      performance-show-fans = false; # thinkpad_acpi reads 0 RPM on this model
+      apps-page-merged-process-stats = true;
+    };
   };
 }
