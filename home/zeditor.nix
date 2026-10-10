@@ -218,6 +218,7 @@
               "editor.active_wrap_guide" = "${x2}1a";
               "editor.document_highlight.read_background" = "${xD}1a";
               "editor.document_highlight.write_background" = "${x2}66";
+              "editor.document_highlight.bracket_background" = "${xB}40"; # Brackets around the cursor
               "terminal.background" = "${x0}ff";
               "terminal.foreground" = "${x5}ff";
               "terminal.bright_foreground" = "${x7}ff";
