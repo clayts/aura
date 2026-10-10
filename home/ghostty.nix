@@ -1,7 +1,4 @@
-{ pkgs, ... }:
-let
-  style = import ./style { inherit pkgs; };
-in
+{ style, ... }:
 {
   # Lets GNOME run .desktop files that need a terminal in ghostty
   xdg.terminal-exec = {
@@ -54,7 +51,7 @@ in
       palette-generate = true;
       command = "SHLVL=0; zsh";
       shell-integration = "zsh";
-      shell-integration-features = "sudo";
+      shell-integration-features = "sudo,ssh-env,ssh-terminfo";
       mouse-hide-while-typing = true;
       window-theme = "ghostty";
       gtk-toolbar-style = "flat";

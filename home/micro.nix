@@ -1,7 +1,4 @@
-{ pkgs, ... }:
-let
-  style = import ./style { inherit pkgs; };
-in
+{ pkgs, style, ... }:
 {
   xdg.desktopEntries."micro" = {
     name = "Micro";

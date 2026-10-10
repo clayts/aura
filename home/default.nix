@@ -6,6 +6,7 @@
 }:
 let
   style = import ./style { inherit pkgs; };
+  packages = import ./packages { inherit pkgs; };
   homeDirectory = config.home.homeDirectory;
   fonts = lib.attrValues style.fonts;
 in
@@ -18,8 +19,11 @@ in
     ./zeditor.nix
     ./zsh.nix
   ];
+  # Shared with every module here as arguments
+  _module.args = { inherit style packages; };
   home = {
     stateVersion = "26.11";
+    preferXdgDirectories = true;
     packages = map (font: font.package) fonts;
     sessionVariables = {
       EDITOR = "micro";
@@ -75,6 +79,32 @@ in
               </test>
               <edit name="fontfeatures" mode="append">
                 ${lib.concatMapStrings (feature: "<string>${feature} on</string>") font.features}
+              </edit>
+            </match>
+          ''
+        ) fonts}
+      </fontconfig>
+    '';
+    # Make a font's weight, if it has one, its default by turning requests for
+    # Regular into it.
+    # Priority 90 runs this after the default fonts have been substituted in
+    configFile.weights.text = ''
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+      <fontconfig>
+        <description>Set default weights</description>
+        ${lib.concatMapStrings (
+          font:
+          lib.optionalString (font ? weight) ''
+            <match target="pattern">
+              <test name="family" compare="eq">
+                <string>${font.name}</string>
+              </test>
+              <test name="weight" compare="eq">
+                <const>regular</const>
+              </test>
+              <edit name="weight" mode="assign" binding="strong">
+                <const>${lib.toLower (lib.replaceStrings [ "-" " " ] [ "" "" ] font.weight)}</const>
               </edit>
             </match>
           ''

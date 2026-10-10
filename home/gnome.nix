@@ -2,12 +2,18 @@
   pkgs,
   lib,
   config,
+  style,
+  packages,
   ...
 }:
 let
-  style = import ./style { inherit pkgs; };
-  packages = import ./packages { inherit pkgs; };
   wallpaper = "${config.xdg.dataHome}/earthpaper/image.jpeg";
+  # A font as GNOME names it, e.g. "DeepMind Sans Medium 11"
+  fontName =
+    font:
+    lib.concatStringsSep " " (
+      [ font.name ] ++ lib.optional (font ? weight) font.weight ++ [ (toString font.size) ]
+    );
   blankWallpaper = pkgs.runCommand "blank-wallpaper.jpeg" { } ''
     ${lib.getExe' pkgs.imagemagick "magick"} -size 1x1 'xc:${style.colors.x0}' $out
   '';
@@ -21,6 +27,7 @@ in
     gitg
     impression
     resources
+    mission-center
     packages.sabaki
     packages.earthpaper
   ];
@@ -108,9 +115,9 @@ in
       workspaces-only-on-primary = true;
     };
     "org/gnome/desktop/interface" = with style.fonts; {
-      font-name = "${sans.name} ${toString sans.size}";
-      document-font-name = "${serif.name} ${toString serif.size}";
-      monospace-font-name = "${mono.name} ${toString mono.size}";
+      font-name = fontName sans;
+      document-font-name = fontName serif;
+      monospace-font-name = fontName mono;
       gtk-enable-primary-paste = false; # Disable middle-click paste as it can accidentally paste stuff when scrolling
       enable-hot-corners = false;
     };

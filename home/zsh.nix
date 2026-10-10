@@ -3,12 +3,10 @@
   lib,
   config,
   inputs,
+  style,
+  packages,
   ...
 }:
-let
-  style = import ./style { inherit pkgs; };
-  packages = import ./packages { inherit pkgs; };
-in
 {
   imports = [
     inputs.nix-index-database.homeModules.nix-index
@@ -19,6 +17,7 @@ in
     packages.sing
     packages.system
     grc
+    dust
   ];
   # gh writes config.yml itself, starting with the first login, so it can't be a read-only link
   xdg.configFile."gh/config.yml".enable = false;
@@ -43,7 +42,10 @@ in
       enableZshIntegration = false; # slow - just use comma
     };
     nix-index-database.comma.enable = true;
-    zoxide.enable = true;
+    zoxide = {
+      enable = true;
+      options = [ "--cmd cd" ]; # Replaces cd, keeping its completion
+    };
     direnv = {
       enable = true;
       nix-direnv.enable = true;
@@ -104,6 +106,7 @@ in
       settings.updates.auto_update = true;
     };
     fd.enable = true;
+    btop.enable = true;
     starship = {
       enable = true;
       presets = [ "no-runtime-versions" ];
@@ -212,9 +215,6 @@ in
         l = "lsd --almost-all --long --git --group-dirs first --no-symlink --date relative";
         ls = lib.mkForce "lsd --group-dirs first";
         lt = lib.mkForce "lsd --tree --long --git --group-dirs first --no-symlink --date relative";
-        ssh = "TERM='xterm-256color' ssh";
-        cd = "z";
-        diff = "batdiff";
         man = "batman --pager less";
         cat = "bat";
         grep = "grep --color=auto";
@@ -240,7 +240,7 @@ in
         ];
       };
       initContent = ''
-        [[ -o interactive ]] && [[ -n $DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${packages.rizzlefetch}/bin/rizzlefetch && echo
+        [[ -o interactive ]] && [[ -n $WAYLAND_DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${packages.rizzlefetch}/bin/rizzlefetch && echo
         echo
 
         # keybindings
@@ -253,8 +253,8 @@ in
         # case-insensitive completion
         zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
-        # fzf-tab: preview directories when completing cd (an alias for z)
-        zstyle ':fzf-tab:complete:(cd|z|__zoxide_z):*' fzf-preview '${lib.getExe packages.preview} $realpath'
+        # fzf-tab: preview directories when completing cd (zoxide's, via --cmd cd)
+        zstyle ':fzf-tab:complete:(cd|__zoxide_z):*' fzf-preview '${lib.getExe packages.preview} $realpath'
 
         # fzf: find files and folders with Ctrl-F rather than Ctrl-T
         for keymap in emacs vicmd viins; do

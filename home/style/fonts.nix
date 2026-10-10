@@ -1,7 +1,12 @@
 { pkgs }:
 {
   sans = {
-    name = "DeepMind Sans Medium";
+    name = "DeepMind Sans";
+    # Optional, for a family whose default weight should be other than
+    # Regular, e.g. "Light", "Medium" or "Semi-Bold". Naming a weight's own
+    # family instead, like "DeepMind Sans Medium", would leave bold text to be
+    # faked by thickening that weight
+    weight = "Medium";
     size = 11;
     package = pkgs.dm-sans;
     features = [ ];
