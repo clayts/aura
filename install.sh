@@ -5,6 +5,7 @@ url="https://github.com/clayts/$host"
 clear
 toilet -f future "Installing..."
 toilet -f future --gay "$host"
+echo "The disk asks for a recovery password, then an OPAL admin password for the drive itself"
 set -x
 sudo disko --mode destroy,format,mount --flake "$flake#$host"
 sudo install -d -m 700 /mnt/etc/passwords

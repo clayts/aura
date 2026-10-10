@@ -25,21 +25,43 @@
               mountOptions = [ "umask=0077" ];
             };
           };
-          swap = {
-            size = "63228M";
-            content = {
-              type = "swap";
-              discardPolicy = "both";
-              resumeDevice = true;
-            };
-          };
-          root = {
+          # LUKS2 in OPAL hardware-only mode: the drive encrypts everything
+          # itself and cryptsetup only stores and unlocks the locking range key.
+          # Swap shares the volume so hibernation images are encrypted too and
+          # one TPM unlock opens both
+          luks = {
             size = "100%";
             content = {
-              type = "filesystem";
-              format = "xfs";
-              mountpoint = "/";
+              type = "luks";
+              name = "crypted";
+              extraFormatArgs = [ "--hw-opal-only" ];
+              settings.crypttabExtraOpts = [ "tpm2-device=auto" ];
+              content = {
+                type = "lvm_pv";
+                vg = "aura";
+              };
             };
+          };
+        };
+      };
+    };
+    lvm_vg.aura = {
+      type = "lvm_vg";
+      lvs = {
+        swap = {
+          size = "63228M";
+          content = {
+            type = "swap";
+            discardPolicy = "both";
+            resumeDevice = true;
+          };
+        };
+        root = {
+          size = "100%";
+          content = {
+            type = "filesystem";
+            format = "xfs";
+            mountpoint = "/";
           };
         };
       };
