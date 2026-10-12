@@ -59,6 +59,20 @@ pull() {
     [[ $(git -C "$flake" rev-parse HEAD) != "$before" ]]
 }
 
+# The update commits flake.lock on top of whatever is checked out, so refuse to
+# start unless the working tree is clean
+require_clean() {
+    if [[ -n $(git -C "$flake" status --porcelain) ]]; then
+        fail "$flake has uncommitted changes, commit or stash them first"
+    fi
+}
+
+# Summarise the package changes between two system closures, skipping the
+# header that names their store paths
+closure_diff() {
+    dix --color never "$1" "$2" | sed -n '/^[A-Z]/,$p'
+}
+
 case "$cmd" in
     switch)
         rebuild
@@ -71,6 +85,7 @@ case "$cmd" in
         rebuild
         ;;
     update)
+        require_clean
         pulled=false
         if pull; then
             pulled=true
@@ -80,10 +95,13 @@ case "$cmd" in
             echo "Already up to date, nothing to build"
             exit 0
         fi
+        old_system=$(readlink -f /nix/var/nix/profiles/system)
         rebuild
+        new_system=$(readlink -f /nix/var/nix/profiles/system)
         # Only publish the new lock once the system has built with it
         if ! git -C "$flake" diff --quiet -- flake.lock; then
-            git -C "$flake" commit --quiet --message "Update flake.lock" -- flake.lock
+            printf 'Update flake.lock\n\n%s\n' "$(closure_diff "$old_system" "$new_system")" |
+                git -C "$flake" commit --quiet --file - -- flake.lock
             git -C "$flake" push --quiet
         fi
         ;;

@@ -99,7 +99,10 @@
   };
   system = pkgs.writeShellApplication {
     name = "system";
-    runtimeInputs = [ pkgs.git ];
+    runtimeInputs = [
+      pkgs.dix
+      pkgs.git
+    ];
     text = builtins.readFile ./system.sh;
   };
 }
