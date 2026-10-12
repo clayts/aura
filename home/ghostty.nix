@@ -51,7 +51,7 @@
       palette-generate = true;
       command = "SHLVL=0; zsh";
       shell-integration = "zsh";
-      shell-integration-features = "sudo,ssh-env,ssh-terminfo";
+      shell-integration-features = "sudo";
       mouse-hide-while-typing = true;
       window-theme = "ghostty";
       gtk-toolbar-style = "flat";

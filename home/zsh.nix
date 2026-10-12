@@ -218,6 +218,7 @@
         man = "batman --pager less";
         cat = "bat";
         grep = "grep --color=auto";
+        ssh = "TERM='xterm-256color' ssh";
       };
       sessionVariables = {
         DIRENV_WARN_TIMEOUT = 0;
