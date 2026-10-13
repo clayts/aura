@@ -272,7 +272,7 @@
                 orange
                 green
                 cyan
-                brown
+                grey7
               ];
               "syntax" = {
                 attribute = syntax purple { };
@@ -281,7 +281,7 @@
                 "comment.doc" = syntax grey4 { font_style = "italic"; };
                 constant = syntax yellow { };
                 constructor = syntax blue { };
-                embedded = syntax brown { };
+                embedded = syntax grey7 { };
                 emphasis = syntax purple { font_style = "italic"; };
                 "emphasis.strong" = syntax orange { font_weight = 700; };
                 enum = syntax yellow { };
@@ -295,7 +295,7 @@
                 number = syntax red { };
                 operator = syntax grey5 { };
                 predictive = syntax grey3 { font_style = "italic"; };
-                preproc = syntax brown { };
+                preproc = syntax grey7 { };
                 primary = syntax grey5 { };
                 property = syntax cyan { };
                 punctuation = syntax grey5 { };
@@ -306,7 +306,7 @@
                 "punctuation.special" = syntax orange { };
                 selector = syntax orange { };
                 "selector.pseudo" = syntax cyan { };
-                string = syntax brown { };
+                string = syntax grey7 { };
                 "string.escape" = syntax grey4 { };
                 "string.regex" = syntax grey4 { };
                 "string.special" = syntax yellow { };

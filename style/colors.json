@@ -6,7 +6,7 @@
 	"grey4": "#9198a1",
 	"grey5": "#c3c9d0",
 	"grey6": "#d3d8de",
-	"grey7": "#e4e8ec",
+	"grey7": "#f3f6fa",
 	"red": "#ff5c6c",
 	"orange": "#ff9000",
 	"yellow": "#ffd157",
@@ -14,5 +14,5 @@
 	"cyan": "#40efff",
 	"blue": "#41bbff",
 	"purple": "#b47cff",
-	"brown": "#f3f6fa"
+	"brown": "#c7816b"
 }
