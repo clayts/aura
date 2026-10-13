@@ -41,8 +41,8 @@
     # x8 red, x9 yellow, xA orange, xB green, xC cyan, xD blue, xE purple, xF highlight
     builtins.fromJSON (builtins.readFile ./colors.json);
   icons = {
-    name = "MoreWaita";
-    package = pkgs.morewaita-icon-theme;
+    name = "Papirus";
+    package = pkgs.papirus-icon-theme;
   };
   cursors = {
     name = "Bibata-Modern-Classic";
