@@ -25,12 +25,12 @@
           "6=${xC}"
           "7=${x5}"
           "8=${x3}"
-          "9=${style.terminal.bright.red}"
-          "10=${style.terminal.bright.green}"
-          "11=${style.terminal.bright.yellow}"
-          "12=${style.terminal.bright.blue}"
-          "13=${style.terminal.bright.magenta}"
-          "14=${style.terminal.bright.cyan}"
+          "9=${bright.x8}"
+          "10=${bright.xB}"
+          "11=${bright.xA}"
+          "12=${bright.xD}"
+          "13=${bright.xE}"
+          "14=${bright.xC}"
           "15=${x7}"
         ];
       };

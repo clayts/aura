@@ -36,10 +36,7 @@ rec {
       features = [ ];
     };
   };
-  colors =
-    # x0-x7: greys, dark to light
-    # x8 red, x9 yellow, xA orange, xB green, xC cyan, xD blue, xE purple, xF highlight
-    builtins.fromJSON (builtins.readFile ./colors.json);
+  colors = import ./colors.nix { inherit pkgs; };
   icons = {
     name = "MoreWaita";
     package = pkgs.morewaita-icon-theme;
@@ -54,5 +51,4 @@ rec {
     scheme = "default";
     accent = "blue";
   };
-  terminal = import ./terminal.nix { inherit pkgs colors; };
 }

@@ -1,5 +1,6 @@
-{ pkgs, colors }:
+{ pkgs }:
 let
+  colors = builtins.fromJSON (builtins.readFile ./colors.json);
   # Lightens a "#rrggbb" colour towards white, closing t of the gap to it
   lighten =
     t: color:
@@ -21,17 +22,10 @@ let
           5
         ];
 in
-{
-  # Bright ANSI colours, as lighter versions of the normal ones
-  bright = pkgs.lib.mapAttrs (_: lighten 0.3) (
-    with colors;
-    {
-      red = x8;
-      green = xB;
-      yellow = xA;
-      blue = xD;
-      magenta = xE;
-      cyan = xC;
-    }
-  );
+# x0-x7: greys, dark to light
+# x8 red, x9 yellow, xA orange, xB green, xC cyan, xD blue, xE purple, xF highlight
+colors
+// {
+  # Lighter versions of each colour, e.g. for bright terminal colours
+  bright = pkgs.lib.mapAttrs (_: lighten 0.3) colors;
 }
