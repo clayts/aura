@@ -29,8 +29,15 @@
     };
     plymouth = {
       enable = true;
-      # For any messages and password prompts during boot
-      font = "${style.fonts.sans.package}/share/fonts/truetype/DeepMindSans-Medium.ttf";
+      # For any messages and password prompts during boot. Plymouth takes a
+      # single font file, so find the sans font's in its package
+      font =
+        with style.fonts.sans;
+        pkgs.runCommand "plymouth-font"
+          { FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = [ package ]; }; }
+          ''
+            cp "$(${pkgs.lib.getExe' pkgs.fontconfig "fc-match"} -f '%{file}' '${name}:style=${weight}')" $out
+          '';
     };
     initrd = {
       systemd.enable = true;
