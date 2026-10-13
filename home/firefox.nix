@@ -18,6 +18,16 @@ let
       ''
     )
   );
+  # firefox-gnome-theme's systemIcons asks GTK for 48px icons, but Papirus' symbolic
+  # icons are 16px drawings without a viewBox, which get clipped when scaled. Ask
+  # for them at their real size instead
+  systemIcons = lib.pipe "${inputs.firefox-theme}/theme/system-icons.css" [
+    builtins.readFile
+    (lib.splitString "\n")
+    (lib.filter (lib.hasInfix "moz-icon://"))
+    (lib.concatStringsSep "\n")
+    (builtins.replaceStrings [ "?size=dialog" ] [ "?size=16" ])
+  ];
 in
 {
   xdg.configFile."mozilla/managed-storage/uBlock0@raymondhill.net.json".text = builtins.toJSON {
@@ -51,6 +61,18 @@ in
           @import "${inputs.firefox-theme}/userChrome.css";
           #nav-bar-overflow-button {
             display: none !important;
+          }
+          :root {
+          ${systemIcons}
+          }
+          /* systemIcons recolours icons to Adwaita grey; keep them black */
+          :root {
+            --gnome-icons-hack-filter: brightness(0) saturate(100%);
+            --gnome-window-icons-hack-filter: brightness(0) saturate(100%);
+            @media (prefers-color-scheme: dark) {
+              --gnome-icons-hack-filter: brightness(0) saturate(100%) invert(100%);
+              --gnome-window-icons-hack-filter: brightness(0) saturate(100%) invert(100%);
+            }
           }
         '';
         userContent = ''@import "${inputs.firefox-theme}/userContent.css";'';
