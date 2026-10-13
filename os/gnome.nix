@@ -36,7 +36,7 @@
     {
       settings = {
         "org/gnome/login-screen".enable-fingerprint-authentication = false;
-        "org/gnome/desktop/interface" = style.gnomeInterface;
+        "org/gnome/desktop/interface" = style.gnome.interface;
       };
     }
   ];

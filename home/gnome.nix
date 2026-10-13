@@ -112,7 +112,7 @@ in
       edge-tiling = true;
       workspaces-only-on-primary = true;
     };
-    "org/gnome/desktop/interface" = style.gnomeInterface // {
+    "org/gnome/desktop/interface" = style.gnome.interface // {
       gtk-enable-primary-paste = false; # Disable middle-click paste as it can accidentally paste stuff when scrolling
       enable-hot-corners = false;
     };
