@@ -85,9 +85,6 @@ in
         ) fonts}
       </fontconfig>
     '';
-    # Make a font's weight, if it has one, its default by turning requests for
-    # Regular into it.
-    # Priority 90 runs this after the default fonts have been substituted in
     configFile.weights.text = ''
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
