@@ -7,7 +7,6 @@
   accent,
 }:
 {
-  # Interface settings, shared by each user and GDM
   interface =
     let
       # A font as GNOME names it, e.g. "DeepMind Sans Medium 11"
