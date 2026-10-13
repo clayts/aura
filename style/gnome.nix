@@ -1,8 +1,10 @@
 {
-  lib,
+  pkgs,
   fonts,
   icons,
   cursors,
+  scheme,
+  accent,
 }:
 {
   # Interface settings, shared by each user and GDM
@@ -11,8 +13,8 @@
       # A font as GNOME names it, e.g. "DeepMind Sans Medium 11"
       fontName =
         font:
-        lib.concatStringsSep " " (
-          [ font.name ] ++ lib.optional (font ? weight) font.weight ++ [ (toString font.size) ]
+        pkgs.lib.concatStringsSep " " (
+          [ font.name ] ++ pkgs.lib.optional (font ? weight) font.weight ++ [ (toString font.size) ]
         );
     in
     {
@@ -21,7 +23,7 @@
       monospace-font-name = fontName fonts.mono;
       icon-theme = icons.name;
       cursor-theme = cursors.name;
-      color-scheme = "default";
-      accent-color = "blue";
+      color-scheme = scheme;
+      accent-color = accent;
     };
 }
