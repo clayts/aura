@@ -112,14 +112,9 @@ in
       edge-tiling = true;
       workspaces-only-on-primary = true;
     };
-    "org/gnome/desktop/interface" = with style.fonts; {
-      font-name = style.lib.fontName sans;
-      document-font-name = style.lib.fontName serif;
-      monospace-font-name = style.lib.fontName mono;
+    "org/gnome/desktop/interface" = style.gnomeInterface // {
       gtk-enable-primary-paste = false; # Disable middle-click paste as it can accidentally paste stuff when scrolling
       enable-hot-corners = false;
-      color-scheme = "default";
-      accent-color = "blue";
     };
     "org/gnome/desktop/background" = {
       picture-uri = wallpaper;

@@ -36,15 +36,7 @@
     {
       settings = {
         "org/gnome/login-screen".enable-fingerprint-authentication = false;
-        "org/gnome/desktop/interface" = with style.fonts; {
-          font-name = style.lib.fontName sans;
-          document-font-name = style.lib.fontName serif;
-          monospace-font-name = style.lib.fontName mono;
-          icon-theme = style.icons.name;
-          cursor-theme = style.cursors.name;
-          color-scheme = "default";
-          accent-color = "blue";
-        };
+        "org/gnome/desktop/interface" = style.gnomeInterface;
       };
     }
   ];
