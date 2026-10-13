@@ -281,7 +281,7 @@
                 "comment.doc" = syntax grey4 { font_style = "italic"; };
                 constant = syntax yellow { };
                 constructor = syntax blue { };
-                embedded = syntax grey7 { };
+                embedded = syntax brown { }; # Embedded language tags, as base16 has it
                 emphasis = syntax purple { font_style = "italic"; };
                 "emphasis.strong" = syntax orange { font_weight = 700; };
                 enum = syntax yellow { };
