@@ -194,8 +194,8 @@
               "tab_bar.background" = "${grey2}ff";
               "tab.inactive_background" = "${grey2}ff";
               "tab.active_background" = "${grey0}ff";
-              "search.match_background" = "${yellow}66";
-              "search.active_match_background" = "${orange}66";
+              "search.match_background" = "${orange}66";
+              "search.active_match_background" = "${yellow}66";
               "panel.background" = "${grey0}ff";
               "panel.focused_border" = null;
               "pane.focused_border" = null;
@@ -249,7 +249,7 @@
               "terminal.ansi.dim_white" = "${grey4}ff";
               "link_text.hover" = "${blue}ff";
               "version_control.added" = "${green}ff";
-              "version_control.modified" = "${yellow}ff";
+              "version_control.modified" = "${orange}ff";
               "version_control.word_added" = "${green}59";
               "version_control.word_deleted" = "${red}cc";
               "version_control.deleted" = "${red}ff";
@@ -268,30 +268,30 @@
                 blue
                 purple
                 red
-                orange
                 yellow
+                orange
                 green
                 cyan
                 brown
               ];
               "syntax" = {
                 attribute = syntax purple { };
-                boolean = syntax yellow { };
+                boolean = syntax orange { };
                 comment = syntax grey3 { font_style = "italic"; };
                 "comment.doc" = syntax grey4 { font_style = "italic"; };
-                constant = syntax orange { };
+                constant = syntax yellow { };
                 constructor = syntax blue { };
                 embedded = syntax brown { };
                 emphasis = syntax purple { font_style = "italic"; };
-                "emphasis.strong" = syntax yellow { font_weight = 700; };
-                enum = syntax orange { };
+                "emphasis.strong" = syntax orange { font_weight = 700; };
+                enum = syntax yellow { };
                 function = syntax green { };
                 hint = syntax grey3 { };
-                keyword = syntax yellow { };
+                keyword = syntax orange { };
                 label = syntax red { };
                 link_text = syntax blue { font_style = "normal"; };
                 link_uri = syntax blue { };
-                namespace = syntax yellow { };
+                namespace = syntax orange { };
                 number = syntax red { };
                 operator = syntax grey5 { };
                 predictive = syntax grey3 { font_style = "italic"; };
@@ -303,13 +303,13 @@
                 "punctuation.delimiter" = syntax grey5 { };
                 "punctuation.list_marker" = syntax red { };
                 "punctuation.markup" = syntax red { };
-                "punctuation.special" = syntax yellow { };
-                selector = syntax yellow { };
+                "punctuation.special" = syntax orange { };
+                selector = syntax orange { };
                 "selector.pseudo" = syntax cyan { };
                 string = syntax brown { };
                 "string.escape" = syntax grey4 { };
                 "string.regex" = syntax grey4 { };
-                "string.special" = syntax orange { };
+                "string.special" = syntax yellow { };
                 "string.special.symbol" = syntax red { };
                 tag = syntax red { };
                 "text.literal" = syntax green { };
@@ -321,17 +321,17 @@
               };
             }
             // lib.concatMapAttrs status {
-              conflict = yellow;
+              conflict = orange;
               created = green;
               deleted = red;
               error = red;
               hint = cyan;
               info = blue;
-              modified = yellow;
+              modified = orange;
               predictive = grey3;
               renamed = blue;
               success = green;
-              warning = yellow;
+              warning = orange;
             };
           }
         ];
