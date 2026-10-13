@@ -50,6 +50,11 @@ in
       ]
     );
   };
+  home.activation.earthpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [[ ! -e ${lib.escapeShellArg wallpaper} ]]; then
+      run install -D -m 644 ${blankWallpaper} ${lib.escapeShellArg wallpaper}
+    fi
+  '';
   xdg.configFile."autostart/earthpaper.desktop".text = ''
     [Desktop Entry]
     Type=Application
@@ -58,9 +63,6 @@ in
     X-GNOME-Autostart-enabled=true
     NoDisplay=true
   '';
-  # Nautilus only gives GLib's special folders their own icon, and projects isn't
-  # one, so give it a custom icon. That lives in GVfs metadata, which needs the
-  # session running, so set it at login. Nautilus' sidebar ignores custom icons
   xdg.configFile."autostart/projects-icon.desktop".text = ''
     [Desktop Entry]
     Type=Application
@@ -68,11 +70,6 @@ in
     Exec=${lib.getExe' pkgs.glib "gio"} set ${config.xdg.userDirs.projects} metadata::custom-icon-name folder-code
     X-GNOME-Autostart-enabled=true
     NoDisplay=true
-  '';
-  home.activation.earthpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [[ ! -e ${lib.escapeShellArg wallpaper} ]]; then
-      run install -D -m 644 ${blankWallpaper} ${lib.escapeShellArg wallpaper}
-    fi
   '';
   xdg.desktopEntries = {
     "org.gnome.Extensions" = {
@@ -113,7 +110,7 @@ in
       workspaces-only-on-primary = true;
     };
     "org/gnome/desktop/interface" = style.gnome.interface // {
-      gtk-enable-primary-paste = false; # Disable middle-click paste as it can accidentally paste stuff when scrolling
+      gtk-enable-primary-paste = false;
       enable-hot-corners = false;
     };
     "org/gnome/desktop/background" = {

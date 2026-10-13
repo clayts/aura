@@ -108,7 +108,7 @@ case "$cmd" in
     clean)
         [[ $mode == switch ]] || fail "clean takes no options"
         nh clean all --optimise
-        # Reinstall the bootloader so entries for deleted generations go
+        # Reinstall the bootloader so entries for deleted generations are removed
         sudo /nix/var/nix/profiles/system/bin/switch-to-configuration boot
         ;;
     -h | --help)

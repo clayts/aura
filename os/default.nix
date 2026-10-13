@@ -29,8 +29,6 @@
     };
     plymouth = {
       enable = true;
-      # For any messages and password prompts during boot. Plymouth takes a
-      # single font file, so find the sans font's in its package
       font =
         with style.fonts.sans;
         pkgs.runCommand "plymouth-font"
