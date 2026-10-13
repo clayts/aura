@@ -1,5 +1,6 @@
 { pkgs }:
-rec {
+(import ./lib.nix).generate {
+  inherit pkgs;
   fonts = {
     sans = {
       name = "DeepMind Sans";
@@ -36,7 +37,7 @@ rec {
       features = [ ];
     };
   };
-  colors = import ./colors.nix { inherit pkgs; };
+  colors = ./colors.json;
   icons = {
     name = "MoreWaita";
     package = pkgs.morewaita-icon-theme;
@@ -45,9 +46,7 @@ rec {
     name = "Bibata-Modern-Classic";
     package = pkgs.bibata-cursors;
   };
-  gnome = import ./gnome.nix {
-    inherit pkgs;
-    inherit fonts icons cursors;
+  gnome = {
     scheme = "default";
     accent = "blue";
   };
