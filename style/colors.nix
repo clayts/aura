@@ -22,8 +22,8 @@ let
           5
         ];
 in
-# x0-x7: greys, dark to light
-# x8 red, x9 yellow, xA orange, xB green, xC cyan, xD blue, xE purple, xF highlight
+# Base16: base00-base07 greys, dark to light
+# base08 red, base09 orange, base0A yellow, base0B green, base0C cyan, base0D blue, base0E purple, base0F brown
 colors
 // {
   # Lighter versions of each colour, e.g. for bright terminal colours

@@ -10,7 +10,7 @@ let
   wallpaper = "${config.xdg.dataHome}/earthpaper/image.jpeg";
   # Shown until earthpaper fetches its first image
   blankWallpaper = pkgs.runCommand "blank-wallpaper.jpeg" { } ''
-    ${lib.getExe' pkgs.imagemagick "magick"} -size 1920x1200 'gradient:${style.colors.x1}-${style.colors.x0}' $out
+    ${lib.getExe' pkgs.imagemagick "magick"} -size 1920x1200 'gradient:${style.colors.base01}-${style.colors.base00}' $out
   '';
 in
 {
