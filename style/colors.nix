@@ -22,8 +22,8 @@ let
           5
         ];
 in
-# Base16: base00-base07 greys, dark to light
-# base08 red, base09 orange, base0A yellow, base0B green, base0C cyan, base0D blue, base0E purple, base0F brown
+# Base16's colours by name: grey0-grey7 are base00-base07, dark to light,
+# then red, orange, yellow, green, cyan, blue, purple and brown are base08-base0F
 colors
 // {
   # Lighter versions of each colour, e.g. for bright terminal colours

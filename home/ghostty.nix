@@ -11,27 +11,27 @@
     themes = {
       "Custom" = with style.colors; {
         background = "#000000";
-        foreground = base05;
-        cursor-color = base05;
-        selection-background = base02;
-        selection-foreground = base05;
+        foreground = grey5;
+        cursor-color = grey5;
+        selection-background = grey2;
+        selection-foreground = grey5;
         palette = [
-          "0=${base00}"
-          "1=${base08}"
-          "2=${base0B}"
-          "3=${base0A}"
-          "4=${base0D}"
-          "5=${base0E}"
-          "6=${base0C}"
-          "7=${base05}"
-          "8=${base03}"
-          "9=${bright.base08}"
-          "10=${bright.base0B}"
-          "11=${bright.base0A}"
-          "12=${bright.base0D}"
-          "13=${bright.base0E}"
-          "14=${bright.base0C}"
-          "15=${base07}"
+          "0=${grey0}"
+          "1=${red}"
+          "2=${green}"
+          "3=${yellow}"
+          "4=${blue}"
+          "5=${purple}"
+          "6=${cyan}"
+          "7=${grey5}"
+          "8=${grey3}"
+          "9=${bright.red}"
+          "10=${bright.green}"
+          "11=${bright.yellow}"
+          "12=${bright.blue}"
+          "13=${bright.purple}"
+          "14=${bright.cyan}"
+          "15=${grey7}"
         ];
       };
     };

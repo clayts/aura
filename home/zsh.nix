@@ -81,10 +81,10 @@
         {
           syntax-theme = "base16";
           navigate = true;
-          minus-style = "syntax ${darken 0.25 base08}";
-          minus-emph-style = "syntax ${darken 0.5 base08}";
-          plus-style = "syntax ${darken 0.25 base0B}";
-          plus-emph-style = "syntax ${darken 0.5 base0B}";
+          minus-style = "syntax ${darken 0.25 red}";
+          minus-emph-style = "syntax ${darken 0.5 red}";
+          plus-style = "syntax ${darken 0.25 green}";
+          plus-emph-style = "syntax ${darken 0.5 green}";
         };
     };
     fzf = {
@@ -97,18 +97,18 @@
       };
       changeDirWidget.command = ""; # An empty command turns off Alt-C
       colors = with style.colors; {
-        fg = base05;
-        "fg+" = base07;
-        "bg+" = base02;
-        hl = base0C;
-        "hl+" = base0C;
-        info = base04;
-        prompt = base0D;
-        pointer = base0B;
-        marker = base0B;
-        spinner = base0E;
-        header = base04;
-        border = base02;
+        fg = grey5;
+        "fg+" = grey7;
+        "bg+" = grey2;
+        hl = cyan;
+        "hl+" = cyan;
+        info = grey4;
+        prompt = blue;
+        pointer = green;
+        marker = green;
+        spinner = purple;
+        header = grey4;
+        border = grey2;
       };
     };
     lsd = {
