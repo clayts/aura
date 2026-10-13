@@ -49,13 +49,9 @@ rec {
     package = pkgs.bibata-cursors;
   };
   gnome = import ./gnome.nix {
-    inherit
-      pkgs
-      fonts
-      icons
-      cursors
-      ;
+    inherit pkgs;
+    inherit fonts icons cursors;
     scheme = "default";
-    color = "blue";
+    accent = "blue";
   };
 }
