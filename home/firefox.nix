@@ -147,6 +147,7 @@ in
           "gnomeTheme.allTabsButtonOnOverflow" = false;
           "gnomeTheme.hideWebrtcIndicator" = false;
           "gnomeTheme.noThemedIcons" = false;
+          "gnomeTheme.systemIcons" = true;
           "gnomeTheme.bookmarksOnFullscreen" = false;
         };
       };
