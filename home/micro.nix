@@ -26,7 +26,7 @@
     color-link constant.string.char "${grey7}"
     color-link statement "${orange}"
     color-link symbol.operator "${grey5}"
-    color-link preproc "${grey7}"
+    color-link preproc "${brown}"
     color-link type "${blue}"
     color-link special "${yellow}"
     color-link underlined "${red}"
