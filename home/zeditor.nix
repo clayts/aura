@@ -232,9 +232,9 @@
               "terminal.ansi.green" = "${green}ff";
               "terminal.ansi.bright_green" = "${bright.green}ff";
               "terminal.ansi.dim_green" = "${green}bf";
-              "terminal.ansi.yellow" = "${yellow}ff";
-              "terminal.ansi.bright_yellow" = "${bright.yellow}ff";
-              "terminal.ansi.dim_yellow" = "${yellow}bf";
+              "terminal.ansi.yellow" = "${orange}ff";
+              "terminal.ansi.bright_yellow" = "${bright.orange}ff";
+              "terminal.ansi.dim_yellow" = "${orange}bf";
               "terminal.ansi.blue" = "${blue}ff";
               "terminal.ansi.bright_blue" = "${bright.blue}ff";
               "terminal.ansi.dim_blue" = "${blue}bf";
