@@ -29,7 +29,10 @@
     in
     {
       nixosConfigurations.aura = inputs.nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
+        specialArgs = {
+          inherit inputs;
+          style = import ./style { inherit pkgs; };
+        };
         modules = [
           ./os
           { nixpkgs.pkgs = pkgs; }

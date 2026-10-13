@@ -2,10 +2,10 @@
   pkgs,
   lib,
   config,
+  style,
   ...
 }:
 let
-  style = import ./style { inherit pkgs; };
   packages = import ./packages { inherit pkgs; };
   homeDirectory = config.home.homeDirectory;
   fonts = lib.attrValues style.fonts;
@@ -20,11 +20,10 @@ in
     ./zsh.nix
   ];
   # Shared with every module here as arguments
-  _module.args = { inherit style packages; };
+  _module.args = { inherit packages; };
   home = {
     stateVersion = "26.11";
     preferXdgDirectories = true;
-    packages = map (font: font.package) fonts;
     sessionVariables = {
       EDITOR = "micro";
       GOPATH = "$HOME/.local/share/go";

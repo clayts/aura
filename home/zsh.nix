@@ -58,10 +58,10 @@
       options = with style.colors; {
         syntax-theme = "base16";
         navigate = true;
-        minus-style = "syntax ${style.darken 0.25 x8}";
-        minus-emph-style = "syntax ${style.darken 0.5 x8}";
-        plus-style = "syntax ${style.darken 0.25 xB}";
-        plus-emph-style = "syntax ${style.darken 0.5 xB}";
+        minus-style = "syntax ${style.lib.darken 0.25 x8}";
+        minus-emph-style = "syntax ${style.lib.darken 0.5 x8}";
+        plus-style = "syntax ${style.lib.darken 0.25 xB}";
+        plus-emph-style = "syntax ${style.lib.darken 0.5 xB}";
       };
     };
     fzf = {

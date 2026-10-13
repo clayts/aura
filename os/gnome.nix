@@ -1,10 +1,16 @@
-{ pkgs, ... }:
+{ pkgs, style, ... }:
 {
   services = {
     desktopManager.gnome.enable = true;
     displayManager.gdm.enable = true;
   };
+  # System-wide, so GDM can use them as well as each user
+  fonts.packages = map (font: font.package) (builtins.attrValues style.fonts);
   environment = {
+    systemPackages = [
+      style.icons.package
+      style.cursors.package
+    ];
     gnome.excludePackages = with pkgs; [
       decibels
       epiphany
@@ -30,6 +36,15 @@
     {
       settings = {
         "org/gnome/login-screen".enable-fingerprint-authentication = false;
+        "org/gnome/desktop/interface" = with style.fonts; {
+          font-name = style.lib.fontName sans;
+          document-font-name = style.lib.fontName serif;
+          monospace-font-name = style.lib.fontName mono;
+          icon-theme = style.icons.name;
+          cursor-theme = style.cursors.name;
+          color-scheme = "default";
+          accent-color = "blue";
+        };
       };
     }
   ];

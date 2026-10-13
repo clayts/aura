@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, style, ... }:
 {
   imports = [
     ./gnome.nix
@@ -27,7 +27,11 @@
       efi.canTouchEfiVariables = true;
       timeout = 0;
     };
-    plymouth.enable = true;
+    plymouth = {
+      enable = true;
+      # For any messages and password prompts during boot
+      font = "${style.fonts.sans.package}/share/fonts/truetype/DeepMindSans-Medium.ttf";
+    };
     initrd = {
       systemd.enable = true;
       verbose = false;

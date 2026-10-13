@@ -8,12 +8,6 @@
 }:
 let
   wallpaper = "${config.xdg.dataHome}/earthpaper/image.jpeg";
-  # A font as GNOME names it, e.g. "DeepMind Sans Medium 11"
-  fontName =
-    font:
-    lib.concatStringsSep " " (
-      [ font.name ] ++ lib.optional (font ? weight) font.weight ++ [ (toString font.size) ]
-    );
   # Shown until earthpaper fetches its first image
   blankWallpaper = pkgs.runCommand "blank-wallpaper.jpeg" { } ''
     ${lib.getExe' pkgs.imagemagick "magick"} -size 1920x1200 'gradient:${style.colors.x1}-${style.colors.x0}' $out
@@ -119,9 +113,9 @@ in
       workspaces-only-on-primary = true;
     };
     "org/gnome/desktop/interface" = with style.fonts; {
-      font-name = fontName sans;
-      document-font-name = fontName serif;
-      monospace-font-name = fontName mono;
+      font-name = style.lib.fontName sans;
+      document-font-name = style.lib.fontName serif;
+      monospace-font-name = style.lib.fontName mono;
       gtk-enable-primary-paste = false; # Disable middle-click paste as it can accidentally paste stuff when scrolling
       enable-hot-corners = false;
       color-scheme = "default";
