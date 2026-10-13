@@ -3,7 +3,7 @@
   fonts = {
     sans = {
       name = "DeepMind Sans";
-      weight = "Medium"; # Optional
+      weight = "Medium";
       size = 11;
       package = pkgs.dm-sans;
       features = [ ];
