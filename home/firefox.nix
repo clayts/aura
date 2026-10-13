@@ -18,6 +18,16 @@ let
       ''
     )
   );
+
+  # The theme's system icons, with its fixes. It loads each one at 48px and
+  # scales it down, which blurs it, so load each at 16px for the display's scale
+  systemIcons = pkgs.runCommand "firefox-system-icons.css" { } ''
+    {
+      sed -E 's|url\("(moz-icon://stock/[^?"]+)\?size=dialog"\)|image-set(url("\1?size=16") 1x, url("\1?size=16\&scale=2") 2x, url("\1?size=16\&scale=3") 3x)|' \
+        ${inputs.firefox-theme}/theme/system-icons.css
+      cat ${./firefox-system-icons.css}
+    } >$out
+  '';
 in
 {
   xdg.configFile."mozilla/managed-storage/uBlock0@raymondhill.net.json".text = builtins.toJSON {
@@ -49,6 +59,7 @@ in
       default = {
         userChrome = ''
           @import "${inputs.firefox-theme}/userChrome.css";
+          @import "${systemIcons}" screen and -moz-pref("gnomeTheme.systemIcons");
           #nav-bar-overflow-button {
             display: none !important;
           }
@@ -95,6 +106,7 @@ in
           "browser.cache.disk.capacity" = 256 * 1024;
           "browser.cache.disk.parent_directory" = "/run/user/${toString config.home.uid}/firefox";
           "gnomeTheme.hideSingleTab" = true;
+          "gnomeTheme.systemIcons" = true;
           "browser.uiCustomization.state" = {
             "placements" = {
               "widget-overflow-fixed-list" = [ ];
