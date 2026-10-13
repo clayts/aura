@@ -54,4 +54,5 @@ rec {
     scheme = "default";
     accent = "blue";
   };
+  terminal = import ./terminal.nix { inherit pkgs colors; };
 }
