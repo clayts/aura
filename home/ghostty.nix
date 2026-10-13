@@ -19,18 +19,18 @@
           "0=${x0}"
           "1=${x8}"
           "2=${xB}"
-          "3=${xA}"
+          "3=${x9}"
           "4=${xD}"
           "5=${xE}"
           "6=${xC}"
           "7=${x5}"
           "8=${x3}"
-          "9=${x8}"
-          "10=${xB}"
-          "11=${xA}"
-          "12=${xD}"
-          "13=${xE}"
-          "14=${xC}"
+          "9=${style.lighten 0.3 x8}"
+          "10=${style.lighten 0.3 xB}"
+          "11=${style.lighten 0.3 x9}"
+          "12=${style.lighten 0.3 xD}"
+          "13=${style.lighten 0.3 xE}"
+          "14=${style.lighten 0.3 xC}"
           "15=${x7}"
         ];
       };
@@ -53,10 +53,11 @@
       shell-integration = "zsh";
       shell-integration-features = "sudo";
       mouse-hide-while-typing = true;
-      window-theme = "ghostty";
+      window-theme = "auto";
       gtk-toolbar-style = "flat";
       window-padding-x = 9;
       window-padding-y = 3;
+      window-padding-balance = true;
       confirm-close-surface = false;
       window-width = 80;
       window-height = 32;

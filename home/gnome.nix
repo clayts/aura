@@ -14,8 +14,9 @@ let
     lib.concatStringsSep " " (
       [ font.name ] ++ lib.optional (font ? weight) font.weight ++ [ (toString font.size) ]
     );
+  # Shown until earthpaper fetches its first image
   blankWallpaper = pkgs.runCommand "blank-wallpaper.jpeg" { } ''
-    ${lib.getExe' pkgs.imagemagick "magick"} -size 1x1 'xc:${style.colors.x0}' $out
+    ${lib.getExe' pkgs.imagemagick "magick"} -size 1920x1200 'gradient:${style.colors.x1}-${style.colors.x0}' $out
   '';
 in
 {
@@ -123,6 +124,8 @@ in
       monospace-font-name = fontName mono;
       gtk-enable-primary-paste = false; # Disable middle-click paste as it can accidentally paste stuff when scrolling
       enable-hot-corners = false;
+      color-scheme = "default";
+      accent-color = "blue";
     };
     "org/gnome/desktop/background" = {
       picture-uri = wallpaper;

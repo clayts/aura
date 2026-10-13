@@ -7,27 +7,6 @@
   packages,
   ...
 }:
-let
-  # Darkens a "#rrggbb" colour towards black, keeping t of each channel
-  darken =
-    t: color:
-    "#"
-    +
-      lib.concatMapStrings
-        (
-          i:
-          lib.fixedWidthString 2 "0" (
-            lib.toLower (
-              lib.toHexString (builtins.floor (t * lib.fromHexString (builtins.substring i 2 color)))
-            )
-          )
-        )
-        [
-          1
-          3
-          5
-        ];
-in
 {
   imports = [
     inputs.nix-index-database.homeModules.nix-index
@@ -79,10 +58,10 @@ in
       options = with style.colors; {
         syntax-theme = "base16";
         navigate = true;
-        minus-style = "syntax ${darken 0.25 x8}";
-        minus-emph-style = "syntax ${darken 0.5 x8}";
-        plus-style = "syntax ${darken 0.25 xB}";
-        plus-emph-style = "syntax ${darken 0.5 xB}";
+        minus-style = "syntax ${style.darken 0.25 x8}";
+        minus-emph-style = "syntax ${style.darken 0.5 x8}";
+        plus-style = "syntax ${style.darken 0.25 xB}";
+        plus-emph-style = "syntax ${style.darken 0.5 xB}";
       };
     };
     fzf = {
