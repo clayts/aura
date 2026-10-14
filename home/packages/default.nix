@@ -76,6 +76,7 @@
       ":"
       (pkgs.lib.makeBinPath [ pkgs.toilet ])
     ];
+    meta.mainProgram = "rizzlefetch";
   };
   preview = pkgs.writeShellApplication {
     name = "preview";
