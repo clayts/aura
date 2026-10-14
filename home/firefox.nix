@@ -19,14 +19,11 @@ let
     )
   );
 
-  # The theme's system icons, with its fixes. It loads each one at 48px and
-  # scales it down, which blurs it, so load each at 16px for the display's scale
+  # The theme's system icons. It loads each one at 48px and scales it down,
+  # which blurs it, so load each at 16px for the display's scale
   systemIcons = pkgs.runCommand "firefox-system-icons.css" { } ''
-    {
-      sed -E 's|url\("(moz-icon://stock/[^?"]+)\?size=dialog"\)|image-set(url("\1?size=16") 1x, url("\1?size=16\&scale=2") 2x, url("\1?size=16\&scale=3") 3x)|' \
-        ${inputs.firefox-theme}/theme/system-icons.css
-      cat ${./firefox-system-icons.css}
-    } >$out
+    sed -E 's|url\("(moz-icon://stock/[^?"]+)\?size=dialog"\)|image-set(url("\1?size=16") 1x, url("\1?size=16\&scale=2") 2x, url("\1?size=16\&scale=3") 3x)|' \
+      ${inputs.firefox-theme}/theme/system-icons.css >$out
   '';
 in
 {
@@ -62,6 +59,20 @@ in
           @import "${systemIcons}" screen and -moz-pref("gnomeTheme.systemIcons");
           #nav-bar-overflow-button {
             display: none !important;
+          }
+          @media -moz-pref("gnomeTheme.systemIcons") {
+            /* Colour system icons like the theme's own ones, rather than a fixed grey */
+            :root {
+              --gnome-window-icons-hack-filter: brightness(0) opacity(0.8) !important;
+              @media (prefers-color-scheme: dark) {
+                --gnome-window-icons-hack-filter: brightness(0) invert(1) !important;
+              }
+            }
+            /* The theme shrinks these to exactly the icon's size, so their rounded corners clip it */
+            toolbar .toolbarbutton-1 > .toolbarbutton-icon,
+            #downloads-indicator-icon {
+              border-radius: 0 !important;
+            }
           }
         '';
         userContent = ''@import "${inputs.firefox-theme}/userContent.css";'';

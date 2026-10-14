@@ -16,6 +16,7 @@
       "git-firefly"
       "color-highlight"
       "xml"
+      "emmet"
     ];
     extraPackages = with pkgs; [
       color-lsp
