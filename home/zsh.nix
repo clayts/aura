@@ -16,6 +16,7 @@
     packages.safe
     packages.sing
     packages.system
+    packages.rizzlefetch
     grc
     dust
   ];
@@ -235,7 +236,7 @@
         ];
       };
       initContent = ''
-        [[ -o interactive ]] && [[ -n $WAYLAND_DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${lib.getExe packages.rizzlefetch} && echo
+        [[ -o interactive ]] && [[ -n $WAYLAND_DISPLAY ]] && [[ $SHLVL -eq 1 ]] && rizzlefetch && echo
         echo
 
         # keybindings
