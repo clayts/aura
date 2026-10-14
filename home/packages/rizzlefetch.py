@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import colorsys
 import platform
 import random

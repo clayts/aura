@@ -3,6 +3,7 @@
   config,
   lib,
   pkgs,
+  packages,
   ...
 }:
 let
@@ -12,7 +13,7 @@ let
   layoutVersion = lib.toInt (
     builtins.readFile (
       pkgs.runCommand "firefox-layout-version" { } ''
-        ${lib.getExe pkgs.python3} ${./firefox-layout-version.py} \
+        ${lib.getExe packages.firefox-layout-version} \
           ${config.programs.firefox.package.unwrapped}/lib/firefox/omni.ja >$out
       ''
     )
