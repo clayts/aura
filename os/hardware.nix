@@ -66,7 +66,6 @@
               <width>2880</width>
               <height>1800</height>
               <rate>120.000</rate>
-              <!-- <ratemode>variable</ratemode> -->
             </mode>
           </monitor>
         </logicalmonitor>

@@ -8,7 +8,6 @@
 let
   packages = import ./packages { inherit pkgs; };
   homeDirectory = config.home.homeDirectory;
-  fonts = lib.attrValues style.fonts;
 in
 {
   imports = [
@@ -64,47 +63,28 @@ in
       ];
       emoji = [ emoji.name ];
     };
-    configFile.features.text = ''
+    # Each font's features, and its weight in place of regular
+    configFile.style.text = ''
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
       <fontconfig>
-        <description>Set features</description>
-        ${lib.concatMapStrings (
-          font:
-          lib.optionalString (font.features != [ ]) ''
+        ${lib.concatMapStrings (font: ''
+          ${lib.optionalString (font.features != [ ]) ''
             <match target="font">
-              <test name="family" compare="eq">
-                <string>${font.name}</string>
-              </test>
+              <test name="family"><string>${font.name}</string></test>
               <edit name="fontfeatures" mode="append">
                 ${lib.concatMapStrings (feature: "<string>${feature} on</string>") font.features}
               </edit>
             </match>
-          ''
-        ) fonts}
-      </fontconfig>
-    '';
-    configFile.weights.text = ''
-      <?xml version="1.0" encoding="UTF-8"?>
-      <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
-      <fontconfig>
-        <description>Set default weights</description>
-        ${lib.concatMapStrings (
-          font:
-          lib.optionalString (font ? weight) ''
+          ''}
+          ${lib.optionalString (font ? weight) ''
             <match target="pattern">
-              <test name="family" compare="eq">
-                <string>${font.name}</string>
-              </test>
-              <test name="weight" compare="eq">
-                <const>regular</const>
-              </test>
-              <edit name="weight" mode="assign" binding="strong">
-                <const>${lib.toLower (lib.replaceStrings [ "-" " " ] [ "" "" ] font.weight)}</const>
-              </edit>
+              <test name="family"><string>${font.name}</string></test>
+              <test name="weight"><const>regular</const></test>
+              <edit name="weight" mode="assign" binding="strong"><const>${lib.toLower font.weight}</const></edit>
             </match>
-          ''
-        ) fonts}
+          ''}
+        '') (lib.attrValues style.fonts)}
       </fontconfig>
     '';
   };

@@ -45,17 +45,11 @@
     color-link gutter-warning "${orange}"
     color-link cursor-line "${grey2}"
     color-link color-column "${grey2}"
-    #No extended types; Plain brackets.
     color-link type.extended "default"
-    #color-link symbol.brackets "default"
     color-link symbol.tag "${yellow}"
     color-link match-brace "${grey4},${grey5}"
     color-link tab-error "${red}"
     color-link trailingws "${red}"
   '';
-  xdg.configFile."micro/bindings.json".text = ''
-    {
-        "Alt-/": "lua:comment.comment",
-    }
-  '';
+  xdg.configFile."micro/bindings.json".text = builtins.toJSON { "Alt-/" = "lua:comment.comment"; };
 }

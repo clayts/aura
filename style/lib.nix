@@ -9,37 +9,37 @@
       gnome,
     }:
     let
-      palette = builtins.fromJSON (builtins.readFile colors);
-      lighten =
-        t: color:
-        "#"
-        +
-          pkgs.lib.concatMapStrings
-            (
-              i:
-              let
-                c = pkgs.lib.fromHexString (builtins.substring i 2 color);
-              in
-              pkgs.lib.fixedWidthString 2 "0" (
-                pkgs.lib.toLower (pkgs.lib.toHexString (builtins.floor (c + t * (255 - c))))
+      inherit (pkgs) lib;
+      palette = lib.importJSON colors;
+      # Applies f to each channel of a "#rrggbb" colour
+      mapChannels =
+        f: color:
+        let
+          channel =
+            i:
+            lib.fixedWidthString 2 "0" (
+              lib.toLower (
+                lib.toHexString (builtins.floor (f (lib.fromHexString (builtins.substring i 2 color))))
               )
-            )
-            [
-              1
-              3
-              5
-            ];
+            );
+        in
+        "#${channel 1}${channel 3}${channel 5}";
+      # Moves a colour t of the way towards white
+      lighten = t: mapChannels (c: c + t * (255 - c));
+      # Keeps t of a colour, darkening it towards black
+      darken = t: mapChannels (c: t * c);
       # A font as GNOME names it, e.g. "DeepMind Sans Medium 11"
       fontName =
         font:
-        pkgs.lib.concatStringsSep " " (
-          [ font.name ] ++ pkgs.lib.optional (font ? weight) font.weight ++ [ (toString font.size) ]
+        lib.concatStringsSep " " (
+          [ font.name ] ++ lib.optional (font ? weight) font.weight ++ [ (toString font.size) ]
         );
     in
     {
-      inherit fonts icons cursors;
+      inherit icons cursors darken;
+      fonts = lib.mapAttrs (_: font: { features = [ ]; } // font) fonts;
       colors = palette // {
-        bright = pkgs.lib.mapAttrs (_: lighten 0.3) palette;
+        bright = lib.mapAttrs (_: lighten 0.3) palette;
       };
       gnome.interface = {
         font-name = fontName fonts.sans;

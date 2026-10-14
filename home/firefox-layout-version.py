@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Print Firefox's toolbar layout version (kVersion in CustomizableUI.sys.mjs)
 # from its omni.ja. Firefox's jars put the central directory first, which
 # zipfile rejects, so walk the local file headers instead

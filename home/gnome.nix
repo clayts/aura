@@ -28,11 +28,9 @@ in
   gtk = {
     enable = true;
     iconTheme = style.icons;
-    gtk3 = {
-      theme = {
-        name = "adw-gtk3";
-        package = pkgs.adw-gtk3;
-      };
+    gtk3.theme = {
+      name = "adw-gtk3";
+      package = pkgs.adw-gtk3;
     };
     cursorTheme = style.cursors;
   };
@@ -90,7 +88,10 @@ in
       "firefox.desktop"
       "org.gnome.Nautilus.desktop"
     ];
-    "org/gnome/settings-daemon/plugins/power".ambient-enabled = false;
+    "org/gnome/settings-daemon/plugins/power" = {
+      ambient-enabled = false;
+      power-button-action = "hibernate";
+    };
     "org/gnome/shell/extensions/auto-power-profile".bat = "power-saver";
     "org/gnome/shell/extensions/just-perfection" = {
       panel = false;
@@ -144,7 +145,6 @@ in
     "org/gnome/nautilus/list-view".use-tree-view = true;
     "org/gnome/nautilus/preferences".show-delete-permanently = true;
     "org/gnome/settings-daemon/plugins/housekeeping".donation-reminder-enabled = false;
-    "org/gnome/settings-daemon/plugins/power".power-button-action = "hibernate";
     "org/gnome/settings-daemon/plugins/media-keys" = {
       play = [ "<Shift><Super>F23" ];
       custom-keybindings = [

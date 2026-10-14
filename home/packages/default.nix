@@ -1,108 +1,83 @@
 { pkgs }:
+let
+  # The shell script ./<name>.sh
+  script = args: pkgs.writeShellApplication ({ text = builtins.readFile ./${args.name}.sh; } // args);
+in
 {
   sabaki = import ./sabaki.nix { inherit pkgs; };
-  sing = pkgs.writeShellApplication {
+  sing = script {
     name = "sing";
     runtimeInputs = with pkgs; [
       yt-dlp
       jq
       (mpv.override { scripts = [ mpvScripts.mpris ]; })
     ];
-    text = builtins.readFile ./sing.sh;
   };
-  create =
-    let
-      systemLock = builtins.fromJSON (builtins.readFile ../../flake.lock);
-      lock = (pkgs.formats.json { }).generate "flake.lock" {
-        nodes = {
-          nixpkgs = systemLock.nodes.${systemLock.nodes.root.inputs.nixpkgs};
-          root.inputs.nixpkgs = "nixpkgs";
-        };
-        root = "root";
-        version = 7;
-      };
-    in
-    pkgs.symlinkJoin {
-      name = "create";
-      paths = [
-        (pkgs.writeShellApplication {
-          name = "create";
-          runtimeEnv = {
-            templates = ./create;
-            inherit lock;
+  create = pkgs.symlinkJoin {
+    name = "create";
+    paths = [
+      (script {
+        name = "create";
+        # A flake.lock pinning nixpkgs to the system's
+        runtimeEnv.lock =
+          let
+            systemLock = pkgs.lib.importJSON ../../flake.lock;
+          in
+          pkgs.writers.writeJSON "flake.lock" {
+            nodes = {
+              nixpkgs = systemLock.nodes.${systemLock.nodes.root.inputs.nixpkgs};
+              root.inputs.nixpkgs = "nixpkgs";
+            };
+            root = "root";
+            version = 7;
           };
-          runtimeInputs = with pkgs; [
-            git
-            direnv
-            go
-            nodejs
-            cargo
-          ];
-          text = builtins.readFile ./create/create.sh;
-        })
-        (pkgs.writeTextDir "share/zsh/site-functions/_create" (builtins.readFile ./create/_create))
-      ];
-    };
-  safe = pkgs.writeShellApplication {
+        runtimeInputs = with pkgs; [
+          git
+          direnv
+          go
+          nodejs
+          cargo
+        ];
+      })
+      (pkgs.writeTextDir "share/zsh/site-functions/_create" (builtins.readFile ./_create))
+    ];
+  };
+  safe = script {
     name = "safe";
     runtimeInputs = with pkgs; [
       gocryptfs
       util-linux
     ];
-    text = builtins.readFile ./safe.sh;
   };
-  earthpaper = pkgs.writeShellApplication {
+  earthpaper = script {
     name = "earthpaper";
-    runtimeEnv.ids = ./earthpaper/earthpaper.json;
+    runtimeEnv.ids = ./earthpaper.json;
     runtimeInputs = with pkgs; [
       jq
       curl
     ];
-    text = builtins.readFile ./earthpaper/earthpaper.sh;
   };
-  rizzlefetch = pkgs.python3Packages.buildPythonApplication {
-    pname = "rizzlefetch";
-    version = "0";
-    pyproject = false;
-    src = ./rizzlefetch.py;
-    dontUnpack = true;
-    dependencies = [ pkgs.python3Packages.terminaltexteffects ];
-    installPhase = ''
-      install -Dm755 $src $out/bin/rizzlefetch
-    '';
-    makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (pkgs.lib.makeBinPath [ pkgs.toilet ])
+  rizzlefetch = pkgs.writeShellApplication {
+    name = "rizzlefetch";
+    runtimeInputs = with pkgs; [
+      toilet
+      (python3.withPackages (ps: [ ps.terminaltexteffects ]))
     ];
+    text = "exec python3 ${./rizzlefetch.py}";
   };
-  preview = pkgs.writeShellApplication {
+  preview = script {
     name = "preview";
     runtimeInputs = with pkgs; [
       bat
       lsd
       file
     ];
-    text = builtins.readFile ./preview.sh;
   };
-  firefox-layout-version = pkgs.python3Packages.buildPythonApplication {
-    pname = "firefox-layout-version";
-    version = "0";
-    pyproject = false;
-    src = ./firefox-layout-version.py;
-    dontUnpack = true;
-    installPhase = ''
-      install -Dm755 $src $out/bin/firefox-layout-version
-    '';
-    meta.mainProgram = "firefox-layout-version";
-  };
-  system = pkgs.writeShellApplication {
+  system = script {
     name = "system";
-    runtimeInputs = [
-      pkgs.dix
-      pkgs.git
+    runtimeInputs = with pkgs; [
+      dix
+      git
     ];
-    text = builtins.readFile ./system.sh;
   };
 }

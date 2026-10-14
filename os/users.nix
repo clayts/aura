@@ -15,7 +15,7 @@
     defaultUserShell = pkgs.zsh;
     mutableUsers = false;
     users = {
-      "user" = {
+      user = {
         description = "User";
         isNormalUser = true;
         uid = 1000;
@@ -26,13 +26,13 @@
         ];
         hashedPasswordFile = "/etc/passwords/user";
       };
-      "guest" = {
+      guest = {
         description = "Guest";
         isNormalUser = true;
         uid = 1001;
         hashedPasswordFile = "/etc/passwords/guest";
       };
-      "root".hashedPasswordFile = "/etc/passwords/root";
+      root.hashedPasswordFile = "/etc/passwords/root";
     };
   };
 

@@ -26,11 +26,9 @@
       format_on_save = "on";
       hard_tabs = true;
       cli_default_open_behavior = "new_window";
-      git = {
-        inline_blame = {
-          show_commit_summary = true;
-          enabled = false;
-        };
+      git.inline_blame = {
+        show_commit_summary = true;
+        enabled = false;
       };
       git_panel = {
         dock = "right";

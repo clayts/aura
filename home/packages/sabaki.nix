@@ -24,12 +24,11 @@ let
     url = "https://media.katagotraining.org/uploaded/networks/models/kata1/kata1-zhizi-b28c512nbt-muonfd2.bin.gz";
     hash = "sha256-s3+aVqmxBRWaGW+bpyxTKHdvtc8wAUSV5NisilsHZUs=";
   };
-  sabaki-unwrapped = pkgs.appimageTools.wrapType2 {
+  sabaki-unwrapped = pkgs.appimageTools.wrapType2 rec {
     pname = "sabaki";
     version = "0.60.2";
-
     src = pkgs.fetchurl {
-      url = "https://github.com/SabakiHQ/Sabaki/releases/download/v0.60.2/sabaki-v0.60.2-linux-x64.AppImage";
+      url = "https://github.com/SabakiHQ/Sabaki/releases/download/v${version}/sabaki-v${version}-linux-x64.AppImage";
       hash = "sha256-m60d/lHz4CLarv2kHMlqVowwhNXuz4JEbuZMwYF08KE=";
     };
     extraPkgs = pkgs: with pkgs; [ libxshmfence ];

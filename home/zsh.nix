@@ -55,37 +55,14 @@
     delta = {
       enable = true;
       enableGitIntegration = true;
-      options =
-        let
-          # Darkens a "#rrggbb" colour towards black, keeping t of each channel
-          darken =
-            t: color:
-            "#"
-            +
-              lib.concatMapStrings
-                (
-                  i:
-                  lib.fixedWidthString 2 "0" (
-                    lib.toLower (
-                      lib.toHexString (builtins.floor (t * lib.fromHexString (builtins.substring i 2 color)))
-                    )
-                  )
-                )
-                [
-                  1
-                  3
-                  5
-                ];
-        in
-        with style.colors;
-        {
-          syntax-theme = "base16";
-          navigate = true;
-          minus-style = "syntax ${darken 0.25 red}";
-          minus-emph-style = "syntax ${darken 0.5 red}";
-          plus-style = "syntax ${darken 0.25 green}";
-          plus-emph-style = "syntax ${darken 0.5 green}";
-        };
+      options = with style.colors; {
+        syntax-theme = "base16";
+        navigate = true;
+        minus-style = "syntax ${style.darken 0.25 red}";
+        minus-emph-style = "syntax ${style.darken 0.5 red}";
+        plus-style = "syntax ${style.darken 0.25 green}";
+        plus-emph-style = "syntax ${style.darken 0.5 green}";
+      };
     };
     fzf = {
       enable = true;
@@ -114,13 +91,11 @@
     lsd = {
       enable = true;
       settings.hyperlink = "auto";
-      icons = {
-        name = {
-          "desk" = "󱈹";
-          "code" = "";
-          "nixos" = "";
-          "${config.home.username}" = "";
-        };
+      icons.name = {
+        desk = "󱈹";
+        code = "";
+        nixos = "";
+        "${config.home.username}" = "";
       };
     };
     gh.enable = true;
@@ -190,16 +165,12 @@
           format = "([ $user]($style))";
           style_root = "bright-red";
         };
-        hostname = {
-          format = "[($hostname)]($style)";
-        };
-        custom = {
-          directory_icon = {
-            when = true;
-            style = "blue";
-            command = "lsd -d $(pwd) --icon always | cut -c1-2";
-            format = "[$symbol($output )]($style)";
-          };
+        hostname.format = "[($hostname)]($style)";
+        custom.directory_icon = {
+          when = true;
+          style = "blue";
+          command = "lsd -d $(pwd) --icon always | cut -c1-2";
+          format = "[$symbol($output )]($style)";
         };
         shlvl = {
           disabled = false;
@@ -264,7 +235,7 @@
         ];
       };
       initContent = ''
-        [[ -o interactive ]] && [[ -n $WAYLAND_DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${packages.rizzlefetch}/bin/rizzlefetch && echo
+        [[ -o interactive ]] && [[ -n $WAYLAND_DISPLAY ]] && [[ $SHLVL -eq 1 ]] && ${lib.getExe packages.rizzlefetch} && echo
         echo
 
         # keybindings

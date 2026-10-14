@@ -7,9 +7,7 @@
   ];
   networking.hostName = "aura";
   system.stateVersion = "26.11";
-  environment.systemPackages = with pkgs; [
-    hunspellDicts.en_GB-ize
-  ];
+  environment.systemPackages = [ pkgs.hunspellDicts.en_GB-ize ];
   boot = {
     tmp.useTmpfs = true;
     kernelPackages = pkgs.linuxPackages_latest;
@@ -19,9 +17,7 @@
       "rd.udev.log_level=3"
       "udev.log_priority=3"
     ];
-    kernel.sysctl = {
-      "vm.swappiness" = 10;
-    };
+    kernel.sysctl."vm.swappiness" = 10;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;

@@ -7,13 +7,11 @@
       weight = "Medium";
       size = 11;
       package = pkgs.dm-sans;
-      features = [ ];
     };
     serif = {
       name = "Libre Baskerville";
       size = 11;
       package = pkgs.libre-baskerville;
-      features = [ ];
     };
     mono = {
       name = "Maple Mono NF";
@@ -34,7 +32,6 @@
       name = "Noto Color Emoji";
       size = 10;
       package = pkgs.noto-fonts-color-emoji;
-      features = [ ];
     };
   };
   colors = ./colors.json;
