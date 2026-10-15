@@ -125,7 +125,6 @@
     themes.custom =
       with style.colors;
       let
-        # A syntax highlight: a colour, plus any font style or weight
         syntax =
           color: font:
           {
@@ -134,13 +133,11 @@
             font_weight = null;
           }
           // font;
-        # A status colour, with its background and border
         status = name: color: {
           ${name} = "${color}ff";
           "${name}.background" = "${color}1a";
           "${name}.border" = "${color}80";
         };
-        # A collaborator's colours
         player = color: {
           cursor = "${color}ff";
           background = "${color}20";
@@ -217,7 +214,7 @@
               "editor.active_wrap_guide" = "${grey2}1a";
               "editor.document_highlight.read_background" = "${blue}1a";
               "editor.document_highlight.write_background" = "${grey2}66";
-              "editor.document_highlight.bracket_background" = "${green}40"; # Brackets around the cursor
+              "editor.document_highlight.bracket_background" = "${green}40";
               "terminal.background" = "${grey0}ff";
               "terminal.foreground" = "${grey5}ff";
               "terminal.bright_foreground" = "${grey7}ff";
@@ -280,7 +277,7 @@
                 "comment.doc" = syntax grey4 { font_style = "italic"; };
                 constant = syntax yellow { };
                 constructor = syntax blue { };
-                embedded = syntax brown { }; # Embedded language tags, as base16 has it
+                embedded = syntax brown { };
                 emphasis = syntax purple { font_style = "italic"; };
                 "emphasis.strong" = syntax orange { font_weight = 700; };
                 enum = syntax yellow { };

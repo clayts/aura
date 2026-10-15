@@ -19,8 +19,6 @@ let
     )
   );
 
-  # The theme's system icons. It loads each one at 48px and scales it down,
-  # which blurs it, so load each at 16px for the display's scale
   systemIcons = pkgs.runCommand "firefox-system-icons.css" { } ''
     sed -E 's|url\("(moz-icon://stock/[^?"]+)\?size=dialog"\)|image-set(url("\1?size=16") 1x, url("\1?size=16\&scale=2") 2x, url("\1?size=16\&scale=3") 3x)|' \
       ${inputs.firefox-theme}/theme/system-icons.css >$out

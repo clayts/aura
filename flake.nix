@@ -42,7 +42,6 @@
         name = "install";
         runtimeEnv.flake = "${inputs.self}";
         runtimeInputs = [
-          # The CLI from the same disko as the module it reads the layout from
           inputs.disko.packages.${system}.disko
           pkgs.git
           pkgs.mkpasswd

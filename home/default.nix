@@ -18,7 +18,6 @@ in
     ./zeditor.nix
     ./zsh.nix
   ];
-  # Shared with every module here as arguments
   _module.args = { inherit packages; };
   home = {
     stateVersion = "26.11";
@@ -63,7 +62,6 @@ in
       ];
       emoji = [ emoji.name ];
     };
-    # Each font's features, and its weight in place of regular
     configFile.style.text = ''
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE fontconfig SYSTEM "fonts.dtd">

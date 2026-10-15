@@ -45,7 +45,7 @@
     nix-index-database.comma.enable = true;
     zoxide = {
       enable = true;
-      options = [ "--cmd cd" ]; # Replaces cd, keeping its completion
+      options = [ "--cmd cd" ];
     };
     direnv = {
       enable = true;

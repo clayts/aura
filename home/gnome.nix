@@ -8,7 +8,6 @@
 }:
 let
   wallpaper = "${config.xdg.dataHome}/earthpaper/image.jpeg";
-  # Shown until earthpaper fetches its first image
   blankWallpaper = pkgs.runCommand "blank-wallpaper.jpeg" { } ''
     ${lib.getExe' pkgs.imagemagick "magick"} -size 1920x1200 'gradient:${style.colors.grey1}-${style.colors.grey0}' $out
   '';
@@ -158,8 +157,8 @@ in
     };
     "org/gnome/evolution-data-server/calendar".notify-enable-audio = false; # Silences annoying daily beeps
     "io/missioncenter/MissionCenter" = {
-      first-time-running = false; # Skips the setup dialog; nethogs is set up in os/default.nix
-      performance-show-fans = false; # thinkpad_acpi reads 0 RPM on this model
+      first-time-running = false;
+      performance-show-fans = false;
       apps-page-merged-process-stats = true;
     };
   };

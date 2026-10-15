@@ -4,7 +4,6 @@
     desktopManager.gnome.enable = true;
     displayManager.gdm.enable = true;
   };
-  # System-wide, so GDM can use them as well as each user
   fonts.packages = map (font: font.package) (builtins.attrValues style.fonts);
   environment = {
     systemPackages = [

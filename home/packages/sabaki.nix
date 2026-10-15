@@ -61,7 +61,6 @@ let
       config="''${XDG_CONFIG_HOME:-$HOME/.config}/Sabaki"
       settings="$config/settings.json"
       mkdir -p "$config"
-      # Overlay the managed keys on whatever Sabaki has saved, so engine paths follow the current store paths
       if [[ -f "$settings" ]] && merged=$(jq -s '.[0] * .[1]' "$settings" ${sabaki-config}); then
         printf '%s\n' "$merged" > "$settings"
       else
