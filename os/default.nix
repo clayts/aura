@@ -10,7 +10,17 @@
   environment.systemPackages = [ pkgs.hunspellDicts.en_GB-ize ];
   boot = {
     tmp.useTmpfs = true;
-    kernelPackages = pkgs.linuxPackages_latest;
+    # The kernel dev output now ships System.map, so modules_install runs depmod
+    # in out-of-tree builds that have kmod available. v4l2loopback (pulled in by
+    # hardware.ipu6) then ships its own modules.alias etc, which collide with the
+    # kernel's in the modules buildEnv. Make depmod a no-op until nixpkgs fixes it
+    kernelPackages = pkgs.linuxPackages_latest.extend (
+      _: prev: {
+        v4l2loopback = prev.v4l2loopback.overrideAttrs (old: {
+          makeFlags = old.makeFlags ++ [ "DEPMOD=true" ];
+        });
+      }
+    );
     kernelParams = [
       "quiet"
       "rd.systemd.show_status=false"
