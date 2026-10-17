@@ -7,6 +7,7 @@
   fonts.packages = map (font: font.package) (builtins.attrValues style.fonts);
   environment = {
     systemPackages = [
+      pkgs.nautilus-python # Lets nautilus load ghostty's "Open in Ghostty" extension
       style.icons.package
       style.cursors.package
     ];
