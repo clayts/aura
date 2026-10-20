@@ -100,10 +100,6 @@
         intel-media-driver
       ];
     };
-    ipu6 = {
-      enable = true;
-      platform = "ipu6";
-    };
     sensor.iio.enable = true;
     # The ISH rejects Intel's generic firmware and needs Lenovo's signed one.
     # linux-firmware links that under a product_family CRC this machine doesn't
