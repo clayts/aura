@@ -52,8 +52,9 @@ case "$cmd" in
         rebuild
         ;;
     update)
-        # The update commits flake.lock on top of whatever is checked out
-        if [[ -n $(git status --porcelain) ]]; then
+        # The update commits flake.lock on top of whatever is checked out.
+        # Edits to flake.nix are allowed since only flake.lock is committed
+        if [[ -n $(git status --porcelain -- . ':!flake.nix') ]]; then
             echo "$NH_FLAKE has uncommitted changes, commit or stash them first" >&2
             exit 1
         fi
