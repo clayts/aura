@@ -33,10 +33,6 @@
             cp "$(${pkgs.lib.getExe' pkgs.fontconfig "fc-match"} -f '%{file}' '${name}:style=${weight}')" $out
           '';
     };
-    initrd = {
-      systemd.enable = true;
-      verbose = false;
-    };
     consoleLogLevel = 0;
   };
   time.timeZone = "Europe/London";
