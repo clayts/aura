@@ -45,17 +45,13 @@
   console.useXkbConfig = true;
   services = {
     xserver.xkb.layout = "gb";
-    logind.settings.Login.HandleLidSwitch = "suspend";
     avahi.nssmdns4 = true;
     ipp-usb.enable = true;
     fwupd.enable = true;
     printing.enable = true;
     upower = {
-      percentageLow = 20;
       percentageCritical = 10;
       percentageAction = 5;
-      # Suspending is a hybrid sleep (see hardware.nix), so not as risky as
-      # UPower assumes
       criticalPowerAction = "Suspend";
       allowRiskyCriticalPowerAction = true;
     };

@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   inputs,
   ...
@@ -24,16 +23,6 @@
               format = "vfat";
               mountpoint = "/boot";
               mountOptions = [ "umask=0077" ];
-            };
-          };
-          swap = {
-            size = "63228M";
-            content = {
-              type = "swap";
-              discardPolicy = "both";
-              resumeDevice = true;
-              # Only for hibernation; zram handles everyday swapping
-              mountOptions = [ "noauto" ];
             };
           };
           root = {
@@ -115,34 +104,6 @@
       '')
     ];
   };
-
-  # Every suspend is a hybrid sleep: the hibernation image is written first, so
-  # the session survives the battery running out. Doing this to suspend itself
-  # catches every way of suspending, and logind never refuses because the swap
-  # isn't on yet, since it only checks for that before hibernating
-  systemd.services.systemd-suspend.serviceConfig.ExecStart = [
-    ""
-    "${config.systemd.package}/lib/systemd/systemd-sleep hybrid-sleep"
-  ];
-  # Turn the disk swap on just for that, and off again on resume
-  systemd.services.hibernate-swap =
-    let
-      device = config.disko.devices.disk.main.content.partitions.swap.content.device;
-    in
-    {
-      description = "Disk swap for hibernation";
-      wantedBy = [ "systemd-suspend.service" ];
-      before = [ "systemd-suspend.service" ];
-      unitConfig.StopWhenUnneeded = true;
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        # Given a device, swapon ignores fstab, so discardPolicy has to be
-        # repeated here; trimming keeps the SSD's own write amplification down
-        ExecStart = "${pkgs.util-linux}/bin/swapon --discard ${device}";
-        ExecStop = "${pkgs.util-linux}/bin/swapoff ${device}";
-      };
-    };
 
   services.fprintd.enable = true;
 }

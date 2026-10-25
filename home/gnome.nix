@@ -89,7 +89,6 @@ in
     ];
     "org/gnome/settings-daemon/plugins/power" = {
       ambient-enabled = false;
-      power-button-action = "suspend";
     };
     "org/gnome/shell/extensions/auto-power-profile".bat = "power-saver";
     "org/gnome/shell/extensions/just-perfection" = {
