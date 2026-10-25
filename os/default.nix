@@ -45,15 +45,26 @@
   console.useXkbConfig = true;
   services = {
     xserver.xkb.layout = "gb";
-    logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
+    logind.settings.Login.HandleLidSwitch = "suspend";
     avahi.nssmdns4 = true;
     ipp-usb.enable = true;
     fwupd.enable = true;
     printing.enable = true;
+    upower = {
+      percentageLow = 20;
+      percentageCritical = 10;
+      percentageAction = 5;
+      # The default, hybrid sleep, needs hibernation
+      criticalPowerAction = "PowerOff";
+    };
   };
-  # Higher priority than the disk swap, which stays for hibernation
   zramSwap.enable = true;
-  systemd.sleep.settings.Sleep.HibernateDelaySec = "24h";
+  # There's no disk swap to hibernate to
+  systemd.sleep.settings.Sleep = {
+    AllowHibernation = "no";
+    AllowHybridSleep = "no";
+    AllowSuspendThenHibernate = "no";
+  };
   programs = {
     zsh.enable = true;
     gamemode.enable = true;
