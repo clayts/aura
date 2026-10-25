@@ -17,7 +17,12 @@
       "rd.udev.log_level=3"
       "udev.log_priority=3"
     ];
-    kernel.sysctl."vm.swappiness" = 10;
+    # zram is far cheaper to swap to than disk, so swap eagerly and don't read
+    # ahead neighbouring pages
+    kernel.sysctl = {
+      "vm.swappiness" = 180;
+      "vm.page-cluster" = 0;
+    };
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -46,6 +51,8 @@
     fwupd.enable = true;
     printing.enable = true;
   };
+  # Higher priority than the disk swap, which stays for hibernation
+  zramSwap.enable = true;
   systemd.sleep.settings.Sleep.HibernateDelaySec = "24h";
   programs = {
     zsh.enable = true;
