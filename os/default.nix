@@ -54,8 +54,9 @@
       percentageLow = 20;
       percentageCritical = 10;
       percentageAction = 5;
-      # The default, hybrid sleep, needs hibernation
-      criticalPowerAction = "PowerOff";
+      criticalPowerAction = "Suspend";
+      # UPower calls suspending risky, as the battery can still run out
+      allowRiskyCriticalPowerAction = true;
     };
   };
   zramSwap.enable = true;
