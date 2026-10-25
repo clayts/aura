@@ -54,18 +54,13 @@
       percentageLow = 20;
       percentageCritical = 10;
       percentageAction = 5;
+      # Suspending is a hybrid sleep (see hardware.nix), so not as risky as
+      # UPower assumes
       criticalPowerAction = "Suspend";
-      # UPower calls suspending risky, as the battery can still run out
       allowRiskyCriticalPowerAction = true;
     };
   };
   zramSwap.enable = true;
-  # There's no disk swap to hibernate to
-  systemd.sleep.settings.Sleep = {
-    AllowHibernation = "no";
-    AllowHybridSleep = "no";
-    AllowSuspendThenHibernate = "no";
-  };
   programs = {
     zsh.enable = true;
     gamemode.enable = true;
