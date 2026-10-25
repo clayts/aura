@@ -160,6 +160,9 @@ in
       first-time-running = false;
       performance-show-fans = false;
       apps-page-merged-process-stats = true;
+      performance-smooth-graphs = true;
+      performance-sliding-graphs = true;
+      apps-page-core-count-affects-percentages = true;
     };
   };
 }
