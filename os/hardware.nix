@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   inputs,
   ...
@@ -31,6 +32,8 @@
               type = "swap";
               discardPolicy = "both";
               resumeDevice = true;
+              # Only for hibernation; zram handles everyday swapping
+              mountOptions = [ "noauto" ];
             };
           };
           root = {
@@ -112,6 +115,33 @@
       '')
     ];
   };
+
+  # Turn the disk swap on just for hibernating, and off again on resume
+  systemd.services.hibernate-swap =
+    let
+      device = config.disko.devices.disk.main.content.partitions.swap.content.device;
+      units = [
+        "systemd-hibernate.service"
+        "systemd-hybrid-sleep.service"
+        "systemd-suspend-then-hibernate.service"
+      ];
+    in
+    {
+      description = "Disk swap for hibernation";
+      wantedBy = units;
+      before = units;
+      unitConfig.StopWhenUnneeded = true;
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${pkgs.util-linux}/bin/swapon ${device}";
+        ExecStop = "${pkgs.util-linux}/bin/swapoff ${device}";
+      };
+    };
+  # logind refuses hibernation while no swap is active, so skip its check;
+  # the swap partition is twice the size of RAM, and systemd-sleep still has to
+  # find it active before it hibernates
+  systemd.services.systemd-logind.environment.SYSTEMD_BYPASS_HIBERNATION_MEMORY_CHECK = "1";
 
   services.fprintd.enable = true;
 }
