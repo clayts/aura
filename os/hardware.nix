@@ -137,7 +137,9 @@
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStart = "${pkgs.util-linux}/bin/swapon ${device}";
+        # Given a device, swapon ignores fstab, so discardPolicy has to be
+        # repeated here; trimming keeps the SSD's own write amplification down
+        ExecStart = "${pkgs.util-linux}/bin/swapon --discard ${device}";
         ExecStop = "${pkgs.util-linux}/bin/swapoff ${device}";
       };
     };
