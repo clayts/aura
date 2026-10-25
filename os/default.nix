@@ -55,8 +55,13 @@
       criticalPowerAction = "Suspend";
       allowRiskyCriticalPowerAction = true;
     };
+    # Swap files on disk, created only once zram runs low
+    swapspace.enable = true;
   };
-  zramSwap.enable = true;
+  zramSwap = {
+    enable = true;
+    memoryPercent = 100;
+  };
   programs = {
     zsh.enable = true;
     gamemode.enable = true;
