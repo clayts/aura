@@ -214,6 +214,7 @@
         cat = "bat";
         grep = "grep --color=auto";
         ssh = "TERM='xterm-256color' ssh";
+        top = "btop";
       };
       sessionVariables = {
         DIRENV_WARN_TIMEOUT = 0;
