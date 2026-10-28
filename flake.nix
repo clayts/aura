@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable-small";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     firefox-theme = {
       url = "github:rafaelmardojai/firefox-gnome-theme/master";
       flake = false;
