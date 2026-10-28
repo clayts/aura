@@ -70,7 +70,7 @@ case "$cmd" in
         # Only publish the new lock once the system has built with it, with a
         # summary of its package changes, skipping dix's header
         if ! git diff --quiet -- flake.lock; then
-            diff=$(dix --color never "$old_system" "$(readlink -f /nix/var/nix/profiles/system)" | sed -n '/^[A-Z]/,$p')
+            diff=$(dix --color never diff "$old_system" "$(readlink -f /nix/var/nix/profiles/system)" | sed -n '/^[A-Z]/,$p')
             printf 'Update flake.lock\n\n%s\n' "$diff" | git commit --quiet --file - -- flake.lock
             git push --quiet
         fi
