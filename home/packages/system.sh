@@ -68,9 +68,11 @@ case "$cmd" in
         old_system=$(readlink -f /nix/var/nix/profiles/system)
         rebuild
         # Only publish the new lock once the system has built with it, with a
-        # summary of its package changes, skipping dix's header
+        # summary of its package changes: dix's blank line separated CHANGED,
+        # ADDED and REMOVED blocks, without its header and closure stats
         if ! git diff --quiet -- flake.lock; then
-            diff=$(dix --color never diff "$old_system" "$(readlink -f /nix/var/nix/profiles/system)" | sed -n '/^[A-Z]/,$p')
+            diff=$(dix --color never diff "$old_system" "$(readlink -f /nix/var/nix/profiles/system)" |
+                awk -v RS= -v ORS='\n\n' '/^(CHANGED|ADDED|REMOVED) /')
             printf 'Update flake.lock\n\n%s\n' "$diff" | git commit --quiet --file - -- flake.lock
             git push --quiet
         fi
