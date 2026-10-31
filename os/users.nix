@@ -55,6 +55,8 @@
     useUserPackages = true;
     extraSpecialArgs = { inherit inputs style; };
     backupFileExtension = "home-manager-backup";
-    users = lib.genAttrs [ "root" "user" "guest" ] (_: ../home);
+    users = lib.genAttrs [ "root" "user" "guest" ] (name: {
+      imports = [ ../home ] ++ lib.optional (name == "user") ../home/cloud.nix;
+    });
   };
 }
