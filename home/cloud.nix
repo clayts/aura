@@ -5,35 +5,36 @@
   ...
 }:
 let
-  # Credentials can't go in the world-readable Nix store, so they live here as plain files,
-  # written once by cloud-setup and read by the rclone-config service on each login
-  secrets = "${config.xdg.configHome}/rclone/secrets";
   # Folder on Google Drive that holds the encrypted files
   folder = "Encrypted";
   mountPoint = "${config.home.homeDirectory}/Cloud";
-  # Named after the mount's remote path ("" for the root) and remote, see home-manager's rclone module
-  mountService = "rclone-mount:@cloud";
-  secretFiles = [
-    "${secrets}/token"
-    "${secrets}/password"
-    "${secrets}/password2"
-  ];
+  # rclone.conf holds the Drive token and crypt passwords, so rclone keeps it encrypted, and this
+  # fetches the key from the GNOME keyring, which is unlocked at login
+  password = pkgs.writeShellScript "rclone-password" ''
+    exec ${lib.getExe' pkgs.libsecret "secret-tool"} lookup application rclone
+  '';
   setup = pkgs.writeShellApplication {
     name = "cloud-setup";
     runtimeInputs = with pkgs; [
-      config.programs.rclone.package
+      rclone
+      libsecret
       coreutils
-      jq
       systemd
     ];
+    runtimeEnv.RCLONE_PASSWORD_COMMAND = password;
     text = ''
-      secrets=${lib.escapeShellArg secrets}
+      if ! secret-tool lookup application rclone >/dev/null; then
+          head -c 32 /dev/urandom | base64 -w 0 |
+              secret-tool store --label "rclone config" application rclone
+      fi
+
+      # /tmp is a tmpfs, so the config is never on disk unencrypted
       tmp="$(mktemp -d)"
       trap 'rm -rf "$tmp"' EXIT
+      conf="$tmp/rclone.conf"
 
       echo "Sign in to Google Drive in the browser window that opens"
-      rclone config create gdrive drive scope=drive --config "$tmp/rclone.conf" >/dev/null
-      token="$(rclone config dump --config "$tmp/rclone.conf" | jq -er .gdrive.token)"
+      rclone config create gdrive drive scope=drive --config "$conf" >/dev/null
 
       ask() {
           local value confirm
@@ -48,51 +49,57 @@ let
       echo "Enter the encryption passwords; to reuse existing encrypted files, enter the ones they were made with"
       password="$(ask password)"
       password2="$(ask "salt password")"
+      # Appended rather than passed to rclone config create, which would show them in ps
+      cat >>"$conf" <<EOF
+      [cloud]
+      type = crypt
+      remote = gdrive:${folder}
+      filename_encryption = standard
+      directory_name_encryption = true
+      password = $password
+      password2 = $password2
+      EOF
 
-      install -d -m 700 "$secrets"
-      install -m 600 /dev/stdin "$secrets/token" <<<"$token"
-      install -m 600 /dev/stdin "$secrets/password" <<<"$password"
-      install -m 600 /dev/stdin "$secrets/password2" <<<"$password2"
+      RCLONE_PASSWORD_CHANGE=1 rclone config encryption set --config "$conf" >/dev/null
+      install -D -m 600 "$conf" ${lib.escapeShellArg "${config.xdg.configHome}/rclone/rclone.conf"}
 
-      systemctl --user restart rclone-config.service ${lib.escapeShellArg "${mountService}.service"}
+      systemctl --user restart cloud.service
       echo "Mounted at "${lib.escapeShellArg mountPoint}
     '';
   };
-  # Until cloud-setup has run, skip the services rather than have them fail on every login
-  needsSecrets.Unit.ConditionPathExists = secretFiles;
 in
 {
-  home.packages = [ setup ];
-  programs.rclone = {
-    enable = true;
-    remotes = {
-      gdrive = {
-        config = {
-          type = "drive";
-          scope = "drive";
-        };
-        secrets.token = "${secrets}/token";
-      };
-      cloud = {
-        config = {
-          type = "crypt";
-          remote = "gdrive:${folder}";
-          filename_encryption = "standard";
-          directory_name_encryption = true;
-        };
-        secrets = {
-          password = "${secrets}/password";
-          password2 = "${secrets}/password2";
-        };
-        mounts."" = {
-          enable = true;
-          inherit mountPoint;
-        };
-      };
-    };
+  home = {
+    packages = [
+      pkgs.rclone
+      setup
+    ];
+    # Lets rclone on the command line read the config too
+    sessionVariables.RCLONE_PASSWORD_COMMAND = "${password}";
   };
-  systemd.user.services = {
-    rclone-config = needsSecrets;
-    ${mountService} = needsSecrets;
+  systemd.user.services.cloud = {
+    Unit = {
+      Description = "Encrypted Google Drive mount at ${mountPoint}";
+      # The keyring is only reachable once the session is up
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+      # Skipped until cloud-setup has run
+      ConditionPathExists = "${config.xdg.configHome}/rclone/rclone.conf";
+    };
+    Service = {
+      Type = "notify";
+      Environment = [
+        # Where NixOS puts the setuid fusermount3
+        "PATH=/run/wrappers/bin"
+        "RCLONE_PASSWORD_COMMAND=${password}"
+      ];
+      ExecStartPre = "${lib.getExe' pkgs.coreutils "mkdir"} -p ${lib.escapeShellArg mountPoint}";
+      ExecStart = "${lib.getExe pkgs.rclone} mount --vfs-cache-mode=full --cache-dir=%C/rclone cloud: ${lib.escapeShellArg mountPoint}";
+      # rclone unmounts on SIGTERM, then exits with 143
+      SuccessExitStatus = 143;
+      Restart = "on-failure";
+      RestartSec = 10;
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
   };
 }
