@@ -6,6 +6,15 @@
   ...
 }:
 {
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = lib.genAttrs [
+      "application/x-shellscript"
+      "text/x-shellscript"
+      "application/x-sh"
+      "text/x-sh"
+    ] (_: "dev.zed.Zed.desktop");
+  };
   programs.zed-editor = {
     enable = true;
     extensions = [
