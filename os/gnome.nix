@@ -4,6 +4,8 @@
     desktopManager.gnome.enable = true;
     displayManager.gdm.enable = true;
   };
+  networking.networkmanager.settings.connectivity.uri =
+    "http://nmcheck.gnome.org/check_network_status.txt";
   fonts.packages = map (font: font.package) (builtins.attrValues style.fonts);
   environment = {
     systemPackages = [
