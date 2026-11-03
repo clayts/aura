@@ -27,8 +27,9 @@ need_config() {
         die "there's no $RCLONE_CONFIG; to set up again, move ~/Library aside and run: luggage setup"
 }
 
-# Is there a record (lst) or backup record (lst-old) of the last sync?
-record() { compgen -G "$state/*.$1" >/dev/null; }
+# Is there a record (lst) or backup record (lst-old) of the last sync? A glob that
+# matches nothing stays as it is. (Not compgen: Nix's non-interactive bash lacks it.)
+record() { local files=("$state"/*."$1"); [[ -e ${files[0]} ]]; }
 
 bisync() {
     local net
@@ -122,8 +123,8 @@ status() {
         ok=1
     fi
     # bisync rewrites its record after every successful sync.
-    if found=$(compgen -G "$state/*.path1.lst"); then
-        echo "Last successful sync: $(date -r "$found" '+%Y-%m-%d %H:%M')"
+    if record path1.lst; then
+        echo "Last successful sync: $(date -r "$state"/*.path1.lst '+%Y-%m-%d %H:%M')"
     fi
 
     if out=$(bisync --dry-run -v 2>&1); then
