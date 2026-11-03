@@ -14,6 +14,8 @@ let
 in
 {
   home.packages = with pkgs; [
+    packages.sabaki
+    packages.earthpaper
     gnome-firmware
     file-roller
     eyedropper
@@ -21,8 +23,7 @@ in
     gitg
     impression
     mission-center
-    packages.sabaki
-    packages.earthpaper
+    proton-vpn
   ];
   gtk = {
     enable = true;
