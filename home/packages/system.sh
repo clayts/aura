@@ -3,16 +3,14 @@ usage() {
 Usage: system <command> [--boot]
 
 Commands:
-  switch   Build the system in $NH_FLAKE as it is and switch to it
-  sync     Pull $NH_FLAKE and switch to it, without updating its inputs; does
-           nothing if the pull brings in no new commits
+  sync     Build the system in $NH_FLAKE as it is and switch to it
   update   Pull $NH_FLAKE, update its inputs, switch, then commit and push
            flake.lock; does nothing if neither brings in any changes
   clean    Delete old generations, collect garbage, optimise the store and
            prune old boot entries
 
 Options:
-  --boot   (switch, sync, update) Use the new system from the next boot instead
+  --boot   (sync, update) Use the new system from the next boot instead
            of switching now
 USAGE
 }
@@ -41,14 +39,7 @@ pull() {
 }
 
 case "$cmd" in
-    switch)
-        rebuild
-        ;;
     sync)
-        if ! pull; then
-            echo "Already up to date, nothing to build"
-            exit 0
-        fi
         rebuild
         ;;
     update)
