@@ -95,8 +95,9 @@
       enable = true;
       settings.hyperlink = "auto";
       icons.name = {
-        desk = "󱈹";
-        code = "";
+        desktop = "󱈹";
+        projects = "";
+        library = "";
         nixos = "";
         "${config.home.username}" = "";
       };

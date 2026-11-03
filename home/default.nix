@@ -68,13 +68,13 @@ in
       createDirectories = true;
       templates = "${homeDirectory}/.Templates";
       publicShare = "${homeDirectory}/.Public";
-      desktop = "${homeDirectory}/Desk";
-      download = "${homeDirectory}/Desk";
-      music = "${homeDirectory}/Media";
-      pictures = "${homeDirectory}/Media";
-      videos = "${homeDirectory}/Media";
-      projects = "${homeDirectory}/Code";
-      documents = "${homeDirectory}/Documents";
+      desktop = "${homeDirectory}/Desktop";
+      download = "${homeDirectory}/Desktop";
+      documents = "${homeDirectory}/Library";
+      music = "${homeDirectory}/Library";
+      pictures = "${homeDirectory}/Library";
+      videos = "${homeDirectory}/Library";
+      projects = "${homeDirectory}/Projects";
     };
   };
   fonts.fontconfig = {
