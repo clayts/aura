@@ -22,28 +22,6 @@
     dust
     yt-dlp
   ];
-  # Sync ~/Library 15 minutes after each sync ends. Users who haven't run
-  # luggage setup have no config, so for them the sync is skipped, not failed
-  systemd.user = {
-    services.luggage = {
-      Unit = {
-        Description = "Sync ~/Library with Google Drive";
-        ConditionPathExists = "%h/.config/luggage.conf";
-      };
-      Service = {
-        Type = "oneshot";
-        ExecStart = "${lib.getExe packages.luggage} sync";
-      };
-    };
-    timers.luggage = {
-      Unit.Description = "Sync ~/Library with Google Drive regularly";
-      Timer = {
-        OnStartupSec = "1min";
-        OnUnitInactiveSec = "15min";
-      };
-      Install.WantedBy = [ "timers.target" ];
-    };
-  };
   # gh writes config.yml itself, starting with the first login, so it can't be a read-only link
   xdg.configFile."gh/config.yml".enable = false;
   programs = {

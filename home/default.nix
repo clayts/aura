@@ -30,6 +30,37 @@ in
     };
     file."${config.xdg.userDirs.templates}".source = ./templates;
   };
+  # luggage reads its config's key from the GNOME keyring, which is only
+  # unlocked while logged in to GNOME, so it syncs only in the graphical
+  # session: a minute after it starts, then 15 minutes after each sync ends.
+  # Without a config (luggage setup not run) the sync is skipped, not failed
+  systemd.user = {
+    services.luggage = {
+      Unit = {
+        Description = "Sync ~/Library with Google Drive";
+        Requisite = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
+        ConditionPathExists = "%h/.config/luggage.conf";
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${lib.getExe packages.luggage} sync";
+      };
+    };
+    timers.luggage = {
+      Unit = {
+        Description = "Sync ~/Library with Google Drive regularly";
+        # Not After= the session: timers come before timers.target, which
+        # comes before graphical-session.target, so that would be a cycle
+        PartOf = [ "graphical-session.target" ];
+      };
+      Timer = {
+        OnActiveSec = "1min";
+        OnUnitInactiveSec = "15min";
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+    };
+  };
   xdg = {
     enable = true;
     userDirs = {
