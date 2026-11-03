@@ -28,7 +28,7 @@ case "${1:-}" in
             echo ~/Safe already locked >&2
             exit 1
         fi
-        fusermount -u "$MOUNT_DIR"
+        fusermount3 -u "$MOUNT_DIR"
         rm -f ~/Safe
         echo ~/Safe locked
         ;;
