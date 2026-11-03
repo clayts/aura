@@ -51,6 +51,15 @@
     ];
     text = builtins.readFile ./safe.sh;
   };
+  luggage = pkgs.writeShellApplication {
+    name = "luggage";
+    runtimeInputs = with pkgs; [
+      rclone
+      libsecret # secret-tool
+      networkmanager # nmcli
+    ];
+    text = builtins.readFile ./luggage.sh;
+  };
   earthpaper = pkgs.writeShellApplication {
     name = "earthpaper";
     runtimeEnv.ids = ./earthpaper/earthpaper.json;
