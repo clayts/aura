@@ -25,6 +25,37 @@ in
     mission-center
     proton-vpn
   ];
+  # cloud reads its config's key from the GNOME keyring, which is only
+  # unlocked while logged in to GNOME, so it syncs only in the graphical
+  # session: a minute after it starts, then 15 minutes after each sync ends.
+  # Without a config (cloud setup not run) the sync is skipped, not failed
+  systemd.user = {
+    services.cloud = {
+      Unit = {
+        Description = "Sync ~/Cloud with Google Drive";
+        Requisite = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
+        ConditionPathExists = "%h/.config/cloud.conf";
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${lib.getExe packages.cloud} sync";
+      };
+    };
+    timers.cloud = {
+      Unit = {
+        Description = "Sync ~/Cloud with Google Drive regularly";
+        # Not After= the session: timers come before timers.target, which
+        # comes before graphical-session.target, so that would be a cycle
+        PartOf = [ "graphical-session.target" ];
+      };
+      Timer = {
+        OnActiveSec = "1min";
+        OnUnitInactiveSec = "15min";
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+    };
+  };
   gtk = {
     enable = true;
     iconTheme = style.icons;
