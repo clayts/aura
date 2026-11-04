@@ -145,7 +145,7 @@ in
     "org/gnome/nautilus/preferences".show-delete-permanently = true;
     "org/gnome/settings-daemon/plugins/housekeeping".donation-reminder-enabled = false;
     "org/gnome/settings-daemon/plugins/media-keys" = {
-      play = [ "<Shift><Super>F23" ];
+      play = [ "XF86Favorites" ];
       custom-keybindings = [
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/terminal/"
       ];
