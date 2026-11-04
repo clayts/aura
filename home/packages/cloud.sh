@@ -40,7 +40,7 @@ bisync() {
     # fall back on the backup record, but if that's gone too, only --resync rebuilds it.
     record lst || record lst-old || [[ $* == *--resync* ]] ||
         die "there's no record of the last sync; run: cloud sync --resync"
-    net=$(LC_ALL=C nmcli -t networking connectivity check || true)
+    net=$(nmcli -t networking connectivity check || true)
     [[ $net == full ]] || die "no internet connection (NetworkManager says: ${net:-nothing})"
     # Downloads are written to name.xxxxxxxx.cloud.partial and then renamed. If rclone
     # is killed, the leftover is excluded so it's never uploaded as a real file.
