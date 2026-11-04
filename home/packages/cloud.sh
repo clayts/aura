@@ -132,6 +132,7 @@ status() {
     else
         grep -E 'ERROR|CRITICAL|Failed to|^cloud:' <<<"$out" >&2 || true
         ok=1
+        set --  # skip --verify too: offline, rclone would retry for minutes before failing
     fi
     # crypt skips names it can't decrypt, so sync never touches these.
     found=$(sed -nE 's/.*NOTICE: (.*): Skipping undecryptable .*/  \1/p' <<<"$out" | sort -u)
