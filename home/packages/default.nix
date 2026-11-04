@@ -51,14 +51,14 @@
     ];
     text = builtins.readFile ./safe.sh;
   };
-  luggage = pkgs.writeShellApplication {
-    name = "luggage";
+  cloud = pkgs.writeShellApplication {
+    name = "cloud";
     runtimeInputs = with pkgs; [
       rclone
       libsecret # secret-tool
       networkmanager # nmcli
     ];
-    text = builtins.readFile ./luggage.sh;
+    text = builtins.readFile ./cloud.sh;
   };
   earthpaper = pkgs.writeShellApplication {
     name = "earthpaper";

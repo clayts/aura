@@ -30,26 +30,26 @@ in
     };
     file."${config.xdg.userDirs.templates}".source = ./templates;
   };
-  # luggage reads its config's key from the GNOME keyring, which is only
+  # cloud reads its config's key from the GNOME keyring, which is only
   # unlocked while logged in to GNOME, so it syncs only in the graphical
   # session: a minute after it starts, then 15 minutes after each sync ends.
-  # Without a config (luggage setup not run) the sync is skipped, not failed
+  # Without a config (cloud setup not run) the sync is skipped, not failed
   systemd.user = {
-    services.luggage = {
+    services.cloud = {
       Unit = {
-        Description = "Sync ~/Library with Google Drive";
+        Description = "Sync ~/Cloud with Google Drive";
         Requisite = [ "graphical-session.target" ];
         After = [ "graphical-session.target" ];
-        ConditionPathExists = "%h/.config/luggage.conf";
+        ConditionPathExists = "%h/.config/cloud.conf";
       };
       Service = {
         Type = "oneshot";
-        ExecStart = "${lib.getExe packages.luggage} sync";
+        ExecStart = "${lib.getExe packages.cloud} sync";
       };
     };
-    timers.luggage = {
+    timers.cloud = {
       Unit = {
-        Description = "Sync ~/Library with Google Drive regularly";
+        Description = "Sync ~/Cloud with Google Drive regularly";
         # Not After= the session: timers come before timers.target, which
         # comes before graphical-session.target, so that would be a cycle
         PartOf = [ "graphical-session.target" ];
@@ -68,8 +68,8 @@ in
       createDirectories = true;
       templates = "${homeDirectory}/.Templates";
       publicShare = "${homeDirectory}/.Public";
-      desktop = "${homeDirectory}/Desktop";
-      download = "${homeDirectory}/Desktop";
+      desktop = "${homeDirectory}/Library";
+      download = "${homeDirectory}/Library";
       documents = "${homeDirectory}/Library";
       music = "${homeDirectory}/Library";
       pictures = "${homeDirectory}/Library";

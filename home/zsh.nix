@@ -14,7 +14,7 @@
   home.packages = with pkgs; [
     packages.create
     packages.safe
-    packages.luggage
+    packages.cloud
     packages.sing
     packages.system
     packages.rizzlefetch
@@ -95,9 +95,9 @@
       enable = true;
       settings.hyperlink = "auto";
       icons.name = {
-        desktop = "󱈹";
         projects = "";
         library = "";
+        cloud = "";
         nixos = "";
         "${config.home.username}" = "";
       };
