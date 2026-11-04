@@ -36,7 +36,6 @@ bisync() {
     # Quick checks first, so a run that can't work (from a timer, say) stops at once,
     # rather than after rclone has listed both sides, or retried for minutes offline.
     need_config
-    [[ -e $HOME/Cloud/.cloud ]] || die "there's no ~/Cloud/.cloud"
     # rclone wrongly calls a missing record "retryable without --resync". --recover can
     # fall back on the backup record, but if that's gone too, only --resync rebuilds it.
     record lst || record lst-old || [[ $* == *--resync* ]] ||
