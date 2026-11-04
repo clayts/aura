@@ -18,7 +18,7 @@
 export RCLONE_CONFIG=$HOME/.config/cloud.conf
 export RCLONE_PASSWORD_COMMAND="secret-tool lookup service cloud account rclone-config"
 export RCLONE_COLOR=NEVER  # plain logs: bisync colours some lines even when not on a terminal
-state=$HOME/.local/state/cloud  # bisync's record of the last sync
+state=$HOME/.local/state/cloud
 
 die() { echo "cloud: $*" >&2; exit 1; }
 
@@ -103,7 +103,6 @@ setup() {
         echo "☁️" | rclone -q rcat crypt:.cloud
     fi
 
-    mkdir -p "$HOME/Cloud"
     rclone copyto crypt:.cloud "$HOME/Cloud/.cloud"
     # Start a new record. --resync would keep one from an earlier setup as the backup
     # record, and a failed sync falling back on it could delete files.
@@ -126,7 +125,7 @@ status() {
         echo "Last successful sync: $(date -r "$state"/*.path1.lst '+%Y-%m-%d %H:%M')"
     fi
 
-    if out=$(bisync --dry-run -v 2>&1); then
+    if out=$(bisync --dry-run 2>&1); then
         found=$(sed -nE -e 's/.*- Path1 +(File[^-]*[^ -]) +- (.*)/  ~\/Cloud: \1: \2/p' \
                          -e 's/.*- Path2 +(File[^-]*[^ -]) +- (.*)/  Drive:   \1: \2/p' <<<"$out")
         if [[ -n $found ]]; then echo "Not synced yet:"; echo "$found"; else echo "Up to date."; fi
