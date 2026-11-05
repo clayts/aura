@@ -15,10 +15,11 @@
 # setup looks it up to check the passphrase. bisync's record of the last sync is
 # kept in ~/.local/state/cloud.
 
-export RCLONE_CONFIG=$HOME/.config/cloud.conf
-export RCLONE_PASSWORD_COMMAND="secret-tool lookup service cloud account rclone-config"
+keyring=(service cloud account rclone-config)  # the keyring entry holding the config's key
+export RCLONE_CONFIG=~/.config/cloud.conf
+export RCLONE_PASSWORD_COMMAND="secret-tool lookup ${keyring[*]}"
 export RCLONE_COLOR=NEVER  # plain logs: bisync colours some lines even when not on a terminal
-state=$HOME/.local/state/cloud
+state=~/.local/state/cloud
 
 die() { echo "cloud: $*" >&2; exit 1; }
 
@@ -30,6 +31,9 @@ need_config() {
 # Is there a record (lst) or backup record (lst-old) of the last sync? A glob that
 # matches nothing stays as it is. (Not compgen: Nix's non-interactive bash lacks it.)
 record() { local files=("$state"/*."$1"); [[ -e ${files[0]} ]]; }
+
+# Prints a heading and the lines under it, unless there are none.
+list() { [[ -n $2 ]] && printf '%s\n' "$1" "$2"; }
 
 bisync() {
     local net
@@ -48,7 +52,7 @@ bisync() {
     # name.cloud-conflict-N.ext. bisync stops if over half the files on one side were
     # deleted; --max-delete is that percentage (rclone's help calls it a count), so 100
     # lets any number of deletions through.
-    rclone bisync "$HOME/Cloud" crypt: --workdir "$state" \
+    rclone bisync ~/Cloud crypt: --workdir "$state" \
         --check-access --check-filename .cloud --create-empty-src-dirs \
         --resilient --recover --max-lock 2m --max-delete 100 \
         --conflict-resolve newer --conflict-suffix cloud-conflict- --suffix-keep-extension \
@@ -67,7 +71,7 @@ set_passphrase() {
 }
 
 setup() {
-    [[ ! -e $HOME/Cloud ]] || die "$HOME/Cloud exists; move it aside to set up again"
+    [[ ! -e ~/Cloud ]] || die "$HOME/Cloud exists; move it aside to set up again"
     [[ ! -e $RCLONE_CONFIG ]] || die "$RCLONE_CONFIG exists; delete it to set up again"
 
     local id secret="" pass again listing rc=0
@@ -77,10 +81,9 @@ setup() {
     IFS= read -rsp "Repeat it: " again; echo
     [[ -n $pass && $pass == "$again" ]] || die "the passphrases must match and can't be empty"
 
-    # Random key for the config, kept in the GNOME keyring. The config starts out
-    # encrypted, so the token and passphrase are never on disk in plain text.
-    head -c 32 /dev/urandom | base64 |
-        secret-tool store --label="cloud rclone config" service cloud account rclone-config
+    # The config starts out encrypted, so the token and passphrase are never on disk
+    # in plain text.
+    head -c 32 /dev/urandom | base64 | secret-tool store --label="cloud rclone config" "${keyring[@]}"
     rclone -q config encryption set >/dev/null
 
     # Google Drive; rclone opens a browser to sign in. rclone's shared client ID
@@ -103,7 +106,7 @@ setup() {
         echo "☁️" | rclone -q rcat crypt:.cloud
     fi
 
-    rclone copyto crypt:.cloud "$HOME/Cloud/.cloud"
+    rclone copyto crypt:.cloud ~/Cloud/.cloud
     # Start a new record. --resync would keep one from an earlier setup as the backup
     # record, and a failed sync falling back on it could delete files. The resync makes
     # no backup record, so an ordinary sync follows to make one.
@@ -113,7 +116,7 @@ setup() {
 
 # Exits 1 if anything needs attention; changes waiting for the next sync don't count.
 status() {
-    local ok=0 found out
+    local ok=0 out
     need_config
     grep -q '^RCLONE_ENCRYPT_V0:' "$RCLONE_CONFIG" || { echo "The config isn't encrypted."; ok=1; }
     if out=$(rclone -q config redacted gdrive) && ! grep -q '^client_id = .' <<<"$out"; then
@@ -122,43 +125,41 @@ status() {
         ok=1
     fi
     # bisync rewrites its record after every successful sync.
-    if record path1.lst; then
-        echo "Last successful sync: $(date -r "$state"/*.path1.lst '+%Y-%m-%d %H:%M')"
-    fi
+    record path1.lst && echo "Last successful sync: $(date -r "$state"/*.path1.lst '+%Y-%m-%d %H:%M')"
 
     if out=$(bisync --dry-run 2>&1); then
-        found=$(sed -nE -e 's/.*- Path1 +(File[^-]*[^ -]) +- (.*)/  ~\/Cloud: \1: \2/p' \
-                         -e 's/.*- Path2 +(File[^-]*[^ -]) +- (.*)/  Drive:   \1: \2/p' <<<"$out")
-        if [[ -n $found ]]; then echo "Not synced yet:"; echo "$found"; else echo "Up to date."; fi
+        list "Not synced yet:" "$(sed -nE \
+            -e 's/.*- Path1 +(File[^-]*[^ -]) +- (.*)/  ~\/Cloud: \1: \2/p' \
+            -e 's/.*- Path2 +(File[^-]*[^ -]) +- (.*)/  Drive:   \1: \2/p' <<<"$out")" ||
+            echo "Up to date."
     else
         grep -E 'ERROR|CRITICAL|Failed to|^cloud:' <<<"$out" >&2 || true
         ok=1
         set --  # skip --verify too: offline, rclone would retry for minutes before failing
     fi
     # crypt skips names it can't decrypt, so sync never touches these.
-    found=$(sed -nE 's/.*NOTICE: (.*): Skipping undecryptable .*/  \1/p' <<<"$out" | sort -u)
-    [[ -z $found ]] || { echo "In gdrive:cloud but not encrypted with this passphrase:"; echo "$found"; ok=1; }
-    found=$(find "$HOME/Cloud" -name '*.cloud.partial' -printf '  %P\n' 2>/dev/null) || true
-    [[ -z $found ]] || { echo "Left in ~/Cloud by interrupted downloads (safe to delete):"; echo "$found"; ok=1; }
-    found=$(find "$HOME/Cloud" -name '*.cloud-conflict-[0-9]*' -printf '  %P\n' 2>/dev/null) || true
-    [[ -z $found ]] || { echo "Conflict copies in ~/Cloud to review:"; echo "$found"; ok=1; }
+    list "In gdrive:cloud but not encrypted with this passphrase:" \
+        "$(sed -nE 's/.*NOTICE: (.*): Skipping undecryptable .*/  \1/p' <<<"$out" | sort -u)" && ok=1
+    list "Left in ~/Cloud by interrupted downloads (safe to delete):" \
+        "$(find ~/Cloud -name '*.cloud.partial' -printf '  %P\n' 2>/dev/null)" && ok=1
+    list "Conflict copies in ~/Cloud to review:" \
+        "$(find ~/Cloud -name '*.cloud-conflict-[0-9]*' -printf '  %P\n' 2>/dev/null)" && ok=1
 
     if [[ ${1:-} == --verify ]]; then
         # cryptcheck doesn't download your files: it encrypts each local file with the
         # nonce from the header of its copy on Drive and compares the checksums.
         echo "Comparing every file with its copy on Drive (changes not synced yet count as differences):"
-        out=$(rclone cryptcheck "$HOME/Cloud" crypt: --exclude '*.cloud.partial' 2>&1) || ok=1
-        sed -E -e '/Skipping undecryptable/d' -e 's/^[0-9/]+ [0-9:]+ +[A-Z]+ *: /  /' <<<"$out"
+        rclone cryptcheck ~/Cloud crypt: --exclude '*.cloud.partial' 2>&1 |
+            sed -E -e '/Skipping undecryptable/d' -e 's/^[0-9/]+ [0-9:]+ +[A-Z]+ *: /  /' || ok=1
     fi
     return "$ok"
 }
 
 case "$*" in
-    setup)               setup ;;
-    "setup --reconnect") need_config; rclone config reconnect gdrive: --auto-confirm ;;
-    sync | "sync "*)     shift; bisync "$@" ;;
-    status)              status ;;
-    "status --verify")   status --verify ;;
+    setup)                      setup ;;
+    "setup --reconnect")        need_config; rclone config reconnect gdrive: --auto-confirm ;;
+    sync | "sync "*)            shift; bisync "$@" ;;
+    status | "status --verify") shift; status "$@" ;;
     *) echo "usage: cloud setup [--reconnect] | sync [rclone bisync flags] | status [--verify]" >&2
        exit 2 ;;
 esac
