@@ -95,7 +95,7 @@
       enable = true;
       settings.hyperlink = "auto";
       icons.name = {
-        intake = "󱈹";
+        intake = "󰉍";
         projects = "";
         cloud = "";
         nixos = "";

@@ -92,14 +92,33 @@ in
     X-GNOME-Autostart-enabled=true
     NoDisplay=true
   '';
-  xdg.configFile."autostart/projects-icon.desktop".text = ''
-    [Desktop Entry]
-    Type=Application
-    Name=Projects folder icon
-    Exec=${lib.getExe' pkgs.glib "gio"} set ${config.xdg.userDirs.projects} metadata::custom-icon-name folder-code
-    X-GNOME-Autostart-enabled=true
-    NoDisplay=true
-  '';
+  # Nautilus prefers a folder's custom icon, kept in its GIO metadata, to its
+  # own choice; these are set at each login. Without them, Intake would get the
+  # Desktop icon, as GLib checks for the desktop dir before downloads, and
+  # Projects, which GLib doesn't treat as special, a plain folder icon.
+  xdg.configFile."autostart/folder-icons.desktop".text =
+    let
+      icons = {
+        ${config.xdg.userDirs.download} = "folder-download";
+        ${config.xdg.userDirs.projects} = "folder-code";
+      };
+      script = pkgs.writeShellScript "folder-icons" (
+        lib.concatLines (
+          lib.mapAttrsToList (
+            dir: icon:
+            "${lib.getExe' pkgs.glib "gio"} set ${lib.escapeShellArg dir} metadata::custom-icon-name ${icon}"
+          ) icons
+        )
+      );
+    in
+    ''
+      [Desktop Entry]
+      Type=Application
+      Name=Folder icons
+      Exec=${script}
+      X-GNOME-Autostart-enabled=true
+      NoDisplay=true
+    '';
   xdg.desktopEntries = {
     "org.gnome.Extensions" = {
       name = "Extensions";
