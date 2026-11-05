@@ -78,6 +78,8 @@ case $1 in
         if [[ $answer != yes ]]; then
             die "$SAFE not deleted"
         fi
+        # Once confirmed, don't let Ctrl-C leave a half-deleted safe behind
+        trap '' INT
         rm -rf -- "$DATA"
         rmdir --ignore-fail-on-non-empty -- "${DATA%/*}"
         echo "$SAFE deleted"
