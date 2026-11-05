@@ -19,20 +19,12 @@ is_safe() { [[ -f $CIPHER_DIR/gocryptfs.conf ]]; }
 
 (($# == 2)) || usage
 
-# PATH may be relative, and may also name the safe's encrypted directory.
-# realpath -m copes with a dead gocryptfs mount.
-path=$(realpath -m -- "$2")
-parent=${path%/*}
-name=${path##*/}
-[[ -n $name ]] || die "/ can't be a safe"
-if [[ ${parent##*/} == .safe ]]; then
-    MOUNT_DIR=${parent%/*}/$name
-    CIPHER_DIR=$path
-else
-    MOUNT_DIR=$path
-    CIPHER_DIR=$parent/.safe/$name
-fi
+# realpath -m makes PATH absolute and canonical without needing it to exist,
+# and copes with a dead gocryptfs mount
+MOUNT_DIR=$(realpath -m -- "$2")
+CIPHER_DIR=${MOUNT_DIR%/*}/.safe/${MOUNT_DIR##*/}
 
+# gocryptfs prompts for the password itself
 case $1 in
     create)
         if is_safe; then
@@ -42,7 +34,6 @@ case $1 in
             die "$MOUNT_DIR already exists"
         fi
         mkdir -p "$CIPHER_DIR"
-        # gocryptfs prompts for the password itself
         gocryptfs -init "$CIPHER_DIR"
         echo "$MOUNT_DIR created"
         ;;
@@ -53,15 +44,12 @@ case $1 in
         if mounted; then
             die "$MOUNT_DIR already unlocked"
         fi
-        if [[ -e $MOUNT_DIR ]]; then
-            die "$MOUNT_DIR already exists"
-        fi
+        # mkdir fails if MOUNT_DIR exists. Remove it again if gocryptfs fails
+        # or is interrupted, e.g. at the password prompt.
         mkdir "$MOUNT_DIR"
-        # Don't leave the mount point behind after a wrong password
-        if ! gocryptfs "$CIPHER_DIR" "$MOUNT_DIR" >/dev/null; then
-            rmdir "$MOUNT_DIR"
-            exit 1
-        fi
+        trap 'rmdir "$MOUNT_DIR"' EXIT
+        gocryptfs "$CIPHER_DIR" "$MOUNT_DIR" >/dev/null
+        trap - EXIT
         echo "$MOUNT_DIR unlocked"
         ;;
     lock)
