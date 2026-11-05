@@ -37,12 +37,12 @@ in
       createDirectories = true;
       templates = "${homeDirectory}/.Templates";
       publicShare = "${homeDirectory}/.Public";
-      desktop = "${homeDirectory}/Library";
-      download = "${homeDirectory}/Library";
-      documents = "${homeDirectory}/Library";
-      music = "${homeDirectory}/Library";
-      pictures = "${homeDirectory}/Library";
-      videos = "${homeDirectory}/Library";
+      desktop = "${homeDirectory}/Intake";
+      download = "${homeDirectory}/Intake";
+      documents = "${homeDirectory}/Documents";
+      music = "${homeDirectory}/Media";
+      pictures = "${homeDirectory}/Media";
+      videos = "${homeDirectory}/Media";
       projects = "${homeDirectory}/Projects";
     };
   };
