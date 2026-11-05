@@ -105,9 +105,10 @@ setup() {
 
     rclone copyto crypt:.cloud "$HOME/Cloud/.cloud"
     # Start a new record. --resync would keep one from an earlier setup as the backup
-    # record, and a failed sync falling back on it could delete files.
+    # record, and a failed sync falling back on it could delete files. The resync makes
+    # no backup record, so an ordinary sync follows to make one.
     rm -rf "$state"
-    bisync --resync || die "the first sync failed; once fixed, run: cloud sync --resync"
+    { bisync --resync && bisync; } || die "the first sync failed; once fixed, run: cloud sync --resync"
 }
 
 # Exits 1 if anything needs attention; changes waiting for the next sync don't count.
