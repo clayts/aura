@@ -1,6 +1,6 @@
 # cloud: two-way sync of ~/Cloud with an encrypted folder on Google Drive.
 #
-#   cloud setup                one-time setup; ~/Cloud must be empty
+#   cloud setup                one-time setup; ~/Cloud mustn't exist yet
 #   cloud setup --reconnect    sign in to Google again, e.g. if access has expired;
 #                              rclone opens the browser and fills in its defaults
 #   cloud sync [flags]         two-way sync; extra flags go to rclone bisync
@@ -67,7 +67,7 @@ set_passphrase() {
 }
 
 setup() {
-    [[ -z $(ls -A "$HOME/Cloud" 2>/dev/null) ]] || die "$HOME/Cloud isn't empty"
+    [[ ! -e $HOME/Cloud ]] || die "$HOME/Cloud exists; move it aside to set up again"
     [[ ! -e $RCLONE_CONFIG ]] || die "$RCLONE_CONFIG exists; delete it to set up again"
 
     local id secret="" pass again listing rc=0
