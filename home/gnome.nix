@@ -27,7 +27,7 @@ in
   ];
   # cloud reads its config's key from the GNOME keyring, which is only
   # unlocked while logged in to GNOME, so it syncs only in the graphical
-  # session: a minute after it starts, then 4 hours after each sync ends.
+  # session: a minute after it starts, then an hour after each sync ends.
   # Without ~/Cloud (cloud setup not run) the sync is skipped, not failed
   systemd.user = {
     services.cloud = {
@@ -51,7 +51,7 @@ in
       };
       Timer = {
         OnActiveSec = "1min";
-        OnUnitInactiveSec = "4h";
+        OnUnitInactiveSec = "1h";
       };
       Install.WantedBy = [ "graphical-session.target" ];
     };
