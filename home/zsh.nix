@@ -97,7 +97,7 @@
       icons.name = {
         intake = "󰉍";
         projects = "";
-        cloud = "";
+        cloud = "󱇱";
         nixos = "";
         "${config.home.username}" = "";
       };
