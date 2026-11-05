@@ -1,4 +1,5 @@
-# A safe at /x/y/z keeps its encrypted data in /x/y/.safe/z
+# A safe at /x/y/z keeps its encrypted data in /x/y/.safe/z, and /x/y/z only
+# exists while the safe is unlocked
 
 usage() {
     echo "usage: ${0##*/} create|unlock|lock PATH" >&2
@@ -37,14 +38,13 @@ case $1 in
         if is_safe; then
             die "$MOUNT_DIR is already a safe"
         fi
-        if [[ -e $MOUNT_DIR && -n $(ls -A -- "$MOUNT_DIR") ]]; then
-            die "$MOUNT_DIR already exists and isn't an empty directory"
+        if [[ -e $MOUNT_DIR ]]; then
+            die "$MOUNT_DIR already exists"
         fi
-        mkdir -p "$CIPHER_DIR" "$MOUNT_DIR"
+        mkdir -p "$CIPHER_DIR"
         # gocryptfs prompts for the password itself
         gocryptfs -init "$CIPHER_DIR"
-        gocryptfs "$CIPHER_DIR" "$MOUNT_DIR" >/dev/null
-        echo "$MOUNT_DIR created and unlocked"
+        echo "$MOUNT_DIR created"
         ;;
     unlock)
         if ! is_safe; then
@@ -53,8 +53,15 @@ case $1 in
         if mounted; then
             die "$MOUNT_DIR already unlocked"
         fi
-        mkdir -p "$MOUNT_DIR"
-        gocryptfs "$CIPHER_DIR" "$MOUNT_DIR" >/dev/null
+        if [[ -e $MOUNT_DIR ]]; then
+            die "$MOUNT_DIR already exists"
+        fi
+        mkdir "$MOUNT_DIR"
+        # Don't leave the mount point behind after a wrong password
+        if ! gocryptfs "$CIPHER_DIR" "$MOUNT_DIR" >/dev/null; then
+            rmdir "$MOUNT_DIR"
+            exit 1
+        fi
         echo "$MOUNT_DIR unlocked"
         ;;
     lock)
@@ -65,6 +72,7 @@ case $1 in
             die "$MOUNT_DIR already locked"
         fi
         fusermount3 -u "$MOUNT_DIR"
+        rmdir "$MOUNT_DIR"
         echo "$MOUNT_DIR locked"
         ;;
     *)
