@@ -26,13 +26,7 @@ DATA=${SAFE%/*}/.safe/${SAFE##*/}
 case $1 in
     create)
         is_safe && die "$SAFE is already a safe"
-        # The current directory can become a safe if it's empty, but any other
-        # PATH mustn't exist yet
-        if [[ $SAFE == "$(pwd -P)" ]]; then
-            [[ -z $(ls -A) ]] || die "$SAFE isn't empty"
-        elif [[ -e $SAFE ]]; then
-            die "$SAFE already exists"
-        fi
+        [[ ! -e $SAFE || (-d $SAFE && -z $(ls -A -- "$SAFE")) ]] || die "$SAFE isn't an empty directory"
         mkdir -p -- "$DATA"
         # Leave nothing behind if gocryptfs fails or is interrupted
         trap 'rmdir --ignore-fail-on-non-empty -- "$DATA" "${DATA%/*}"' EXIT
