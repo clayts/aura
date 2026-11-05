@@ -2,7 +2,6 @@
 
 usage() {
     echo "usage: ${0##*/} create|unlock|lock PATH" >&2
-    echo "       ${0##*/} status [PATH]" >&2
     exit 1
 }
 
@@ -16,21 +15,6 @@ die() {
 mounted() { findmnt --mountpoint "$MOUNT_DIR" >/dev/null; }
 
 is_safe() { [[ -f $CIPHER_DIR/gocryptfs.conf ]]; }
-
-if [[ ${1:-} == status ]] && (($# == 1)); then
-    # findmnt -r escapes awkward characters in paths, e.g. spaces as \x20
-    found=
-    while read -r source target; do
-        if [[ $source == "${target%/*}/.safe/${target##*/}" ]]; then
-            printf '%b is unlocked\n' "$target"
-            found=1
-        fi
-    done < <(findmnt -rn -t fuse.gocryptfs -o SOURCE,TARGET || true)
-    if [[ -z $found ]]; then
-        echo "No safes are unlocked"
-    fi
-    exit
-fi
 
 (($# == 2)) || usage
 
@@ -82,16 +66,6 @@ case $1 in
         fi
         fusermount3 -u "$MOUNT_DIR"
         echo "$MOUNT_DIR locked"
-        ;;
-    status)
-        if ! is_safe; then
-            die "$MOUNT_DIR isn't a safe"
-        fi
-        if mounted; then
-            echo "$MOUNT_DIR is unlocked"
-        else
-            echo "$MOUNT_DIR is locked"
-        fi
         ;;
     *)
         usage
