@@ -265,7 +265,7 @@
         # batpipe
         eval "$(batpipe)"
 
-        ${builtins.readFile ./packages/safe.zsh}
+        ${builtins.readFile ./packages/safe/safe.zsh}
       '';
     };
   };

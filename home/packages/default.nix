@@ -49,7 +49,7 @@
       gocryptfs
       util-linux
     ];
-    text = builtins.readFile ./safe.sh;
+    text = builtins.readFile ./safe/safe.sh;
   };
   cloud = pkgs.writeShellApplication {
     name = "cloud";
