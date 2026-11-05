@@ -6,7 +6,10 @@ die() {
     exit 1
 }
 
-usage() { die "usage: ${0##*/} create|unlock|lock|delete PATH"; }
+usage() {
+    die "usage: ${0##*/} create|delete PATH
+       ${0##*/} unlock|lock [PATH]"
+}
 
 # Read the mount table rather than stat the mount point, which fails on a
 # dead gocryptfs mount
@@ -14,11 +17,12 @@ mounted() { findmnt --mountpoint "$SAFE" >/dev/null; }
 
 is_safe() { [[ -f $DATA/gocryptfs.conf ]]; }
 
-(($# == 2)) || usage
+[[ $# == 2 || ($# == 1 && ($1 == unlock || $1 == lock)) ]] || usage
 
-# realpath -m makes PATH absolute and canonical without needing it to exist,
-# and copes with a dead gocryptfs mount
-SAFE=$(realpath -m -- "$2")
+# unlock and lock default to the current directory. realpath -m makes PATH
+# absolute and canonical without needing it to exist, and copes with a dead
+# gocryptfs mount.
+SAFE=$(realpath -m -- "${2:-.}")
 DATA=${SAFE%/*}/.safe/${SAFE##*/}
 
 # gocryptfs prompts for the password itself
