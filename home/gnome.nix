@@ -28,14 +28,14 @@ in
   # cloud reads its config's key from the GNOME keyring, which is only
   # unlocked while logged in to GNOME, so it syncs only in the graphical
   # session: a minute after it starts, then 15 minutes after each sync ends.
-  # Without a config (cloud setup not run) the sync is skipped, not failed
+  # Without ~/Cloud (cloud setup not run) the sync is skipped, not failed
   systemd.user = {
     services.cloud = {
       Unit = {
         Description = "Sync ~/Cloud with Google Drive";
         Requisite = [ "graphical-session.target" ];
         After = [ "graphical-session.target" ];
-        ConditionPathExists = "%h/.config/cloud.conf";
+        ConditionPathExists = "%h/Cloud";
       };
       Service = {
         Type = "oneshot";
