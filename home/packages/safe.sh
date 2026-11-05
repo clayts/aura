@@ -6,10 +6,7 @@ die() {
     exit 1
 }
 
-usage() {
-    die "usage: ${0##*/} create|delete PATH
-       ${0##*/} unlock|lock [PATH]"
-}
+usage() { die "usage: ${0##*/} create|unlock|lock|delete [PATH]"; }
 
 # Read the mount table rather than stat the mount point, which fails on a
 # dead gocryptfs mount
@@ -17,11 +14,11 @@ mounted() { findmnt --mountpoint "$SAFE" >/dev/null; }
 
 is_safe() { [[ -f $DATA/gocryptfs.conf ]]; }
 
-[[ $# == 2 || ($# == 1 && ($1 == unlock || $1 == lock)) ]] || usage
+(($# == 1 || $# == 2)) || usage
 
-# unlock and lock default to the current directory. realpath -m makes PATH
-# absolute and canonical without needing it to exist, and copes with a dead
-# gocryptfs mount.
+# PATH defaults to the current directory. realpath -m makes it absolute and
+# canonical without needing it to exist, and copes with a dead gocryptfs
+# mount.
 SAFE=$(realpath -m -- "${2:-.}")
 DATA=${SAFE%/*}/.safe/${SAFE##*/}
 
@@ -29,12 +26,19 @@ DATA=${SAFE%/*}/.safe/${SAFE##*/}
 case $1 in
     create)
         is_safe && die "$SAFE is already a safe"
-        [[ -e $SAFE ]] && die "$SAFE already exists"
-        mkdir -p -- "$SAFE" "$DATA"
+        # The current directory can become a safe if it's empty, but any other
+        # PATH mustn't exist yet
+        if [[ $SAFE == "$(pwd -P)" ]]; then
+            [[ -z $(ls -A) ]] || die "$SAFE isn't empty"
+        elif [[ -e $SAFE ]]; then
+            die "$SAFE already exists"
+        fi
+        mkdir -p -- "$DATA"
         # Leave nothing behind if gocryptfs fails or is interrupted
-        trap 'rmdir --ignore-fail-on-non-empty -- "$SAFE" "$DATA" "${DATA%/*}"' EXIT
+        trap 'rmdir --ignore-fail-on-non-empty -- "$DATA" "${DATA%/*}"' EXIT
         gocryptfs -init "$DATA"
         trap - EXIT
+        mkdir -p -- "$SAFE"
         echo "$SAFE created"
         ;;
     unlock)
