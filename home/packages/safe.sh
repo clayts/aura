@@ -1,5 +1,5 @@
-# A safe at /x/y/z keeps its encrypted data in /x/y/.safe/z/locked. Unlocking
-# mounts it at /x/y/.safe/z/unlocked and links /x/y/z there.
+# A safe at /x/y/z keeps its encrypted data in /x/y/.safe/z, and is mounted
+# at /x/y/z while unlocked
 
 die() {
     echo "$*" >&2
@@ -10,47 +10,39 @@ usage() { die "usage: ${0##*/} create|unlock|lock|delete PATH"; }
 
 # Read the mount table rather than stat the mount point, which fails on a
 # dead gocryptfs mount
-mounted() { findmnt --mountpoint "$UNLOCKED" >/dev/null; }
+mounted() { findmnt --mountpoint "$SAFE" >/dev/null; }
 
-is_safe() { [[ -f $LOCKED/gocryptfs.conf ]]; }
+is_safe() { [[ -f $DATA/gocryptfs.conf ]]; }
 
 (($# == 2)) || usage
 
-# Make PATH absolute without following symlinks, as it is one while unlocked
-SAFE=$(realpath -ms -- "$2")
-NAME=${SAFE##*/}
-DATA=${SAFE%/*}/.safe/$NAME
-LOCKED=$DATA/locked
-UNLOCKED=$DATA/unlocked
+# realpath -m makes PATH absolute and canonical without needing it to exist,
+# and copes with a dead gocryptfs mount
+SAFE=$(realpath -m -- "$2")
+DATA=${SAFE%/*}/.safe/${SAFE##*/}
 
 # gocryptfs prompts for the password itself
 case $1 in
     create)
         is_safe && die "$SAFE is already a safe"
-        [[ -e $SAFE || -L $SAFE ]] && die "$SAFE already exists"
-        mkdir -p "$LOCKED" "$UNLOCKED"
+        [[ -e $SAFE ]] && die "$SAFE already exists"
+        mkdir -p -- "$SAFE" "$DATA"
         # Leave nothing behind if gocryptfs fails or is interrupted
-        trap 'rmdir --ignore-fail-on-non-empty "$LOCKED" "$UNLOCKED" "$DATA" "${DATA%/*}"' EXIT
-        gocryptfs -init "$LOCKED"
+        trap 'rmdir --ignore-fail-on-non-empty -- "$SAFE" "$DATA" "${DATA%/*}"' EXIT
+        gocryptfs -init "$DATA"
         trap - EXIT
         echo "$SAFE created"
         ;;
     unlock)
         is_safe || die "$SAFE isn't a safe"
         mounted && die "$SAFE already unlocked"
-        # ln fails if SAFE exists. Remove the link again if gocryptfs fails or
-        # is interrupted, e.g. at the password prompt.
-        ln -sT -- ".safe/$NAME/unlocked" "$SAFE"
-        trap 'rm -- "$SAFE"' EXIT
-        gocryptfs "$LOCKED" "$UNLOCKED" >/dev/null
-        trap - EXIT
+        gocryptfs "$DATA" "$SAFE" >/dev/null
         echo "$SAFE unlocked"
         ;;
     lock)
         is_safe || die "$SAFE isn't a safe"
         mounted || die "$SAFE already locked"
-        fusermount3 -u "$UNLOCKED"
-        rm -- "$SAFE"
+        fusermount3 -u "$SAFE"
         echo "$SAFE locked"
         ;;
     delete)
@@ -58,6 +50,9 @@ case $1 in
         mounted && die "$SAFE is unlocked, lock it first"
         read -rp "Delete $SAFE and everything in it for good? Type yes to confirm: " answer || true
         [[ $answer == yes ]] || die "$SAFE not deleted"
+        # rmdir fails if files were left in SAFE while it was locked, so do it
+        # before deleting anything
+        rmdir -- "$SAFE"
         rm -rf -- "$DATA"
         rmdir --ignore-fail-on-non-empty -- "${DATA%/*}"
         echo "$SAFE deleted"
