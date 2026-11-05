@@ -19,7 +19,6 @@
     packages.system
     packages.rizzlefetch
     grc
-    dust
     yt-dlp
   ];
   # gh writes config.yml itself, starting with the first login, so it can't be a read-only link
