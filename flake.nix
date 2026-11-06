@@ -43,6 +43,7 @@
         runtimeEnv.flake = "${inputs.self}";
         runtimeInputs = [
           inputs.disko.packages.${system}.disko
+          pkgs.gh
           pkgs.git
           pkgs.mkpasswd
           pkgs.toilet
