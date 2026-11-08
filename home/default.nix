@@ -14,6 +14,7 @@ in
     ./firefox.nix
     ./ghostty.nix
     ./gnome.nix
+    ./keepassxc.nix
     ./micro.nix
     ./zeditor.nix
     ./zsh.nix
