@@ -154,6 +154,7 @@ in
       background-menu = false;
       support-notifier-type = 0;
     };
+    "org/gnome/shell/extensions/appindicator".tray-pos = "left";
     "org/gnome/shell/window-switcher".current-workspace-only = false;
     "org/gnome/mutter" = {
       dynamic-workspaces = true;
