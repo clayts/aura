@@ -27,6 +27,7 @@
       ShowTrayIcon = true;
       MinimizeOnStartup = true;
       MinimizeToTray = true;
+      MinimizeOnClose = true;
       HideToolbar = true;
       HideMenubar = true;
     };
