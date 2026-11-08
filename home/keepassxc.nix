@@ -26,6 +26,9 @@
       ApplicationTheme = "classic";
       ShowTrayIcon = true;
       MinimizeOnStartup = true;
+      MinimizeToTray = true;
+      HideToolbar = true;
+      HideMenubar = true;
     };
     autostart = true;
   };
