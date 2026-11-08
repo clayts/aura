@@ -25,6 +25,7 @@
     settings.GUI = {
       ApplicationTheme = "classic";
       ShowTrayIcon = true;
+      MinimizeOnStartup = true;
     };
     autostart = true;
   };
