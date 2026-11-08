@@ -76,6 +76,7 @@ in
         just-perfection
         auto-power-profile
         preserve-battery-health
+        app-icons-taskbar
       ]
     );
   };
@@ -154,6 +155,7 @@ in
       background-menu = false;
       support-notifier-type = 0;
     };
+    "org/gnome/shell/extensions/aztaskbar".position-in-panel = "LEFT";
     "org/gnome/shell/window-switcher".current-workspace-only = false;
     "org/gnome/mutter" = {
       dynamic-workspaces = true;
