@@ -22,6 +22,11 @@
     };
     # KeePassXC's light and dark themes replace the Qt style with its own;
     # only its classic theme keeps it
-    settings.GUI.ApplicationTheme = "classic";
+    settings.GUI = {
+      ApplicationTheme = "classic";
+      ShowTrayIcon = true;
+    };
+    autostart = true;
   };
+  xdg.autostart.enable = true;
 }
