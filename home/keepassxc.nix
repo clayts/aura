@@ -31,6 +31,12 @@
       HideToolbar = true;
       HideMenubar = true;
     };
+    # home-manager installs the native messaging manifest for Firefox itself,
+    # so KeePassXC mustn't rewrite it at startup
+    settings.Browser = {
+      Enabled = true;
+      UpdateBinaryPath = false;
+    };
     autostart = true;
   };
   xdg.autostart.enable = true;
