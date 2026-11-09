@@ -48,10 +48,6 @@ in
           install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
           installation_mode = "force_installed";
         };
-        "keepassxc-browser@keepassxc.org" = {
-          install_url = "https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi";
-          installation_mode = "force_installed";
-        };
       };
     };
     profiles = {
@@ -107,10 +103,7 @@ in
           "browser.uiCustomization.state" = {
             "placements" = {
               "widget-overflow-fixed-list" = [ ];
-              "unified-extensions-area" = [
-                "ublock0_raymondhill_net-browser-action"
-                "keepassxc-browser_keepassxc_org-browser-action"
-              ];
+              "unified-extensions-area" = [ "ublock0_raymondhill_net-browser-action" ];
               "nav-bar" = [
                 "back-button"
                 "forward-button"
