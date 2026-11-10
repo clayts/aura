@@ -1,7 +1,4 @@
 # TODO
 
-- setup cloud again with other passphrase
-  - remove ~/.config/cloud.conf
-  - remove ~/Cloud
-  - remove cloud from gdrive
+- setup cloud again with another passphrase
 - reinstall with disk encryption
