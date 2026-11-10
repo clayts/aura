@@ -4,9 +4,9 @@
 #   safe unlock PATH    mount the safe at PATH
 #   safe lock PATH      unmount it
 #
-# A safe at /x/y/z keeps its encrypted data in /x/y/z/locked and is mounted at
-# /x/y/z/unlocked. A .xdg-volume-info inside it gives the mount the name z in
-# file managers, rather than "unlocked".
+# A safe at /x/y/z keeps its encrypted data in /x/y/z/Locked and is mounted at
+# /x/y/z/Unlocked. A .xdg-volume-info inside it gives the mount the name z in
+# file managers, rather than "Unlocked".
 
 die() { echo "safe: $*" >&2; exit 1; }
 
@@ -21,13 +21,13 @@ case $1 in
         read -rsp "Password: " password && echo
         read -rsp "Repeat: " repeat && echo
         [[ $password == "$repeat" ]] || die "passwords don't match"
-        mkdir -p -- "$safe/locked" "$safe/unlocked"
-        gocryptfs -init -passfile <(printf %s "$password") "$safe/locked"
-        gocryptfs -passfile <(printf %s "$password") "$safe/locked" "$safe/unlocked" >/dev/null
-        printf '[Volume Info]\nName=%s\n' "$(basename -- "$safe")" >"$safe/unlocked/.xdg-volume-info"
-        fusermount3 -u "$safe/unlocked"
+        mkdir -p -- "$safe/Locked" "$safe/Unlocked"
+        gocryptfs -init -passfile <(printf %s "$password") "$safe/Locked"
+        gocryptfs -passfile <(printf %s "$password") "$safe/Locked" "$safe/Unlocked" >/dev/null
+        printf '[Volume Info]\nName=%s\n' "$(basename -- "$safe")" >"$safe/Unlocked/.xdg-volume-info"
+        fusermount3 -u "$safe/Unlocked"
         ;;
-    unlock) gocryptfs "$safe/locked" "$safe/unlocked" >/dev/null ;;
-    lock) fusermount3 -u "$safe/unlocked" ;;
+    unlock) gocryptfs "$safe/Locked" "$safe/Unlocked" >/dev/null ;;
+    lock) fusermount3 -u "$safe/Unlocked" ;;
     *) die "usage: safe create|unlock|lock PATH" ;;
 esac
