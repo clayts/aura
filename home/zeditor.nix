@@ -67,6 +67,7 @@
         breakpoints = false;
         folds = false;
       };
+      max_tabs = 1;
       tab_bar = {
         show = false;
         show_nav_history_buttons = true;
