@@ -14,6 +14,20 @@
 # both sides: bisync only runs when it can see it on both (--check-access), and
 # setup looks it up to check the passphrase. bisync's record of the last sync is
 # kept in ~/.local/state/cloud.
+#
+# To remove everything cloud has set up, stop the timer first so that no sync
+# runs part-way through:
+#   systemctl --user stop cloud.timer cloud.service
+#   rm -rf ~/.config/cloud.conf ~/.local/state/cloud
+#   secret-tool clear service cloud account rclone-config
+#   rm -rf ~/Cloud                  # the local copy; keep it if Drive is going too
+# Then, if wanted, outside this machine:
+#   - delete the cloud folder on Google Drive (its file names are encrypted)
+#   - remove rclone's access at https://myaccount.google.com/connections
+#   - delete your own client ID, if setup was given one, in the Google Cloud console
+# and in this repo, remove packages.cloud from home/zsh.nix and
+# home/packages/default.nix, and the cloud service, timer and ~/Cloud folder
+# icon from home/gnome.nix.
 
 keyring=(service cloud account rclone-config)  # the keyring entry holding the config's key
 export RCLONE_CONFIG=~/.config/cloud.conf
