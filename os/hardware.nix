@@ -106,4 +106,9 @@
   };
 
   services.fprintd.enable = true;
+  # The lock screen gives up on the fingerprint after 3 tries or 30 seconds
+  security.pam.services.gdm-fingerprint.rules.auth.fprintd.settings = {
+    max-tries = 10;
+    timeout = 60;
+  };
 }
