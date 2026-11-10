@@ -45,10 +45,7 @@
     };
   safe = pkgs.writeShellApplication {
     name = "safe";
-    runtimeInputs = with pkgs; [
-      gocryptfs
-      util-linux
-    ];
+    runtimeInputs = [ pkgs.gocryptfs ];
     text = builtins.readFile ./safe/safe.sh;
   };
   cloud = pkgs.writeShellApplication {
