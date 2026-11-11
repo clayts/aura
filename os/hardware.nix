@@ -3,6 +3,10 @@
   inputs,
   ...
 }:
+let
+  # Written by the installer and gone once it finishes
+  secrets = "/run/aura-install";
+in
 {
   imports = [
     inputs.disko.nixosModules.default
@@ -25,12 +29,33 @@
               mountOptions = [ "umask=0077" ];
             };
           };
-          root = {
+          # LUKS2 in OPAL hardware-only mode: the drive encrypts everything
+          # itself and cryptsetup only stores and unlocks the locking range key
+          luks = {
             size = "100%";
             content = {
-              type = "filesystem";
-              format = "xfs";
-              mountpoint = "/";
+              type = "luks";
+              name = "crypted";
+              passwordFile = "${secrets}/disk-password";
+              # Lets the installed system seal the disk key to the TPM without asking for the password
+              additionalKeyFiles = [ "${secrets}/tpm-key" ];
+              extraFormatArgs = [
+                "--hw-opal-only"
+                # cryptsetup reads the drive's OPAL admin password from stdin; it's the disk password too
+                "<"
+                "${secrets}/disk-password"
+              ];
+              settings.crypttabExtraOpts = [
+                "tpm2-device=auto"
+                # Measure the unlocked disk into PCR 15, which the TPM seal requires to still be zero,
+                # so a planted volume unlocked first leaves the real disk's seal unusable
+                "tpm2-measure-pcr=yes"
+              ];
+              content = {
+                type = "filesystem";
+                format = "xfs";
+                mountpoint = "/";
+              };
             };
           };
         };

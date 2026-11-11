@@ -3,6 +3,7 @@
   imports = [
     ./gnome.nix
     ./hardware.nix
+    ./secure-boot.nix
     ./users.nix
   ];
   networking.hostName = "aura";
@@ -24,7 +25,6 @@
       "vm.page-cluster" = 0;
     };
     loader = {
-      systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
       timeout = 0;
     };
