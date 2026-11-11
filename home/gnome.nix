@@ -73,7 +73,19 @@ in
         grand-theft-focus
         appindicator
         alphabetical-app-grid
-        just-perfection
+        # v37 puts the panel at the bottom of the overview's stack, which is
+        # harmless until GNOME 51 makes the overview's controls reactive: they
+        # then sit over the panel and take its clicks. Upstream's fix (commit
+        # 625acf18, "Fix panel click unresponsiveness in overview mode") is
+        # unreleased; once a release has it, --replace-fail fails the build
+        # and this override can go
+        (just-perfection.overrideAttrs (old: {
+          postPatch = (old.postPatch or "") + ''
+            substituteInPlace lib/API.js --replace-fail \
+              'overviewGroup.insert_child_at_index(panelBox, 0)' \
+              'overviewGroup.add_child(panelBox)'
+          '';
+        }))
         auto-power-profile
         preserve-battery-health
       ]
