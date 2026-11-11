@@ -87,7 +87,10 @@ set -x
 # Reuses any keys this installer session already made, and maybe enrolled
 sudo sbctl create-keys
 if ! sudo disko --mode destroy,format,mount --yes-wipe-all-disks --flake "$flake#$host"; then
-    echo "Formatting failed. A drive set up for hardware encryption by something else needs a factory reset first:" >&2
+    echo "Formatting failed. If the firmware blocks taking ownership of the drive (Block SID), ask it not to," >&2
+    echo "then reboot, confirm in the firmware's prompt and run this again:" >&2
+    echo "  echo 97 | sudo tee /sys/class/tpm/tpm0/ppi/request" >&2
+    echo "A drive set up for hardware encryption by something else needs a factory reset first instead:" >&2
     echo "  sudo cryptsetup erase --hw-opal-factory-reset $disk" >&2
     echo "That asks for the PSID on the drive's label. Some drives then need a power cycle." >&2
     exit 1
