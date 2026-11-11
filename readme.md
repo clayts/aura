@@ -3,10 +3,25 @@
 NixOS configuration for `aura`
 
 ## Install
-1. In the firmware settings, set a supervisor password, turn Secure Boot on and reset it to Setup Mode. The installer offers to reboot into the firmware settings if it isn't in Setup Mode.
-2. From a NixOS installer, run `nix run --experimental-features "nix-command flakes" github:clayts/aura#install`, which runs `install.sh`.
-   It asks its questions up front, then erases the disk declared in `os/hardware.nix` and installs unattended.
-3. Reboot and enter the disk password. From the next boot on, the TPM unlocks the disk.
+1. In the firmware settings (F1 at the Lenovo logo):
+   - Set a supervisor password, so nobody else can change the settings below.
+   - Turn Security Chip (the TPM) on.
+   - Turn Secure Boot on, then reset it to Setup Mode.
+     Setup Mode clears the Secure Boot keys, so nothing is enforced and the unsigned installer boots.
+     The installer enrolls this install's keys at the end, and Secure Boot enforces them from the next boot.
+2. Boot a NixOS installer from USB (F12 for the boot menu) and connect to the network, e.g. with `nmtui`.
+3. If the drive has never been encrypted, or was factory reset, the installer has to take ownership of it, which the firmware blocks at every boot ("Block SID").
+   Ask it to skip that once:
+   ```sh
+   echo 97 | sudo tee /sys/class/tpm/tpm0/ppi/request
+   ```
+   Reboot, confirm the firmware's prompt, and boot the installer again, then go straight to step 4: the next boot blocks it again.
+   Reinstalling over an install of this configuration doesn't need this.
+4. Run `nix run --experimental-features "nix-command flakes" github:clayts/aura#install`, which runs `install.sh`.
+   It asks every question first, then erases the disk declared in `os/hardware.nix` and installs unattended.
+5. Reboot, remove the USB stick and enter the disk password.
+   That boot seals the disk key to the TPM, so later boots unlock without it.
+   `bootctl status` then shows `Secure Boot: enabled (user)`, and `sudo systemd-cryptenroll /dev/disk/by-partlabel/disk-main-luks` lists a `tpm2` slot.
 
 `/etc/nixos` is a clone of this repository, on the branch that was installed.
 
@@ -23,4 +38,4 @@ The disk password is also the drive's OPAL admin password, which stays the same 
 Reinstalling asks for it to erase the previous install, and keeps it as the new disk password.
 If it's lost, the installer can factory reset the drive with the PSID printed on its label.
 
-The installer is unsigned, so booting it needs Secure Boot turned off or reset to Setup Mode.
+The installer is unsigned, so booting it again later needs Secure Boot turned off for the time being, or reset to Setup Mode to reinstall.
