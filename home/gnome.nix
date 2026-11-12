@@ -23,7 +23,16 @@ in
     gitg
     impression
     mission-center
-    proton-vpn
+    # Proton VPN puts itself in the tray whenever there's one to use, and then
+    # closing its window hides it rather than quitting. Telling it there's no
+    # tray keeps it a plain window, so it only runs while that's open; closing
+    # it disconnects. If upstream changes this check, the build fails here
+    (proton-vpn.overrideAttrs (old: {
+      postPatch = (old.postPatch or "") + ''
+        substituteInPlace proton/vpn/app/gtk/widgets/main/tray_indicator.py \
+          --replace-fail "if not self._tray_availability_detection.is_tray_available():" "if True:"
+      '';
+    }))
   ];
   # cloud mounts ~/Cloud from Google Drive (home/packages/cloud.sh). Its
   # config's key is in the GNOME keyring, which is only unlocked while logged
@@ -100,42 +109,42 @@ in
       run install -D -m 644 ${blankWallpaper} ${lib.escapeShellArg wallpaper}
     fi
   '';
-  # Proton VPN rewrites its own settings files, so these are merged into them
-  # at each switch rather than linked read-only. The kill switch is the
-  # standard one (1), which blocks traffic while the VPN drops; the permanent
-  # one (2) would block it even with the app closed. Auto-connect picks the
-  # fastest Swiss server, but only when the app starts, so it starts at login,
-  # in the tray
-  home.activation.proton-vpn =
-    let
-      merge = pkgs.writeShellScript "proton-vpn-settings" ''
-        set -eu
-        mkdir -p "$(dirname "$1")"
-        current=$(${lib.getExe pkgs.jq} -e objects "$1" 2>/dev/null || echo '{}')
-        ${lib.getExe pkgs.jq} --argjson new "$2" '. * $new' <<<"$current" >"$1.tmp"
-        mv "$1.tmp" "$1"
-      '';
-      settings = {
-        "settings.json".killswitch = 1;
-        "app-config.json".connect_at_app_startup = "CH";
+  # Proton VPN's settings, all of them, as the app would write them. The files
+  # are read-only, so changing a setting in the app fails, as does logging out
+  # of it with the kill switch on, which turns it off first. The kill switch is
+  # the standard one (1), which blocks traffic while the VPN drops; the
+  # permanent one (2) would block it even with the app closed. Auto-connect
+  # picks the fastest Swiss server when the app starts
+  xdg.configFile."Proton/VPN/settings.json".text = builtins.toJSON {
+    protocol = "wireguard";
+    killswitch = 1;
+    custom_dns = {
+      enabled = false;
+      ip_list = [ ];
+    };
+    ipv6 = true;
+    anonymous_crash_reports = true;
+    features = {
+      netshield = 1; # 0 off, 1 malware, 2 malware, ads and trackers
+      moderate_nat = false;
+      vpn_accelerator = true;
+      port_forwarding = false;
+      split_tunneling = {
+        enabled = false;
+        mode = "exclude";
+        config_by_mode = lib.genAttrs [ "exclude" "include" ] (mode: {
+          inherit mode;
+          app_paths = [ ];
+          ip_ranges = [ ];
+        });
       };
-    in
-    lib.hm.dag.entryAfter [ "writeBoundary" ] (
-      lib.concatLines (
-        lib.mapAttrsToList (
-          file: value:
-          "run ${merge} ${lib.escapeShellArg "${config.xdg.configHome}/Proton/VPN/${file}"} ${lib.escapeShellArg (builtins.toJSON value)}"
-        ) settings
-      )
-    );
-  xdg.configFile."autostart/proton-vpn.desktop".text = ''
-    [Desktop Entry]
-    Type=Application
-    Name=Proton VPN
-    Exec=${lib.getExe pkgs.proton-vpn} --start-minimized
-    X-GNOME-Autostart-enabled=true
-    NoDisplay=true
-  '';
+    };
+  };
+  xdg.configFile."Proton/VPN/app-config.json".text = builtins.toJSON {
+    tray_pinned_servers = [ ];
+    connect_at_app_startup = "CH";
+    start_app_minimized = false;
+  };
   xdg.configFile."autostart/earthpaper.desktop".text = ''
     [Desktop Entry]
     Type=Application
