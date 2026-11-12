@@ -23,16 +23,7 @@ in
     gitg
     impression
     mission-center
-    # Proton VPN puts itself in the tray whenever there's one to use, and then
-    # closing its window hides it rather than quitting. Telling it there's no
-    # tray keeps it a plain window, so it only runs while that's open; closing
-    # it disconnects. If upstream changes this check, the build fails here
-    (proton-vpn.overrideAttrs (old: {
-      postPatch = (old.postPatch or "") + ''
-        substituteInPlace proton/vpn/app/gtk/widgets/main/tray_indicator.py \
-          --replace-fail "if not self._tray_availability_detection.is_tray_available():" "if True:"
-      '';
-    }))
+    proton-vpn
   ];
   # cloud mounts ~/Cloud from Google Drive (home/packages/cloud.sh). Its
   # config's key is in the GNOME keyring, which is only unlocked while logged
@@ -113,8 +104,9 @@ in
   # are read-only, so changing a setting in the app fails, as does logging out
   # of it with the kill switch on, which turns it off first. The kill switch is
   # the standard one (1), which blocks traffic while the VPN drops; the
-  # permanent one (2) would block it even with the app closed. Auto-connect
-  # picks the fastest Swiss server when the app starts
+  # permanent one (2) would block it even with the app closed. When the app is
+  # opened it goes straight to the tray, without a window, and connects to the
+  # fastest Swiss server. It isn't started at login
   xdg.configFile."Proton/VPN/settings.json".text = builtins.toJSON {
     protocol = "wireguard";
     killswitch = 1;
@@ -143,7 +135,7 @@ in
   xdg.configFile."Proton/VPN/app-config.json".text = builtins.toJSON {
     tray_pinned_servers = [ ];
     connect_at_app_startup = "CH";
-    start_app_minimized = false;
+    start_app_minimized = true;
   };
   xdg.configFile."autostart/earthpaper.desktop".text = ''
     [Desktop Entry]
