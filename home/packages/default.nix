@@ -59,7 +59,12 @@
       # not yet merged; once a release has it, the patch fails to apply and
       # this override can go
       (rclone.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [ ./rclone-vfs-cache.patch ];
+        patches = (old.patches or [ ]) ++ [
+          (fetchpatch {
+            url = "https://github.com/rclone/rclone/commit/2754b9bc257a69229f0d8bc8eace6d1eed4c762f.patch";
+            hash = "";
+          })
+        ];
       }))
       libsecret # secret-tool
       networkmanager # nmcli
