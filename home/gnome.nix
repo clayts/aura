@@ -75,16 +75,19 @@ in
         alphabetical-app-grid
         # v37 puts the panel at the bottom of the overview's stack, which is
         # harmless until GNOME 51 makes the overview's controls reactive: they
-        # then sit over the panel and take its clicks. Upstream's fix (commit
-        # 625acf18, "Fix panel click unresponsiveness in overview mode") is
-        # unreleased; once a release has it, --replace-fail fails the build
-        # and this override can go
+        # then sit over the panel and take its clicks. Upstream's fix is
+        # unreleased; once a release has it, the patch fails to apply and this
+        # override can go
         (just-perfection.overrideAttrs (old: {
-          postPatch = (old.postPatch or "") + ''
-            substituteInPlace lib/API.js --replace-fail \
-              'overviewGroup.insert_child_at_index(panelBox, 0)' \
-              'overviewGroup.add_child(panelBox)'
-          '';
+          patches = (old.patches or [ ]) ++ [
+            # https://gitlab.gnome.org/jrahmatzadeh/just-perfection/-/work_items/309
+            (pkgs.fetchpatch {
+              name = "fix-panel-click-unresponsiveness-in-overview.patch";
+              url = "https://gitlab.gnome.org/jrahmatzadeh/just-perfection/-/commit/625acf18af551c9a316035bd47a3926dfd5dc133.diff";
+              relative = "src";
+              hash = "sha256-r9bY0N0L2xXXUIcrU386FTAec4gTXRlxTUOeMoPy+SA=";
+            })
+          ];
         }))
         auto-power-profile
         preserve-battery-health
