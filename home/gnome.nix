@@ -25,37 +25,38 @@ in
     mission-center
     proton-vpn
   ];
-  # cloud reads its config's key from the GNOME keyring, which is only
-  # unlocked while logged in to GNOME, so it syncs only in the graphical
-  # session: a minute after it starts, then an hour after each sync ends.
-  # Without ~/Cloud (cloud setup not run) the sync is skipped, not failed
-  systemd.user = {
-    services.cloud = {
+  # cloud mounts ~/Cloud from Google Drive (home/packages/cloud.sh). Its
+  # config's key is in the GNOME keyring, which is only unlocked while logged
+  # in to GNOME, so the mount comes and goes with the graphical session.
+  # Without a config (cloud setup not run) it's skipped, not failed
+  systemd.user.services.cloud =
+    let
+      # A crash leaves a dead mount ("Transport endpoint is not connected")
+      # that stops rclone mounting again, and rclone can't unmount at stop
+      # while files are open; a lazy unmount clears both
+      unmount = "-/run/wrappers/bin/fusermount3 -uqz %h/Cloud";
+    in
+    {
       Unit = {
-        Description = "Sync ~/Cloud with Google Drive";
+        Description = "Mount ~/Cloud from Google Drive";
         Requisite = [ "graphical-session.target" ];
         After = [ "graphical-session.target" ];
-        ConditionPathExists = "%h/Cloud";
+        PartOf = [ "graphical-session.target" ];
+        ConditionPathExists = "%h/.config/cloud.conf";
       };
       Service = {
-        Type = "oneshot";
-        ExecStart = "${lib.getExe packages.cloud} sync";
-      };
-    };
-    timers.cloud = {
-      Unit = {
-        Description = "Sync ~/Cloud with Google Drive regularly";
-        # Not After= the session: timers come before timers.target, which
-        # comes before graphical-session.target, so that would be a cycle
-        PartOf = [ "graphical-session.target" ];
-      };
-      Timer = {
-        OnActiveSec = "1min";
-        OnUnitInactiveSec = "1h";
+        Type = "notify"; # rclone says when the mount is ready
+        ExecStartPre = unmount;
+        ExecStart = "${lib.getExe packages.cloud} mount";
+        # The icon belongs to the mount's top folder, not the empty folder
+        # under it, so it's set once mounted (see folder-icons below)
+        ExecStartPost = "-${lib.getExe' pkgs.glib "gio"} set %h/Cloud metadata::custom-icon-name folder-cloud";
+        ExecStopPost = unmount;
+        Restart = "on-failure";
+        RestartSec = "30s";
       };
       Install.WantedBy = [ "graphical-session.target" ];
     };
-  };
   gtk = {
     enable = true;
     iconTheme = style.icons;
@@ -107,13 +108,13 @@ in
   # Nautilus prefers a folder's custom icon, kept in its GIO metadata, to its
   # own choice; these are set at each login. Without them, Intake would get the
   # Desktop icon, as GLib checks for the desktop dir before downloads, and
-  # Projects and Cloud, which GLib doesn't treat as special, a plain folder icon.
+  # Projects, which GLib doesn't treat as special, a plain folder icon. The
+  # cloud service sets ~/Cloud's.
   xdg.configFile."autostart/folder-icons.desktop".text =
     let
       icons = {
         ${config.xdg.userDirs.download} = "folder-download";
         ${config.xdg.userDirs.projects} = "folder-code";
-        "${config.home.homeDirectory}/Cloud" = "folder-cloud";
       };
       script = pkgs.writeShellScript "folder-icons" (
         lib.concatLines (
