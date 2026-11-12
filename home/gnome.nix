@@ -25,16 +25,17 @@ in
     mission-center
     proton-vpn
   ];
-  # cloud mounts ~/Cloud from Google Drive (home/packages/cloud.sh). Its
-  # config's key is in the GNOME keyring, which is only unlocked while logged
-  # in to GNOME, so the mount comes and goes with the graphical session.
-  # Without a config (cloud setup not run) it's skipped, not failed
+  # cloud mounts Google Drive at ~/.local/share/cloud, linked from ~/Cloud
+  # (home/packages/cloud.sh). Its config's key is in the GNOME keyring, which
+  # is only unlocked while logged in to GNOME, so the mount comes and goes
+  # with the graphical session. Without a config (cloud setup not run) it's
+  # skipped, not failed
   systemd.user.services.cloud =
     let
       # A crash leaves a dead mount ("Transport endpoint is not connected")
       # that stops rclone mounting again, and rclone can't unmount at stop
       # while files are open; a lazy unmount clears both
-      unmount = "-/run/wrappers/bin/fusermount3 -uqz %h/Cloud";
+      unmount = "-/run/wrappers/bin/fusermount3 -uqz %h/.local/share/cloud";
     in
     {
       Unit = {
@@ -48,8 +49,9 @@ in
         Type = "notify"; # rclone says when the mount is ready
         ExecStartPre = unmount;
         ExecStart = "${lib.getExe packages.cloud} mount";
-        # The icon belongs to the mount's top folder, not the empty folder
-        # under it, so it's set once mounted (see folder-icons below)
+        # ~/Cloud is a link, and gio follows it, so this sets the icon on the
+        # mount's top folder; it's set once mounted, as the empty folder under
+        # the mount isn't what Files shows (see folder-icons below)
         ExecStartPost = "-${lib.getExe' pkgs.glib "gio"} set %h/Cloud metadata::custom-icon-name folder-cloud";
         ExecStopPost = unmount;
         Restart = "on-failure";

@@ -69,6 +69,7 @@
       libsecret # secret-tool
       networkmanager # nmcli
       jq
+      age
     ];
     text = builtins.readFile ./cloud.sh;
   };
