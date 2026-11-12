@@ -100,6 +100,42 @@ in
       run install -D -m 644 ${blankWallpaper} ${lib.escapeShellArg wallpaper}
     fi
   '';
+  # Proton VPN rewrites its own settings files, so these are merged into them
+  # at each switch rather than linked read-only. The kill switch is the
+  # standard one (1), which blocks traffic while the VPN drops; the permanent
+  # one (2) would block it even with the app closed. Auto-connect picks the
+  # fastest Swiss server, but only when the app starts, so it starts at login,
+  # in the tray
+  home.activation.proton-vpn =
+    let
+      merge = pkgs.writeShellScript "proton-vpn-settings" ''
+        set -eu
+        mkdir -p "$(dirname "$1")"
+        current=$(${lib.getExe pkgs.jq} -e objects "$1" 2>/dev/null || echo '{}')
+        ${lib.getExe pkgs.jq} --argjson new "$2" '. * $new' <<<"$current" >"$1.tmp"
+        mv "$1.tmp" "$1"
+      '';
+      settings = {
+        "settings.json".killswitch = 1;
+        "app-config.json".connect_at_app_startup = "CH";
+      };
+    in
+    lib.hm.dag.entryAfter [ "writeBoundary" ] (
+      lib.concatLines (
+        lib.mapAttrsToList (
+          file: value:
+          "run ${merge} ${lib.escapeShellArg "${config.xdg.configHome}/Proton/VPN/${file}"} ${lib.escapeShellArg (builtins.toJSON value)}"
+        ) settings
+      )
+    );
+  xdg.configFile."autostart/proton-vpn.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=Proton VPN
+    Exec=${lib.getExe pkgs.proton-vpn} --start-minimized
+    X-GNOME-Autostart-enabled=true
+    NoDisplay=true
+  '';
   xdg.configFile."autostart/earthpaper.desktop".text = ''
     [Desktop Entry]
     Type=Application
