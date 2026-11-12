@@ -2,8 +2,8 @@
 #
 #   cloud setup               one-time setup on the first computer; signs in to
 #                             Google, makes the Drive folders and the data key
-#   cloud setup FILE          set up another computer from cloud-setup.age,
-#                             downloaded from the Cloud folder on Drive
+#   cloud setup FILE          set up another computer from conf.age, downloaded
+#                             from the Cloud folder on Drive
 #   cloud setup --reconnect   sign in to Google again, e.g. if access has expired
 #   cloud status              is it mounted, is anything waiting to upload, and
 #                             anything that needs attention
@@ -11,11 +11,13 @@
 #                             (home/gnome.nix) runs this at login
 #
 # On Drive, Cloud in My Drive holds:
-#   cloud-setup.age   what setup needs on another computer: the Google client
-#                     ID and secret, both folders' IDs and the data key, in
-#                     JSON, encrypted with age and a password chosen at setup.
-#                     It's written once and never changes; no sign-in is in it.
-#   data/             the files, encrypted with the data key by rclone crypt.
+#   conf.age   what setup needs on another computer: the Google client ID and
+#              secret, both folders' IDs and the data key, as a JSON object
+#              with the keys client_id, client_secret, cloud_folder,
+#              data_folder and data_key, encrypted with age and a password
+#              chosen at setup (age --decrypt conf.age shows it). It's written
+#              once and never changes; no sign-in is in it.
+#   data/      the files, encrypted with the data key by rclone crypt.
 # Signing in asks only for Google's drive.file scope, so rclone can reach just
 # what it created itself. That's tied to the client ID: a new client can't see
 # Cloud.
@@ -64,7 +66,7 @@ link=~/Cloud
 cache=~/.local/state/cloud  # not ~/.cache: it holds changes not yet uploaded
 socket=${XDG_RUNTIME_DIR:-/run/user/$UID}/cloud.sock  # rclone's remote control, for status
 folder_name=Cloud           # in My Drive
-setup_file="cloud-setup.age"  # in $folder_name
+setup_file="conf.age"  # in $folder_name
 
 die() { echo "cloud: $*" >&2; exit 1; }
 
