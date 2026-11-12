@@ -54,6 +54,7 @@
       rclone
       libsecret # secret-tool
       networkmanager # nmcli
+      jq
     ];
     text = builtins.readFile ./cloud.sh;
   };
