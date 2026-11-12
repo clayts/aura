@@ -51,7 +51,16 @@
   cloud = pkgs.writeShellApplication {
     name = "cloud";
     runtimeInputs = with pkgs; [
-      rclone
+      # rclone 1.75.2's mount can show a file as empty, and keep doing so, if
+      # its upload carries over a restart and its folder is listed before the
+      # upload ends: the cache takes the listing's missing entry as proof the
+      # file was deleted. Saving it then would overwrite it on Drive. This is
+      # the fix from https://github.com/rclone/rclone/pull/9531 (issue #9530),
+      # not yet merged; once a release has it, the patch fails to apply and
+      # this override can go
+      (rclone.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ./rclone-vfs-cache.patch ];
+      }))
       libsecret # secret-tool
       networkmanager # nmcli
       jq

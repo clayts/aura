@@ -18,10 +18,10 @@
 # changes to them are written to the cache first and uploaded in the background,
 # retrying until the internet is back; changes not yet uploaded are kept across
 # logouts and restarts. Folder listings are kept in memory for as long as the
-# mount runs, and refreshed by asking Drive every minute what has changed, so a
-# dropped connection doesn't stop browsing folders already opened. They don't
-# survive a restart though: mounted offline, folders can't be opened until the
-# internet is back.
+# mount runs, and refreshed by asking Drive every minute what has changed, and
+# every folder is listed in the background at mount, so a dropped connection
+# doesn't stop browsing. They don't survive a restart though: mounted offline,
+# folders can't be opened until the internet is back.
 # There are no conflict copies: if a file is changed both here and elsewhere,
 # the last upload wins.
 #
@@ -167,15 +167,12 @@ run_mount() {
     #   They're dropped from the cache an hour after last use (--vfs-cache-max-age).
     # --dir-cache-time: folder listings never expire; Drive's change polling
     #   (--poll-interval, a minute) refreshes them, so they're there offline.
-    #   Not --vfs-refresh, to list every folder at mount: with rclone 1.75.2, a
-    #   file whose upload carries over a restart, listed before the upload
-    #   ends, then reads as empty and stays so. That can still happen without
-    #   it, just less often.
+    # --vfs-refresh: list every folder in the background at mount, while online.
     # --contimeout, --timeout: give up on a dead connection sooner than the
     #   defaults (1 and 5 minutes), so browsing an uncached folder offline fails
     #   rather than hangs.
     exec rclone mount crypt: ~/Cloud --cache-dir "$cache" \
-        --vfs-cache-mode full --dir-cache-time 100000h \
+        --vfs-cache-mode full --dir-cache-time 100000h --vfs-refresh \
         --contimeout 15s --timeout 1m \
         --rc --rc-addr "unix://$socket"
 }
