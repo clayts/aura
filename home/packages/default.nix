@@ -62,7 +62,7 @@
         patches = (old.patches or [ ]) ++ [
           (fetchpatch {
             url = "https://github.com/rclone/rclone/commit/2754b9bc257a69229f0d8bc8eace6d1eed4c762f.patch";
-            hash = "";
+            hash = "sha256-ZAv3WG/WMPPSoVUc9w+KotOout9x4lLmcewtF6ZdFbI=";
           })
         ];
       }))
