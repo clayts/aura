@@ -1,34 +1,25 @@
-# cloud: ~/Cloud is an rclone mount of an encrypted folder on Google Drive.
+# cloud: ~/Cloud is an rclone mount of a folder on Google Drive.
 #
-#   cloud setup               one-time setup on the first computer; signs in to
-#                             Google, makes the Drive folders and the data key
-#   cloud setup FILE          set up another computer from conf.age, downloaded
-#                             from the Cloud folder on Drive
+#   cloud setup               set up this computer: sign in to Google, and find
+#                             Cloud in My Drive, or make it if there's none
 #   cloud setup --reconnect   sign in to Google again, e.g. if access has expired
 #   cloud status              is it mounted, is anything waiting to upload, and
 #                             anything that needs attention
 #   cloud mount               mount in the foreground; the cloud user service
 #                             (home/gnome.nix) runs this at login
 #
-# On Drive, Cloud in My Drive holds:
-#   conf.age   what setup needs on another computer: the Google client ID and
-#              secret, both folders' IDs and the data key, as a JSON object
-#              with the keys client_id, client_secret, cloud_folder,
-#              data_folder and data_key, encrypted with age and a password
-#              chosen at setup (age --decrypt conf.age shows it). It's written
-#              once and never changes; no sign-in is in it.
-#   data/      the files, encrypted with the data key by rclone crypt.
 # Signing in asks only for Google's drive.file scope, so rclone can reach just
-# what it created itself. That's tied to the client ID: a new client can't see
-# Cloud.
+# what it created itself, through the same client ID on any computer: Cloud,
+# and what's put in it through the mount. Files added to Cloud some other way,
+# such as Drive's website, aren't seen. A new client ID can't see Cloud either,
+# so keep the one you made.
 #
 # On this computer:
-#   ~/.config/cloud.conf   rclone's config: gdrive (Drive, rooted at Cloud by its
-#                          ID) and crypt (encrypts data, also by its ID, so
-#                          mounting needs no internet). It's encrypted with a
-#                          random key kept in the GNOME keyring, so the mount
-#                          only starts while logged in to GNOME.
-#   ~/.local/share/cloud   where crypt is mounted. GNOME doesn't list mounts in
+#   ~/.config/cloud.conf   rclone's config: gdrive, which is Drive rooted at
+#                          Cloud by its ID, so mounting needs no internet. It
+#                          holds the client ID and secret and the sign-in, and
+#                          only you can read it.
+#   ~/.local/share/cloud   where gdrive is mounted. GNOME doesn't list mounts in
 #                          hidden folders, so Files has no Eject for it.
 #   ~/Cloud                a link to it
 #   ~/.local/state/cloud   rclone's cache, holding changes not yet uploaded
@@ -49,24 +40,19 @@
 #   systemctl --user stop cloud.service
 #   rm -rf ~/.config/cloud.conf ~/.local/state/cloud ~/Cloud
 #   rmdir ~/.local/share/cloud
-#   secret-tool clear service cloud account rclone-config
 # Then, if wanted, outside this computer:
 #   - delete the Cloud folder on Google Drive
 #   - remove rclone's access at https://myaccount.google.com/connections
 #   - delete the OAuth client in the Google Cloud console
 # and in this repo, remove packages.cloud from home/zsh.nix and
-# home/packages/default.nix, and the cloud service and ~/Cloud's folder icon
-# from home/gnome.nix.
+# home/packages/default.nix, and the cloud service from home/gnome.nix.
 
-keyring=(service cloud account rclone-config)  # the keyring entry holding the config's key
 export RCLONE_CONFIG=~/.config/cloud.conf
-export RCLONE_PASSWORD_COMMAND="secret-tool lookup ${keyring[*]}"
 mountpoint=~/.local/share/cloud
 link=~/Cloud
 cache=~/.local/state/cloud  # not ~/.cache: it holds changes not yet uploaded
 socket=${XDG_RUNTIME_DIR:-/run/user/$UID}/cloud.sock  # rclone's remote control, for status
 folder_name=Cloud           # in My Drive
-setup_file="conf.age"  # in $folder_name
 
 die() { echo "cloud: $*" >&2; exit 1; }
 
@@ -78,29 +64,16 @@ is_empty_dir() { [[ -d $1 && -z $(find "$1" -mindepth 1 -maxdepth 1 -print -quit
 
 folder_url() { echo "https://drive.google.com/drive/folders/$1"; }
 
-# Prints the IDs of the folders called $1 at the top of gdrive:.
+# Prints the IDs of the folders called $folder_name at the top of My Drive.
 find_folder() {
     local listing
     listing=$(rclone lsjson gdrive: --dirs-only --no-modtime --no-mimetype) ||
         die "couldn't list folders on Drive"
-    jq -r --arg name "$1" '.[] | select(.Name == $name) | .ID' <<<"$listing"
-}
-
-# Prints the ID of the folder called $1 at the top of gdrive:, making it if
-# there's none.
-make_folder() {
-    local ids
-    ids=$(find_folder "$1") || exit 1
-    if [[ -z $ids ]]; then
-        rclone mkdir "gdrive:$1" || die "couldn't make the folder $1 on Drive"
-        ids=$(find_folder "$1") || exit 1
-    fi
-    [[ -n $ids && $ids != *$'\n'* ]] || die "couldn't find a single folder called $1 on Drive"
-    echo "$ids"
+    jq -r --arg name "$folder_name" '.[] | select(.Name == $name) | .ID' <<<"$listing"
 }
 
 setup() {
-    local file=${1:-} answers values id secret cloud="" data key listing sealed
+    local id secret ids
     [[ ! -e $RCLONE_CONFIG ]] || die "$RCLONE_CONFIG exists; delete it to set up again"
     [[ ! -e $cache ]] ||
         die "$cache exists, left from before. Changes made offline that were never" \
@@ -113,60 +86,30 @@ setup() {
         is_empty_dir "$link" || die "$link isn't an empty folder; move it aside to set up"
     fi
 
-    if [[ -n $file ]]; then
-        # age asks for the password on the terminal.
-        answers=$(age --decrypt "$file") || die "couldn't decrypt $file"
-        jq -e '.client_id and .client_secret and .cloud_folder and .data_folder and .data_key' \
-            <<<"$answers" >/dev/null || die "$file isn't a cloud setup file"
-        values=$(jq -r '.client_id, .client_secret, .cloud_folder, .data_folder, .data_key' \
-            <<<"$answers")
-        { read -r id; read -r secret; read -r cloud; read -r data; read -r key; } <<<"$values"
-    else
-        # drive.file ties the files to the client that made them, so rclone's own
-        # shared client, which is being retired, would lose them with it.
-        echo "Make a Google OAuth client first: https://rclone.org/drive/#making-your-own-client-id"
-        echo "Its consent screen needs the scope .../auth/drive.file."
-        read -rp "Client ID: " id
-        read -rsp "Client secret: " secret; echo
-        [[ -n $id && -n $secret ]] || die "the client ID and secret can't be empty"
-    fi
+    # drive.file ties the files to the client that made them, so rclone's own
+    # shared client, which is being retired, would lose them with it.
+    echo "Use the same Google OAuth client on every computer. To make one:"
+    echo "  https://rclone.org/drive/#making-your-own-client-id"
+    echo "Its consent screen needs only the scope .../auth/drive.file."
+    read -rp "Client ID: " id
+    read -rsp "Client secret: " secret; echo
+    [[ -n $id && -n $secret ]] || die "the client ID and secret can't be empty"
 
     # A setup that fails part-way leaves no config behind, so it can just be run again.
     trap 'rm -f "$RCLONE_CONFIG"' EXIT
-    # The config starts out encrypted, so the token and data key are never on disk
-    # in plain text.
-    head -c 32 /dev/urandom | base64 | secret-tool store --label="cloud rclone config" "${keyring[@]}"
-    rclone -q config encryption set >/dev/null
     # rclone opens a browser to sign in to Google.
     rclone config create gdrive drive scope=drive.file client_id="$id" client_secret="$secret" \
-        root_folder_id="$cloud" --no-output
-
-    if [[ -z $cloud ]]; then
-        cloud=$(make_folder "$folder_name") || exit 1
-        # Root gdrive: at Cloud. config_refresh_token=false keeps the sign-in.
-        rclone config update gdrive root_folder_id="$cloud" config_refresh_token=false --no-output
-        listing=$(rclone lsf gdrive:) || die "couldn't list $folder_name in My Drive"
-        [[ -z $listing ]] ||
-            die "$folder_name in My Drive isn't empty. If it has $setup_file, download it and" \
-                "run: cloud setup FILE"
-        data=$(make_folder data) || exit 1
-        key=$(head -c 32 /dev/urandom | base64)
-        echo
-        echo "The data key, which decrypts $folder_name/data with any rclone crypt remote."
-        echo "Keep it somewhere safe; it isn't shown again:"
-        echo "  $key"
-        echo
-        echo "Now a password for $setup_file, needed to set up another computer."
-        echo "It protects the data key, so make it long, e.g. a few random words."
-        sealed=$(jq -n --arg client_id "$id" --arg client_secret "$secret" \
-            --arg cloud_folder "$cloud" --arg data_folder "$data" --arg data_key "$key" \
-            '$ARGS.named' | age --passphrase --armor) || die "couldn't encrypt $setup_file"
-        rclone -q rcat "gdrive:$setup_file" <<<"$sealed" || die "couldn't upload $setup_file"
+        --no-output
+    ids=$(find_folder) || exit 1
+    if [[ -z $ids ]]; then
+        rclone mkdir "gdrive:$folder_name" || die "couldn't make $folder_name in My Drive"
+        ids=$(find_folder) || exit 1
+        echo "Made $folder_name in My Drive."
     fi
-
-    rclone config create crypt crypt remote="gdrive,root_folder_id=$data:" password="$key" \
-        --obscure --no-output
-    rclone -q lsf crypt: >/dev/null || die "couldn't open $folder_name/data on Drive"
+    [[ -n $ids && $ids != *$'\n'* ]] ||
+        die "My Drive has several folders called $folder_name; rename or delete the extra ones"
+    # Root gdrive: at Cloud. config_refresh_token=false keeps the sign-in.
+    rclone config update gdrive root_folder_id="$ids" config_refresh_token=false --no-output
     trap - EXIT
 
     mkdir -p "$mountpoint"
@@ -176,7 +119,7 @@ setup() {
     fi
     systemctl --user start cloud.service ||
         die "couldn't mount; see: journalctl --user -u cloud"
-    echo "Mounted ~/Cloud from $(folder_url "$cloud")"
+    echo "Mounted ~/Cloud from $(folder_url "$ids")"
 }
 
 run_mount() {
@@ -194,7 +137,7 @@ run_mount() {
     # --contimeout, --timeout: give up on a dead connection sooner than the
     #   defaults (1 and 5 minutes), so browsing an uncached folder offline fails
     #   rather than hangs.
-    exec rclone mount crypt: "$mountpoint" --cache-dir "$cache" \
+    exec rclone mount gdrive: "$mountpoint" --cache-dir "$cache" \
         --vfs-cache-mode full --dir-cache-time 100000h --vfs-refresh \
         --contimeout 15s --timeout 1m \
         --rc --rc-addr "unix://$socket"
@@ -204,7 +147,6 @@ run_mount() {
 status() {
     local ok=0 out net stats
     need_config
-    grep -q '^RCLONE_ENCRYPT_V0:' "$RCLONE_CONFIG" || { echo "The config isn't encrypted."; ok=1; }
     if out=$(rclone -q config redacted gdrive); then
         echo "Drive folder: $(folder_url "$(sed -n 's/^root_folder_id = //p' <<<"$out")")"
     fi
@@ -232,18 +174,14 @@ status() {
     return "$ok"
 }
 
-case ${1:-} in
-    setup)
-        if [[ ${2:-} == --reconnect ]]; then
-            need_config
-            rclone config reconnect gdrive: --auto-confirm
-            # The running mount still has the old sign-in.
-            systemctl --user try-restart cloud.service
-        else
-            setup "${2:-}"
-        fi ;;
-    mount)  run_mount ;;
-    status) status ;;
-    *) echo "usage: cloud setup [FILE | --reconnect] | status | mount" >&2
+case "$*" in
+    setup)               setup ;;
+    "setup --reconnect") need_config
+                         rclone config reconnect gdrive: --auto-confirm
+                         # The running mount still has the old sign-in.
+                         systemctl --user try-restart cloud.service ;;
+    mount)               run_mount ;;
+    status)              status ;;
+    *) echo "usage: cloud setup [--reconnect] | status | mount" >&2
        exit 2 ;;
 esac

@@ -26,10 +26,8 @@ in
     proton-vpn
   ];
   # cloud mounts Google Drive at ~/.local/share/cloud, linked from ~/Cloud
-  # (home/packages/cloud.sh). Its config's key is in the GNOME keyring, which
-  # is only unlocked while logged in to GNOME, so the mount comes and goes
-  # with the graphical session. Without a config (cloud setup not run) it's
-  # skipped, not failed
+  # (home/packages/cloud.sh), from login until the last session ends. Without
+  # a config (cloud setup not run) it's skipped, not failed
   systemd.user.services.cloud =
     let
       # A crash leaves a dead mount ("Transport endpoint is not connected")
@@ -40,9 +38,6 @@ in
     {
       Unit = {
         Description = "Mount ~/Cloud from Google Drive";
-        Requisite = [ "graphical-session.target" ];
-        After = [ "graphical-session.target" ];
-        PartOf = [ "graphical-session.target" ];
         ConditionPathExists = "%h/.config/cloud.conf";
       };
       Service = {
@@ -57,7 +52,7 @@ in
         Restart = "on-failure";
         RestartSec = "30s";
       };
-      Install.WantedBy = [ "graphical-session.target" ];
+      Install.WantedBy = [ "default.target" ];
     };
   gtk = {
     enable = true;
