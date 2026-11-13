@@ -8,11 +8,9 @@
 #   cloud mount               mount in the foreground; the cloud user service
 #                             (home/gnome.nix) runs this at login
 #
-# Signing in asks only for Google's drive.file scope, so rclone can reach just
-# what it created itself, through the same client ID on any computer: Cloud,
-# and what's put in it through the mount. Files added to Cloud some other way,
-# such as Drive's website, aren't seen. A new client ID can't see Cloud either,
-# so keep the one you made.
+# Signing in asks for Google's full drive scope, so files added to Cloud some
+# other way, such as Drive's website or phone app, show up too. The sign-in in
+# the config can therefore read and change all of your Drive, not just Cloud.
 #
 # On this computer:
 #   ~/.config/cloud.conf   rclone's config: gdrive, which is Drive rooted at
@@ -86,11 +84,10 @@ setup() {
         is_empty_dir "$link" || die "$link isn't an empty folder; move it aside to set up"
     fi
 
-    # drive.file ties the files to the client that made them, so rclone's own
-    # shared client, which is being retired, would lose them with it.
-    echo "Use the same Google OAuth client on every computer. To make one:"
+    # rclone's own shared client is being retired during 2026.
+    echo "This needs your own Google OAuth client. To make one:"
     echo "  https://rclone.org/drive/#making-your-own-client-id"
-    echo "Its consent screen needs only the scope .../auth/drive.file."
+    echo "Its consent screen needs the scope .../auth/drive."
     read -rp "Client ID: " id
     read -rsp "Client secret: " secret; echo
     [[ -n $id && -n $secret ]] || die "the client ID and secret can't be empty"
@@ -98,7 +95,7 @@ setup() {
     # A setup that fails part-way leaves no config behind, so it can just be run again.
     trap 'rm -f "$RCLONE_CONFIG"' EXIT
     # rclone opens a browser to sign in to Google.
-    rclone config create gdrive drive scope=drive.file client_id="$id" client_secret="$secret" \
+    rclone config create gdrive drive scope=drive client_id="$id" client_secret="$secret" \
         --no-output
     ids=$(find_folder) || exit 1
     if [[ -z $ids ]]; then
