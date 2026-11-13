@@ -87,7 +87,6 @@ setup() {
     # rclone's own shared client is being retired during 2026.
     echo "This needs your own Google OAuth client. To make one:"
     echo "  https://rclone.org/drive/#making-your-own-client-id"
-    echo "Its consent screen needs the scope .../auth/drive."
     read -rp "Client ID: " id
     read -rsp "Client secret: " secret; echo
     [[ -n $id && -n $secret ]] || die "the client ID and secret can't be empty"
