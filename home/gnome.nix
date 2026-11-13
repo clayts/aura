@@ -25,7 +25,7 @@ in
     mission-center
     proton-vpn
   ];
-  # cloud mounts Google Drive at ~/.local/share/cloud, linked from ~/Cloud
+  # cloud mounts Google Drive at $XDG_RUNTIME_DIR/cloud, linked from ~/Cloud
   # (home/packages/cloud.sh), from login until the last session ends. Without
   # a config (cloud setup not run) it's skipped, not failed
   systemd.user.services.cloud =
@@ -33,7 +33,7 @@ in
       # A crash leaves a dead mount ("Transport endpoint is not connected")
       # that stops rclone mounting again, and rclone can't unmount at stop
       # while files are open; a lazy unmount clears both
-      unmount = "-/run/wrappers/bin/fusermount3 -uqz %h/.local/share/cloud";
+      unmount = "-/run/wrappers/bin/fusermount3 -uqz %t/cloud";
     in
     {
       Unit = {
@@ -48,7 +48,12 @@ in
         # mount's top folder; it's set once mounted, as the empty folder under
         # the mount isn't what Files shows (see folder-icons below)
         ExecStartPost = "-${lib.getExe' pkgs.glib "gio"} set %h/Cloud metadata::custom-icon-name folder-cloud";
-        ExecStopPost = unmount;
+        ExecStopPost = [
+          unmount
+          # Then ~/Cloud leads nowhere, rather than to an empty folder where
+          # files could be saved by mistake; rmdir only removes it if empty
+          "-${lib.getExe' pkgs.coreutils "rmdir"} %t/cloud"
+        ];
         Restart = "on-failure";
         RestartSec = "30s";
       };

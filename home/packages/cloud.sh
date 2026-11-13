@@ -17,9 +17,13 @@
 #                          Cloud by its ID, so mounting needs no internet. It
 #                          holds the client ID and secret and the sign-in, and
 #                          only you can read it.
-#   ~/.local/share/cloud   where gdrive is mounted. GNOME doesn't list mounts in
-#                          hidden folders, so Files has no Eject for it.
-#   ~/Cloud                a link to it
+#   /run/user/$UID/cloud   where gdrive is mounted ($XDG_RUNTIME_DIR/cloud):
+#                          made at login and gone once the last session ends.
+#                          GNOME doesn't list mounts there, so Files has no
+#                          Eject for it, and being outside ~, it isn't walked
+#                          by backups or searches of ~.
+#   ~/Cloud                a link to it. While nothing is mounted it leads
+#                          nowhere, so nothing can be saved there by mistake.
 #   ~/.local/state/cloud   rclone's cache, holding changes not yet uploaded
 #
 # Files that are opened are cached for an hour after last use, and changes to
@@ -37,7 +41,6 @@
 # cache, then:
 #   systemctl --user stop cloud.service
 #   rm -rf ~/.config/cloud.conf ~/.local/state/cloud ~/Cloud
-#   rmdir ~/.local/share/cloud
 # Then, if wanted, outside this computer:
 #   - delete the Cloud folder on Google Drive
 #   - remove rclone's access at https://myaccount.google.com/connections
@@ -46,11 +49,12 @@
 # home/packages/default.nix, and the cloud service from home/gnome.nix.
 
 export RCLONE_CONFIG=~/.config/cloud.conf
-mountpoint=~/.local/share/cloud
+runtime=${XDG_RUNTIME_DIR:-/run/user/$UID}
+mountpoint=$runtime/cloud
 link=~/Cloud
-cache=~/.local/state/cloud  # not ~/.cache: it holds changes not yet uploaded
-socket=${XDG_RUNTIME_DIR:-/run/user/$UID}/cloud.sock  # rclone's remote control, for status
-folder_name=Cloud           # in My Drive
+cache=~/.local/state/cloud    # not ~/.cache: it holds changes not yet uploaded
+socket=$runtime/cloud.sock    # rclone's remote control, for status
+folder_name=Cloud             # in My Drive
 
 die() { echo "cloud: $*" >&2; exit 1; }
 
