@@ -45,6 +45,40 @@ if [[ $(efivar SetupMode) != 1 ]]; then
     fi
 fi
 
+# Taking ownership of the drive, which the install does once, needs the firmware
+# not to block it (Block SID). It blocks it at every boot unless asked to skip
+# the next one, which needs the TPM
+skip_block_sid() {
+    if ! echo 97 | sudo tee /sys/class/tpm/tpm0/ppi/request >/dev/null; then
+        echo "Turn Security Chip on in the firmware settings, so the firmware can be asked to allow it." >&2
+        exit 1
+    fi
+    echo "The firmware will allow it on the next boot. $1, confirm the firmware's prompt, choose this"
+    echo "installer with F12 and run this again, without going through the firmware settings in between."
+    exit
+}
+factory_reset() {
+    while true; do
+        IFS= read -rp "PSID from the drive's label: " psid
+        sudo cryptsetup erase -q --hw-opal-factory-reset "$disk" <<<"$psid" && break
+        echo "That didn't work, try again" >&2
+    done
+    echo "The drive is factory reset. Setting it up again needs a power cycle, and the firmware to allow taking ownership of it."
+    skip_block_sid "Power off, power on"
+}
+
+controller=$(realpath "$disk")
+controller=${controller%n[0-9]*}
+opal=$(sudo sedutil-cli --query "$controller" 2>/dev/null) || true
+if [[ $opal != *"Locking function"* ]]; then
+    echo "$disk doesn't report OPAL hardware encryption" >&2
+    exit 1
+fi
+if [[ $opal == *"LockingEnabled = N"* && $opal == *"BlockSIDState = Y"* ]]; then
+    echo "The firmware blocks taking ownership of the drive, which the install has to do once."
+    skip_block_sid "Reboot"
+fi
+
 read -rp "This erases everything on $disk. Type 'yes' to continue: " answer
 [[ $answer == yes ]] || exit 1
 
@@ -55,24 +89,28 @@ trap 'sudo rm -f "$diskPassword" "$tpmKey"' EXIT
 # factory reset, so a reinstall keeps the previous install's disk password,
 # which is that admin password
 password=""
+previous=""
 mapfile -t devices < <(lsblk -lnpo NAME "$disk")
 for device in "${devices[@]}"; do
     header=$(sudo cryptsetup luksDump "$device" 2>/dev/null) || continue
-    [[ $header == *"HW OPAL"* ]] || continue
+    if [[ $header == *"HW OPAL"* ]]; then
+        previous=$device
+        break
+    fi
+done
+if [[ -n $previous ]]; then
     echo "$disk holds a previous install encrypted by the drive, whose disk password the new install keeps."
     while true; do
-        IFS= read -rsp "Its disk password, or nothing to factory reset the drive with the PSID on its label: " password && echo
-        if [[ -n $password ]]; then
-            # Checks the password while erasing the previous install
-            sudo cryptsetup erase -q "$device" <<<"$password" && break
-        else
-            IFS= read -rp "PSID: " psid
-            sudo cryptsetup erase -q --hw-opal-factory-reset "$device" <<<"$psid" && break
-        fi
+        IFS= read -rsp "Its disk password, or nothing to factory reset the drive instead: " password && echo
+        [[ -n $password ]] || factory_reset
+        # Checks the password while erasing the previous install
+        sudo cryptsetup erase -q "$previous" <<<"$password" && break
         echo "That didn't work, try again" >&2
     done
-    break
-done
+elif [[ $opal == *"LockingEnabled = Y"* ]]; then
+    echo "Something else set up $disk's hardware encryption, so it needs a factory reset."
+    factory_reset
+fi
 [[ -n $password ]] || ask_password "the disk"
 printf '%s' "$password" | sudo install -m 600 /dev/stdin "$diskPassword"
 declare -A hashes
@@ -87,12 +125,8 @@ set -x
 # Reuses any keys this installer session already made, and maybe enrolled
 sudo sbctl create-keys
 if ! sudo disko --mode destroy,format,mount --yes-wipe-all-disks --flake "$flake#$host"; then
-    echo "Formatting failed. If the firmware blocks taking ownership of the drive (Block SID), ask it not to," >&2
-    echo "then reboot, confirm in the firmware's prompt and run this again:" >&2
-    echo "  echo 97 | sudo tee /sys/class/tpm/tpm0/ppi/request" >&2
-    echo "A drive set up for hardware encryption by something else needs a factory reset first instead:" >&2
-    echo "  sudo cryptsetup erase --hw-opal-factory-reset $disk" >&2
-    echo "That asks for the PSID on the drive's label. Some drives then need a power cycle." >&2
+    echo "Formatting failed. If the firmware blocked taking ownership of the drive, ask it to allow that" >&2
+    echo "with 'echo 97 | sudo tee /sys/class/tpm/tpm0/ppi/request', reboot, confirm its prompt and run this again." >&2
     exit 1
 fi
 sudo install -d -m 700 /mnt/etc/passwords "/mnt$(dirname "$installedTpmKey")"

@@ -67,6 +67,12 @@
             pkgs.git
             pkgs.mkpasswd
             pkgs.sbctl
+            # Reads the drive's hardware encryption state. Its build treats automake's warnings as errors
+            (pkgs.sedutil.overrideAttrs (old: {
+              postPatch = old.postPatch + ''
+                sed -i 's/AM_INIT_AUTOMAKE(\[-Wall -Werror\])/AM_INIT_AUTOMAKE([-Wall])/' configure.ac
+              '';
+            }))
             pkgs.toilet
           ];
           text = builtins.readFile ./install.sh;
