@@ -25,6 +25,10 @@
 # everything in it was deleted. A file changed on both sides since the last
 # sync: the newer copy wins, and the other is kept as name.cloud-conflict-N.ext.
 #
+# Files in Google's own formats (Docs, Sheets, Slides and so on) are left out,
+# as rclone can only download copies of them and can't upload edits back. Edit
+# them on Drive. A folder holding any can't be deleted from here: Drive keeps it.
+#
 # To remove everything cloud has set up on this computer, stop the timer first
 # so that no sync runs part-way through:
 #   systemctl --user stop cloud.timer cloud.service
@@ -40,6 +44,7 @@
 
 export RCLONE_CONFIG=~/.config/cloud.conf
 export RCLONE_COLOR=NEVER  # plain logs: bisync colours some lines even when not on a terminal
+export RCLONE_DRIVE_SKIP_GDOCS=true  # leave out Google Docs and so on (see above)
 state=~/.local/state/cloud
 folder_name=Cloud          # in My Drive
 
