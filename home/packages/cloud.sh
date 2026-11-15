@@ -54,7 +54,6 @@ export RCLONE_CONFIG=~/.config/cloud.conf
 export RCLONE_COLOR=NEVER  # plain logs: bisync colours some lines even when not on a terminal
 export RCLONE_DRIVE_SKIP_GDOCS=true  # leave out Google Docs and so on (see above)
 state=~/.local/state/cloud
-folder_name=Cloud          # in My Drive
 
 die() { echo "cloud: $*" >&2; exit 1; }
 
@@ -63,8 +62,7 @@ need_config() {
         die "there's no $RCLONE_CONFIG; to set up again, move ~/Cloud aside and run: cloud setup"
 }
 
-# Is there a record (lst) or backup record (lst-old) of the last sync? A glob that
-# matches nothing stays as it is. (Not compgen: Nix's non-interactive bash lacks it.)
+# Is there a bisync record ending in .$1? A glob that matches nothing stays as it is.
 record() { local files=("$state"/*."$1"); [[ -e ${files[0]} ]]; }
 
 # Prints a heading and the lines under it, unless there are none.
@@ -72,10 +70,10 @@ list() { [[ -n $2 ]] && printf '%s\n' "$1" "$2"; }
 
 folder_url() { echo "https://drive.google.com/drive/folders/$1"; }
 
-# Prints the IDs of the folders called $folder_name at the top of My Drive.
+# Prints the IDs of the folders called Cloud at the top of My Drive.
 find_folder() {
     rclone lsjson gdrive: --dirs-only --no-modtime --no-mimetype |
-        jq -r --arg name "$folder_name" '.[] | select(.Name == $name) | .ID'
+        jq -r '.[] | select(.Name == "Cloud") | .ID'
 }
 
 bisync() {
@@ -89,10 +87,8 @@ bisync() {
     [[ $net == full ]] || die "no internet connection (NetworkManager says: ${net:-nothing})"
     # Downloads are written to name.xxxxxxxx.cloud.partial and then renamed. If rclone
     # is killed, the leftover is excluded so it's never uploaded as a real file.
-    # A file changed on both sides: the newer copy wins, the other is kept as
-    # name.cloud-conflict-N.ext. bisync stops if over half the files on one side were
-    # deleted; --max-delete is that percentage (rclone's help calls it a count), so 100
-    # lets any number of deletions through.
+    # bisync stops if over half the files on one side were deleted; --max-delete is
+    # that percentage (rclone's help calls it a count), so 100 lets any number through.
     rclone bisync ~/Cloud gdrive: --workdir "$state" \
         --check-access --check-filename .cloud --create-empty-src-dirs \
         --resilient --recover --max-lock 2m --max-delete 100 \
@@ -107,7 +103,7 @@ bisync() {
 }
 
 setup() {
-    local id secret ids synced=true
+    local id secret ids
     [[ ! -e ~/Cloud && ! -L ~/Cloud ]] || die "$HOME/Cloud exists; move it aside to set up again"
     [[ ! -e $RCLONE_CONFIG ]] || die "$RCLONE_CONFIG exists; delete it to set up again"
     [[ ! -e $state ]] ||
@@ -129,12 +125,12 @@ setup() {
         --no-output
     ids=$(find_folder)
     if [[ -z $ids ]]; then
-        rclone mkdir "gdrive:$folder_name" || die "couldn't make $folder_name in My Drive"
+        rclone mkdir gdrive:Cloud
         ids=$(find_folder)
-        echo "Made $folder_name in My Drive."
+        echo "Made Cloud in My Drive."
     fi
     [[ -n $ids && $ids != *$'\n'* ]] ||
-        die "My Drive has several folders called $folder_name; rename or delete the extra ones"
+        die "My Drive has several folders called Cloud; rename or delete the extra ones"
     # Root gdrive: at Cloud. config_refresh_token=false keeps the sign-in.
     rclone config update gdrive root_folder_id="$ids" config_refresh_token=false --no-output
 
@@ -142,18 +138,14 @@ setup() {
     mkdir ~/Cloud
     touch ~/Cloud/.cloud
     rclone copyto ~/Cloud/.cloud gdrive:.cloud || die "couldn't upload .cloud to Drive"
-    trap - EXIT
 
-    # With no record yet, the first sync is a resync. That makes no backup record, so
-    # an ordinary sync follows to make one, so that a sync that fails part-way can
-    # recover by itself. A subshell, so that bisync's own checks can't stop setup
-    # before the timer starts.
-    ( bisync && bisync ) || synced=false
-    # Without a config at login, the timer didn't start then. It starts only now, so
-    # that its first sync, a minute later, can't run into the one above; and even if
-    # that failed, so that timed syncs carry on once it's fixed.
-    systemctl --user start cloud.timer
-    $synced || die "the first sync failed; each timed sync tries again, or run: cloud sync"
+    # Without a config at login, the timer didn't start then. It starts as setup ends,
+    # so that its first sync, a minute later, can't run into the one below; and even
+    # if that fails, so that timed syncs carry on once it's fixed.
+    trap 'systemctl --user start cloud.timer' EXIT
+    # With no record yet, this is a resync. A subshell, so that bisync's own checks
+    # don't skip the advice.
+    ( bisync ) || die "the first sync failed; each timed sync tries again, or run: cloud sync"
     echo "Synced ~/Cloud with $(folder_url "$ids")"
 }
 
