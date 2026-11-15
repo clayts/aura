@@ -34,12 +34,16 @@ in
       Unit.Description = "Sync ~/Cloud with Google Drive";
       Service = {
         Type = "oneshot";
-        # A sync caught up on waking would otherwise find the network still
-        # down; this waits up to 30s for it
-        ExecStartPre = "-${lib.getExe' pkgs.networkmanager "nm-online"} -q";
+        # After waking, the internet takes a while to come back (Wi-Fi, then
+        # the VPN), so a sync caught up on waking first gives it up to a minute
+        ExecStartPre = "${pkgs.writeShellScript "cloud-wait-online" ''
+          for _ in {1..30}; do
+            [[ $(${lib.getExe' pkgs.networkmanager "nmcli"} -t networking connectivity check) == full ]] && exit
+            ${lib.getExe' pkgs.coreutils "sleep"} 2
+          done
+        ''}";
         ExecStart = "${lib.getExe packages.cloud} sync";
-        Nice = 19;
-        IOSchedulingClass = "idle";
+        Nice = 19; # which also gives it the lowest disk priority
       };
     };
     timers.cloud = {
