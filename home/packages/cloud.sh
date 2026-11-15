@@ -80,12 +80,11 @@ find_folder() {
 
 bisync() {
     local net
-    # Quick checks first, so a run that can't work (from a timer, say) stops at once,
-    # rather than after rclone has listed both sides, or retried for minutes offline.
-    need_config
     # With no record of the last sync (lst), nor a backup of it (lst-old) for --recover
     # to fall back on, only a resync can start a new one.
     record lst || record lst-old || set -- --resync-mode newer "$@"
+    # A quick check first, so that offline, a run (from a timer, say) stops at once,
+    # rather than after rclone has retried for minutes.
     net=$(nmcli -t networking connectivity check || true)
     [[ $net == full ]] || die "no internet connection (NetworkManager says: ${net:-nothing})"
     # Downloads are written to name.xxxxxxxx.cloud.partial and then renamed. If rclone
@@ -150,7 +149,7 @@ setup() {
     # recover by itself. A subshell, so that bisync's own checks can't stop setup
     # before the timer starts.
     ( bisync && bisync ) || synced=false
-    # Without ~/Cloud at login, the timer didn't start then. It starts only now, so
+    # Without a config at login, the timer didn't start then. It starts only now, so
     # that its first sync, a minute later, can't run into the one above; and even if
     # that failed, so that timed syncs carry on once it's fixed.
     systemctl --user start cloud.timer
