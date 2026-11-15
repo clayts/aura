@@ -25,35 +25,41 @@ in
     mission-center
     proton-vpn
   ];
-  # cloud reads its config's key from the GNOME keyring, which is only
-  # unlocked while logged in to GNOME, so it syncs only in the graphical
-  # session: a minute after it starts, then an hour after each sync ends.
-  # Without ~/Cloud (cloud setup not run) the sync is skipped, not failed
+  # cloud syncs ~/Cloud with Google Drive (home/packages/cloud.sh) a minute
+  # after login, then every hour. Without its config (cloud setup not run) the
+  # timer doesn't start; cloud setup starts it. If ~/Cloud goes, syncs fail
+  # without touching anything until it's back
   systemd.user = {
     services.cloud = {
-      Unit = {
-        Description = "Sync ~/Cloud with Google Drive";
-        Requisite = [ "graphical-session.target" ];
-        After = [ "graphical-session.target" ];
-        ConditionPathExists = "%h/Cloud";
-      };
+      Unit.Description = "Sync ~/Cloud with Google Drive";
       Service = {
         Type = "oneshot";
+        # After waking, the internet takes a while to come back (Wi-Fi, then
+        # the VPN), so a sync caught up on waking first gives it up to a minute
+        ExecStartPre = "${pkgs.writeShellScript "cloud-wait-online" ''
+          for _ in {1..30}; do
+            [[ $(${lib.getExe' pkgs.networkmanager "nmcli"} -t networking connectivity check) == full ]] && exit
+            ${lib.getExe' pkgs.coreutils "sleep"} 2
+          done
+        ''}";
         ExecStart = "${lib.getExe packages.cloud} sync";
+        Nice = 19; # which also gives it the lowest disk priority
       };
     };
     timers.cloud = {
       Unit = {
-        Description = "Sync ~/Cloud with Google Drive regularly";
-        # Not After= the session: timers come before timers.target, which
-        # comes before graphical-session.target, so that would be a cycle
-        PartOf = [ "graphical-session.target" ];
+        Description = "Sync ~/Cloud with Google Drive every hour";
+        ConditionPathExists = "%h/.config/cloud.conf";
       };
       Timer = {
+        # From when the timer starts: at login, or when cloud setup starts it
         OnActiveSec = "1min";
-        OnUnitInactiveSec = "1h";
+        # Not OnUnitInactiveSec, whose clock stops while the computer sleeps,
+        # so a laptop that sleeps a lot would rarely sync: an hour that passes
+        # while asleep is caught up on waking
+        OnCalendar = "hourly";
       };
-      Install.WantedBy = [ "graphical-session.target" ];
+      Install.WantedBy = [ "timers.target" ];
     };
   };
   gtk = {
@@ -73,7 +79,22 @@ in
         grand-theft-focus
         appindicator
         alphabetical-app-grid
-        just-perfection
+        # v37 puts the panel at the bottom of the overview's stack, which is
+        # harmless until GNOME 51 makes the overview's controls reactive: they
+        # then sit over the panel and take its clicks. Upstream's fix is
+        # unreleased; once a release has it, the patch fails to apply and this
+        # override can go
+        (just-perfection.overrideAttrs (old: {
+          patches = (old.patches or [ ]) ++ [
+            # https://gitlab.gnome.org/jrahmatzadeh/just-perfection/-/work_items/309
+            (pkgs.fetchpatch {
+              name = "fix-panel-click-unresponsiveness-in-overview.patch";
+              url = "https://gitlab.gnome.org/jrahmatzadeh/just-perfection/-/commit/625acf18af551c9a316035bd47a3926dfd5dc133.diff";
+              relative = "src";
+              hash = "sha256-r9bY0N0L2xXXUIcrU386FTAec4gTXRlxTUOeMoPy+SA=";
+            })
+          ];
+        }))
         auto-power-profile
         preserve-battery-health
       ]
@@ -84,6 +105,43 @@ in
       run install -D -m 644 ${blankWallpaper} ${lib.escapeShellArg wallpaper}
     fi
   '';
+  # Proton VPN's settings, all of them, as the app would write them. The files
+  # are read-only, so changing a setting in the app fails, as does logging out
+  # of it with the kill switch on, which turns it off first. The kill switch is
+  # the standard one (1), which blocks traffic while the VPN drops; the
+  # permanent one (2) would block it even with the app closed. When the app is
+  # opened it goes straight to the tray, without a window, and connects to the
+  # fastest Swiss server. It isn't started at login
+  xdg.configFile."Proton/VPN/settings.json".text = builtins.toJSON {
+    protocol = "wireguard";
+    killswitch = 1;
+    custom_dns = {
+      enabled = false;
+      ip_list = [ ];
+    };
+    ipv6 = true;
+    anonymous_crash_reports = true;
+    features = {
+      netshield = 1; # 0 off, 1 malware, 2 malware, ads and trackers
+      moderate_nat = false;
+      vpn_accelerator = true;
+      port_forwarding = false;
+      split_tunneling = {
+        enabled = false;
+        mode = "exclude";
+        config_by_mode = lib.genAttrs [ "exclude" "include" ] (mode: {
+          inherit mode;
+          app_paths = [ ];
+          ip_ranges = [ ];
+        });
+      };
+    };
+  };
+  xdg.configFile."Proton/VPN/app-config.json".text = builtins.toJSON {
+    tray_pinned_servers = [ ];
+    connect_at_app_startup = "CH";
+    start_app_minimized = true;
+  };
   xdg.configFile."autostart/earthpaper.desktop".text = ''
     [Desktop Entry]
     Type=Application
