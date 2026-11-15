@@ -108,7 +108,7 @@ bisync() {
 }
 
 setup() {
-    local id secret ids
+    local id secret ids synced=true
     [[ ! -e ~/Cloud && ! -L ~/Cloud ]] || die "$HOME/Cloud exists; move it aside to set up again"
     [[ ! -e $RCLONE_CONFIG ]] || die "$RCLONE_CONFIG exists; delete it to set up again"
     [[ ! -e $state ]] ||
@@ -148,9 +148,13 @@ setup() {
     # --resync starts the record, copying each side's files to the other. It makes no
     # backup record, so an ordinary sync follows to make one, so that a sync that
     # fails part-way can recover by itself. A subshell, so that bisync's own checks
-    # don't skip the advice below when they stop it.
-    ( bisync --resync && bisync ) ||
-        die "the first sync failed; once fixed, run: cloud sync --resync-mode newer"
+    # can't stop setup before the timer starts.
+    ( bisync --resync && bisync ) || synced=false
+    # Without ~/Cloud at login, the timer didn't start then. It starts only now, so
+    # that its first sync, a minute later, can't run into the one above; and even if
+    # that failed, so that timed syncs carry on once it's fixed.
+    systemctl --user start cloud.timer
+    $synced || die "the first sync failed; once fixed, run: cloud sync --resync-mode newer"
     echo "Synced ~/Cloud with $(folder_url "$ids")"
 }
 
