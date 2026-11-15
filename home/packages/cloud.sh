@@ -1,68 +1,61 @@
-# cloud: ~/Cloud is an rclone mount of a folder on Google Drive.
+# cloud: two-way sync of ~/Cloud with a folder on Google Drive.
 #
-#   cloud setup               set up this computer: sign in to Google, and find
-#                             Cloud in My Drive, or make it if there's none
+#   cloud setup               set up this computer: sign in to Google, find Cloud
+#                             in My Drive, or make it if there's none, and sync
+#                             it into ~/Cloud, which mustn't exist yet
 #   cloud setup --reconnect   sign in to Google again, e.g. if access has expired
-#   cloud status              is it mounted, is anything waiting to upload, and
-#                             anything that needs attention
-#   cloud mount               mount in the foreground; the cloud user service
-#                             (home/gnome.nix) runs this at login
+#   cloud sync [flags]        two-way sync; extra flags go to rclone bisync. The
+#                             cloud timer (home/gnome.nix) runs this every hour
+#   cloud status [--verify]   what the next sync would change, and anything that
+#                             needs attention. --verify also compares every file
+#                             with its copy on Drive, which reads all of ~/Cloud.
 #
 # Signing in asks for Google's full drive scope, so files added to Cloud some
-# other way, such as Drive's website or phone app, show up too. The sign-in in
-# the config can therefore read and change all of your Drive, not just Cloud.
+# other way, such as Drive's website or phone app, are synced too. The sign-in
+# in the config can therefore read and change all of your Drive, not just Cloud.
 #
 # On this computer:
 #   ~/.config/cloud.conf   rclone's config: gdrive, which is Drive rooted at
-#                          Cloud by its ID, so mounting needs no internet. It
-#                          holds the client ID and secret and the sign-in, and
-#                          only you can read it.
-#   /run/user/$UID/cloud   where gdrive is mounted ($XDG_RUNTIME_DIR/cloud):
-#                          made at login and gone once the last session ends.
-#                          GNOME doesn't list mounts there, so Files has no
-#                          Eject for it, and being outside ~, it isn't walked
-#                          by backups or searches of ~.
-#   ~/Cloud                a link to it. While nothing is mounted it leads
-#                          nowhere, so nothing can be saved there by mistake.
-#   ~/.local/state/cloud   rclone's cache, holding changes not yet uploaded
+#                          Cloud by its ID. It holds the client ID and secret
+#                          and the sign-in, and only you can read it.
+#   ~/.local/state/cloud   bisync's record of the last sync
 #
-# Files that are opened are cached for an hour after last use, and changes to
-# them are written to the cache first and uploaded in the background, retrying
-# until the internet is back; changes not yet uploaded are kept across logouts
-# and restarts. Folder listings are kept in memory for as long as the mount
-# runs, and refreshed by asking Drive every minute what has changed, and every
-# folder is listed in the background at mount, so a dropped connection doesn't
-# stop browsing. They don't survive a restart though: mounted offline, folders
-# can't be opened until the internet is back. There are no conflict copies: if
-# a file is changed both here and elsewhere, the last upload wins.
+# Cloud/.cloud is kept on both sides: bisync only runs when it can see it on
+# both (--check-access), so a missing or wrong folder is never taken to mean
+# everything in it was deleted. A file changed on both sides since the last
+# sync: the newer copy wins, and the other is kept as name.cloud-conflict-N.ext.
 #
-# To remove everything cloud has set up on this computer, first check `cloud
-# status` says nothing is waiting to upload, as those changes are only in the
-# cache, then:
-#   systemctl --user stop cloud.service
-#   rm -rf ~/.config/cloud.conf ~/.local/state/cloud ~/Cloud
+# To remove everything cloud has set up on this computer, stop the timer first
+# so that no sync runs part-way through:
+#   systemctl --user stop cloud.timer cloud.service
+#   rm -rf ~/.config/cloud.conf ~/.local/state/cloud
+#   rm -rf ~/Cloud                  # the local copy; keep it if Drive is going too
 # Then, if wanted, outside this computer:
 #   - delete the Cloud folder on Google Drive
 #   - remove rclone's access at https://myaccount.google.com/connections
 #   - delete the OAuth client in the Google Cloud console
 # and in this repo, remove packages.cloud from home/zsh.nix and
-# home/packages/default.nix, and the cloud service from home/gnome.nix.
+# home/packages/default.nix, and the cloud service, timer and ~/Cloud folder
+# icon from home/gnome.nix.
 
 export RCLONE_CONFIG=~/.config/cloud.conf
-runtime=${XDG_RUNTIME_DIR:-/run/user/$UID}
-mountpoint=$runtime/cloud
-link=~/Cloud
-cache=~/.local/state/cloud    # not ~/.cache: it holds changes not yet uploaded
-socket=$runtime/cloud.sock    # rclone's remote control, for status
-folder_name=Cloud             # in My Drive
+export RCLONE_COLOR=NEVER  # plain logs: bisync colours some lines even when not on a terminal
+state=~/.local/state/cloud
+folder_name=Cloud          # in My Drive
 
 die() { echo "cloud: $*" >&2; exit 1; }
 
 need_config() {
-    [[ -e $RCLONE_CONFIG ]] || die "there's no $RCLONE_CONFIG; run: cloud setup"
+    [[ -e $RCLONE_CONFIG ]] ||
+        die "there's no $RCLONE_CONFIG; to set up again, move ~/Cloud aside and run: cloud setup"
 }
 
-is_empty_dir() { [[ -d $1 && -z $(find "$1" -mindepth 1 -maxdepth 1 -print -quit) ]]; }
+# Is there a record (lst) or backup record (lst-old) of the last sync? A glob that
+# matches nothing stays as it is. (Not compgen: Nix's non-interactive bash lacks it.)
+record() { local files=("$state"/*."$1"); [[ -e ${files[0]} ]]; }
+
+# Prints a heading and the lines under it, unless there are none.
+list() { [[ -n $2 ]] && printf '%s\n' "$1" "$2"; }
 
 folder_url() { echo "https://drive.google.com/drive/folders/$1"; }
 
@@ -74,19 +67,44 @@ find_folder() {
     jq -r --arg name "$folder_name" '.[] | select(.Name == $name) | .ID' <<<"$listing"
 }
 
+bisync() {
+    local net
+    # Quick checks first, so a run that can't work (from a timer, say) stops at once,
+    # rather than after rclone has listed both sides, or retried for minutes offline.
+    need_config
+    # rclone wrongly calls a missing record "retryable without --resync". --recover can
+    # fall back on the backup record, but if that's gone too, only --resync rebuilds it.
+    record lst || record lst-old || [[ $* == *--resync* ]] ||
+        die "there's no record of the last sync; run: cloud sync --resync"
+    net=$(nmcli -t networking connectivity check || true)
+    [[ $net == full ]] || die "no internet connection (NetworkManager says: ${net:-nothing})"
+    # Downloads are written to name.xxxxxxxx.cloud.partial and then renamed. If rclone
+    # is killed, the leftover is excluded so it's never uploaded as a real file.
+    # A file changed on both sides: the newer copy wins, the other is kept as
+    # name.cloud-conflict-N.ext. bisync stops if over half the files on one side were
+    # deleted; --max-delete is that percentage (rclone's help calls it a count), so 100
+    # lets any number of deletions through.
+    rclone bisync ~/Cloud gdrive: --workdir "$state" \
+        --check-access --check-filename .cloud --create-empty-src-dirs \
+        --resilient --recover --max-lock 2m --max-delete 100 \
+        --conflict-resolve newer --conflict-suffix cloud-conflict- --suffix-keep-extension \
+        --partial-suffix .cloud.partial --exclude '*.cloud.partial' "$@" && return
+    local rc=$?
+    # If copying fails part-way, rclone sets the record aside and says "Must run --resync
+    # to recover". It's wrong too: --recover makes the next sync use the backup record.
+    if [[ $* != *--resync* ]] && ! record lst && record lst-old; then
+        echo "cloud: no need for --resync; the next sync recovers by itself" >&2
+    fi
+    return "$rc"
+}
+
 setup() {
     local id secret ids
+    [[ ! -e ~/Cloud && ! -L ~/Cloud ]] || die "$HOME/Cloud exists; move it aside to set up again"
     [[ ! -e $RCLONE_CONFIG ]] || die "$RCLONE_CONFIG exists; delete it to set up again"
-    [[ ! -e $cache ]] ||
-        die "$cache exists, left from before. Changes made offline that were never" \
-            "uploaded are kept in its vfs folder; once you've rescued any, delete it"
-    [[ ! -e $mountpoint ]] || is_empty_dir "$mountpoint" ||
-        die "$mountpoint isn't an empty folder; is it still mounted?"
-    if [[ -L $link ]]; then
-        [[ $(readlink "$link") == "$mountpoint" ]] || die "$link links elsewhere; move it aside to set up"
-    elif [[ -e $link ]]; then
-        is_empty_dir "$link" || die "$link isn't an empty folder; move it aside to set up"
-    fi
+    [[ ! -e $state ]] ||
+        die "$state exists, left from before; once you're sure nothing in it is needed," \
+            "delete it to set up again"
 
     # rclone's own shared client is being retired during 2026.
     echo "This needs your own Google OAuth client. To make one:"
@@ -95,93 +113,73 @@ setup() {
     read -rsp "Client secret: " secret; echo
     [[ -n $id && -n $secret ]] || die "the client ID and secret can't be empty"
 
-    # A setup that fails part-way leaves no config behind, so it can just be run again.
-    trap 'rm -f "$RCLONE_CONFIG"' EXIT
+    # Until the first sync starts, a failed setup leaves nothing behind, so it can just
+    # be run again. Before then, ~/Cloud only ever holds .cloud.
+    trap 'rm -f "$RCLONE_CONFIG" ~/Cloud/.cloud; rmdir ~/Cloud 2>/dev/null || true' EXIT
     # rclone opens a browser to sign in to Google.
     rclone config create gdrive drive scope=drive client_id="$id" client_secret="$secret" \
         --no-output
-    ids=$(find_folder) || exit 1
+    ids=$(find_folder)
     if [[ -z $ids ]]; then
         rclone mkdir "gdrive:$folder_name" || die "couldn't make $folder_name in My Drive"
-        ids=$(find_folder) || exit 1
+        ids=$(find_folder)
         echo "Made $folder_name in My Drive."
     fi
     [[ -n $ids && $ids != *$'\n'* ]] ||
         die "My Drive has several folders called $folder_name; rename or delete the extra ones"
     # Root gdrive: at Cloud. config_refresh_token=false keeps the sign-in.
     rclone config update gdrive root_folder_id="$ids" config_refresh_token=false --no-output
+
+    # Put .cloud on both sides; one already on Drive is replaced, as it's always empty.
+    mkdir ~/Cloud
+    touch ~/Cloud/.cloud
+    rclone copyto ~/Cloud/.cloud gdrive:.cloud || die "couldn't upload .cloud to Drive"
     trap - EXIT
 
-    mkdir -p "$mountpoint"
-    if [[ ! -L $link ]]; then
-        [[ ! -e $link ]] || rmdir "$link"
-        ln -s "$mountpoint" "$link"
-    fi
-    systemctl --user start cloud.service ||
-        die "couldn't mount; see: journalctl --user -u cloud"
-    echo "Mounted ~/Cloud from $(folder_url "$ids")"
+    # --resync starts the record, copying each side's files to the other. It makes no
+    # backup record, so an ordinary sync follows to make one, so that a sync that
+    # fails part-way can recover by itself. A subshell, so that bisync's own checks
+    # don't skip the advice below when they stop it.
+    ( bisync --resync && bisync ) || die "the first sync failed; once fixed, run: cloud sync --resync"
+    echo "Synced ~/Cloud with $(folder_url "$ids")"
 }
 
-run_mount() {
-    need_config
-    # rclone won't listen on a socket that's left over from a crash. The service
-    # never runs twice, so one that's there now isn't in use.
-    rm -f "$socket"
-    mkdir -p "$mountpoint"
-    # --vfs-cache-mode full: files are read and written through the cache, and
-    #   writes are uploaded in the background, kept and retried until they succeed.
-    #   They're dropped from the cache an hour after last use (--vfs-cache-max-age).
-    # --dir-cache-time: folder listings never expire; Drive's change polling
-    #   (--poll-interval, a minute) refreshes them, so they're there offline.
-    # --vfs-refresh: list every folder in the background at mount, while online.
-    # --contimeout, --timeout: give up on a dead connection sooner than the
-    #   defaults (1 and 5 minutes), so browsing an uncached folder offline fails
-    #   rather than hangs.
-    exec rclone mount gdrive: "$mountpoint" --cache-dir "$cache" \
-        --vfs-cache-mode full --dir-cache-time 100000h --vfs-refresh \
-        --contimeout 15s --timeout 1m \
-        --rc --rc-addr "unix://$socket"
-}
-
-# Exits 1 if anything needs attention; changes waiting to upload don't count.
+# Exits 1 if anything needs attention; changes waiting for the next sync don't count.
 status() {
-    local ok=0 out net stats
+    local ok=0 out
     need_config
-    if out=$(rclone -q config redacted gdrive); then
-        echo "Drive folder: $(folder_url "$(sed -n 's/^root_folder_id = //p' <<<"$out")")"
-    fi
-    net=$(nmcli -t networking connectivity check || true)
-    [[ $net == full ]] || echo "Offline (NetworkManager says: ${net:-nothing})."
+    echo "Drive folder: $(folder_url "$(sed -n 's/^root_folder_id = //p' "$RCLONE_CONFIG")")"
+    # bisync rewrites its record after every successful sync.
+    record path1.lst && echo "Last successful sync: $(date -r "$state"/*.path1.lst '+%Y-%m-%d %H:%M')"
 
-    if ! systemctl --user -q is-active cloud.service; then
-        echo "Not mounted. The mount's latest log:"
-        journalctl --user -u cloud.service -n 10 -o cat --no-pager | sed 's/^/  /'
-        return 1
+    if out=$(bisync --dry-run 2>&1); then
+        list "Not synced yet:" "$(sed -nE \
+            -e 's/.*- Path1 +(File[^-]*[^ -]) +- (.*)/  ~\/Cloud: \1: \2/p' \
+            -e 's/.*- Path2 +(File[^-]*[^ -]) +- (.*)/  Drive:   \1: \2/p' <<<"$out")" ||
+            echo "Up to date."
+    else
+        grep -E 'ERROR|CRITICAL|Failed to|^cloud:' <<<"$out" >&2 || true
+        ok=1
+        set --  # skip --verify too: offline, rclone would retry for minutes before failing
     fi
-    echo "Mounted."
-    if ! stats=$(rclone rc --unix-socket "$socket" vfs/stats 2>&1); then
-        echo "Couldn't ask the mount for its state: $stats"
-        return 1
+    list "Left in ~/Cloud by interrupted downloads (safe to delete):" \
+        "$(find ~/Cloud -name '*.cloud.partial' -printf '  %P\n' 2>/dev/null)" && ok=1
+    list "Conflict copies in ~/Cloud to review:" \
+        "$(find ~/Cloud -name '*.cloud-conflict-[0-9]*' -printf '  %P\n' 2>/dev/null)" && ok=1
+
+    if [[ ${1:-} == --verify ]]; then
+        echo "Comparing every file with its copy on Drive (changes not synced yet count as differences):"
+        rclone check ~/Cloud gdrive: --exclude '*.cloud.partial' 2>&1 |
+            sed -E 's/^[0-9/]+ [0-9:]+ +[A-Z]+ *: /  /' || ok=1
     fi
-    jq -r '.diskCache |
-        "Cached: \(.files) files, \(.bytesUsed / 1048576 | floor) MiB.",
-        (.uploadsInProgress + .uploadsQueued | select(. > 0) |
-            "Waiting to upload: \(.) files."),
-        (select(.outOfSpace) | "The disk is too full to cache any more."),
-        (.erroredFiles | select(. > 0) |
-            "\(.) cached files have errors; see: journalctl --user -u cloud")' <<<"$stats"
-    jq -e '.diskCache | .outOfSpace or .erroredFiles > 0' <<<"$stats" >/dev/null && ok=1
     return "$ok"
 }
 
 case "$*" in
-    setup)               setup ;;
-    "setup --reconnect") need_config
-                         rclone config reconnect gdrive: --auto-confirm
-                         # The running mount still has the old sign-in.
-                         systemctl --user try-restart cloud.service ;;
-    mount)               run_mount ;;
-    status)              status ;;
-    *) echo "usage: cloud setup [--reconnect] | status | mount" >&2
+    setup)                      setup ;;
+    "setup --reconnect")        need_config; rclone config reconnect gdrive: --auto-confirm ;;
+    sync | "sync "*)            shift; bisync "$@" ;;
+    status | "status --verify") shift; status "$@" ;;
+    *) echo "usage: cloud setup [--reconnect] | sync [rclone bisync flags] | status [--verify]" >&2
        exit 2 ;;
 esac

@@ -25,40 +25,29 @@ in
     mission-center
     proton-vpn
   ];
-  # cloud mounts Google Drive at $XDG_RUNTIME_DIR/cloud, linked from ~/Cloud
-  # (home/packages/cloud.sh), from login until the last session ends. Without
-  # a config (cloud setup not run) it's skipped, not failed
-  systemd.user.services.cloud =
-    let
-      # A crash leaves a dead mount ("Transport endpoint is not connected")
-      # that stops rclone mounting again, and rclone can't unmount at stop
-      # while files are open; a lazy unmount clears both
-      unmount = "-/run/wrappers/bin/fusermount3 -uqz %t/cloud";
-    in
-    {
+  # cloud syncs ~/Cloud with Google Drive (home/packages/cloud.sh) a minute
+  # after login, then an hour after each sync ends. Without ~/Cloud (cloud
+  # setup not run) the sync is skipped, not failed
+  systemd.user = {
+    services.cloud = {
       Unit = {
-        Description = "Mount ~/Cloud from Google Drive";
-        ConditionPathExists = "%h/.config/cloud.conf";
+        Description = "Sync ~/Cloud with Google Drive";
+        ConditionPathExists = "%h/Cloud";
       };
       Service = {
-        Type = "notify"; # rclone says when the mount is ready
-        ExecStartPre = unmount;
-        ExecStart = "${lib.getExe packages.cloud} mount";
-        # ~/Cloud is a link, and gio follows it, so this sets the icon on the
-        # mount's top folder; it's set once mounted, as the empty folder under
-        # the mount isn't what Files shows (see folder-icons below)
-        ExecStartPost = "-${lib.getExe' pkgs.glib "gio"} set %h/Cloud metadata::custom-icon-name folder-cloud";
-        ExecStopPost = [
-          unmount
-          # Then ~/Cloud leads nowhere, rather than to an empty folder where
-          # files could be saved by mistake; rmdir only removes it if empty
-          "-${lib.getExe' pkgs.coreutils "rmdir"} %t/cloud"
-        ];
-        Restart = "on-failure";
-        RestartSec = "30s";
+        Type = "oneshot";
+        ExecStart = "${lib.getExe packages.cloud} sync";
       };
-      Install.WantedBy = [ "default.target" ];
     };
+    timers.cloud = {
+      Unit.Description = "Sync ~/Cloud with Google Drive regularly";
+      Timer = {
+        OnActiveSec = "1min";
+        OnUnitInactiveSec = "1h";
+      };
+      Install.WantedBy = [ "timers.target" ];
+    };
+  };
   gtk = {
     enable = true;
     iconTheme = style.icons;
@@ -150,13 +139,13 @@ in
   # Nautilus prefers a folder's custom icon, kept in its GIO metadata, to its
   # own choice; these are set at each login. Without them, Intake would get the
   # Desktop icon, as GLib checks for the desktop dir before downloads, and
-  # Projects, which GLib doesn't treat as special, a plain folder icon. The
-  # cloud service sets ~/Cloud's.
+  # Projects and Cloud, which GLib doesn't treat as special, a plain folder icon.
   xdg.configFile."autostart/folder-icons.desktop".text =
     let
       icons = {
         ${config.xdg.userDirs.download} = "folder-download";
         ${config.xdg.userDirs.projects} = "folder-code";
+        "${config.home.homeDirectory}/Cloud" = "folder-cloud";
       };
       script = pkgs.writeShellScript "folder-icons" (
         lib.concatLines (
