@@ -47,14 +47,21 @@ fi
 
 # Taking ownership of the drive, which the install does once, needs the firmware
 # not to block it (Block SID). It blocks it at every boot unless asked to skip
-# the next one, which needs the TPM
+# the next one, which needs the TPM. Takes the systemctl verb that ends this
+# boot, and the question offering it
 skip_block_sid() {
     if ! echo 97 | sudo tee /sys/class/tpm/tpm0/ppi/request >/dev/null; then
         echo "Turn Security Chip on in the firmware settings, so the firmware can be asked to allow it." >&2
         exit 1
     fi
-    echo "The firmware will allow it on the next boot. $1, confirm the firmware's prompt, choose this"
-    echo "installer with F12 and run this again, without going through the firmware settings in between."
+    # Come back to this installer on the next boot
+    current=$(efibootmgr 2>/dev/null | sed -n 's/^BootCurrent: //p') || true
+    [[ -z $current ]] || sudo efibootmgr --quiet --bootnext "$current" || true
+    echo "The firmware will allow it on the next boot, which should start this installer again."
+    echo "Confirm the firmware's prompt, then run this again. If another system starts, choose this"
+    echo "installer with F12, but don't go through the firmware settings, which would block it again."
+    read -rp "$2 [Y/n] " answer
+    [[ $answer == [nN]* ]] || systemctl "$1"
     exit
 }
 factory_reset() {
@@ -64,7 +71,7 @@ factory_reset() {
         echo "That didn't work, try again" >&2
     done
     echo "The drive is factory reset. Setting it up again needs a power cycle, and the firmware to allow taking ownership of it."
-    skip_block_sid "Power off, power on"
+    skip_block_sid poweroff "Power off now? Power on again yourself afterwards."
 }
 
 controller=$(realpath "$disk")
@@ -76,7 +83,7 @@ if [[ $opal != *"Locking function"* ]]; then
 fi
 if [[ $opal == *"LockingEnabled = N"* && $opal == *"BlockSIDState = Y"* ]]; then
     echo "The firmware blocks taking ownership of the drive, which the install has to do once."
-    skip_block_sid "Reboot"
+    skip_block_sid reboot "Reboot now?"
 fi
 
 read -rp "This erases everything on $disk. Type 'yes' to continue: " answer

@@ -64,6 +64,7 @@
             inputs.disko.packages.${system}.disko
             # The installer's own may predate OPAL support
             pkgs.cryptsetup
+            pkgs.efibootmgr
             pkgs.git
             pkgs.mkpasswd
             pkgs.sbctl
