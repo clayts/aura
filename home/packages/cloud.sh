@@ -5,7 +5,8 @@
 #                             it into ~/Cloud, which mustn't exist yet
 #   cloud setup --reconnect   sign in to Google again, e.g. if access has expired
 #   cloud sync [flags]        two-way sync; extra flags go to rclone bisync. The
-#                             cloud timer (home/gnome.nix) runs this every hour
+#                             cloud timer (home/gnome.nix) runs this at login and
+#                             every hour
 #   cloud status [--verify]   what the next sync would change, and anything that
 #                             needs attention. --verify also compares every file
 #                             with its copy on Drive, which reads all of ~/Cloud.
@@ -21,9 +22,14 @@
 #   ~/.local/state/cloud   bisync's record of the last sync
 #
 # Cloud/.cloud is kept on both sides: bisync only runs when it can see it on
-# both (--check-access), so a missing or wrong folder is never taken to mean
-# everything in it was deleted. A file changed on both sides since the last
-# sync: the newer copy wins, and the other is kept as name.cloud-conflict-N.ext.
+# both (--check-access), so a missing or emptied folder is never taken to mean
+# everything in it was deleted. If it's deleted from one side anyway, check
+# nothing else is missing there, then put it back with a resync, which copies
+# whatever is missing from either side, and keeps the newer copy of files that
+# differ:
+#   cloud sync --resync-mode newer --check-access=false
+# A file changed on both sides since the last sync: the newer copy wins, and
+# the other is kept as name.cloud-conflict-N.ext.
 #
 # Files in Google's own formats (Docs, Sheets, Slides and so on) are left out,
 # as rclone can only download copies of them and can't upload edits back. Edit
@@ -66,10 +72,8 @@ folder_url() { echo "https://drive.google.com/drive/folders/$1"; }
 
 # Prints the IDs of the folders called $folder_name at the top of My Drive.
 find_folder() {
-    local listing
-    listing=$(rclone lsjson gdrive: --dirs-only --no-modtime --no-mimetype) ||
-        die "couldn't list folders on Drive"
-    jq -r --arg name "$folder_name" '.[] | select(.Name == $name) | .ID' <<<"$listing"
+    rclone lsjson gdrive: --dirs-only --no-modtime --no-mimetype |
+        jq -r --arg name "$folder_name" '.[] | select(.Name == $name) | .ID'
 }
 
 bisync() {
@@ -80,7 +84,7 @@ bisync() {
     # rclone wrongly calls a missing record "retryable without --resync". --recover can
     # fall back on the backup record, but if that's gone too, only --resync rebuilds it.
     record lst || record lst-old || [[ $* == *--resync* ]] ||
-        die "there's no record of the last sync; run: cloud sync --resync"
+        die "there's no record of the last sync; run: cloud sync --resync-mode newer"
     net=$(nmcli -t networking connectivity check || true)
     [[ $net == full ]] || die "no internet connection (NetworkManager says: ${net:-nothing})"
     # Downloads are written to name.xxxxxxxx.cloud.partial and then renamed. If rclone
@@ -145,7 +149,8 @@ setup() {
     # backup record, so an ordinary sync follows to make one, so that a sync that
     # fails part-way can recover by itself. A subshell, so that bisync's own checks
     # don't skip the advice below when they stop it.
-    ( bisync --resync && bisync ) || die "the first sync failed; once fixed, run: cloud sync --resync"
+    ( bisync --resync && bisync ) ||
+        die "the first sync failed; once fixed, run: cloud sync --resync-mode newer"
     echo "Synced ~/Cloud with $(folder_url "$ids")"
 }
 

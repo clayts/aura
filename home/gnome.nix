@@ -26,8 +26,8 @@ in
     proton-vpn
   ];
   # cloud syncs ~/Cloud with Google Drive (home/packages/cloud.sh) a minute
-  # after login, then an hour after each sync ends. Without ~/Cloud (cloud
-  # setup not run) the sync is skipped, not failed
+  # after login, then every hour. Without ~/Cloud (cloud setup not run) the
+  # sync is skipped, not failed
   systemd.user = {
     services.cloud = {
       Unit = {
@@ -36,14 +36,22 @@ in
       };
       Service = {
         Type = "oneshot";
+        # A sync caught up on waking would otherwise find the network still
+        # down; this waits up to 30s for it
+        ExecStartPre = "-${lib.getExe' pkgs.networkmanager "nm-online"} -q";
         ExecStart = "${lib.getExe packages.cloud} sync";
+        Nice = 19;
+        IOSchedulingClass = "idle";
       };
     };
     timers.cloud = {
-      Unit.Description = "Sync ~/Cloud with Google Drive regularly";
+      Unit.Description = "Sync ~/Cloud with Google Drive every hour";
       Timer = {
-        OnActiveSec = "1min";
-        OnUnitInactiveSec = "1h";
+        OnStartupSec = "1min";
+        # Not OnUnitInactiveSec, whose clock stops while the computer sleeps,
+        # so a laptop that sleeps a lot would rarely sync: an hour that passes
+        # while asleep is caught up on waking
+        OnCalendar = "hourly";
       };
       Install.WantedBy = [ "timers.target" ];
     };
