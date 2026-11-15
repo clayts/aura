@@ -27,14 +27,11 @@ in
   ];
   # cloud syncs ~/Cloud with Google Drive (home/packages/cloud.sh) a minute
   # after login, then every hour. Without ~/Cloud (cloud setup not run) the
-  # timer doesn't start; cloud setup starts it
+  # timer doesn't start; cloud setup starts it. If ~/Cloud goes later, syncs
+  # fail without touching anything until it's back
   systemd.user = {
     services.cloud = {
-      Unit = {
-        Description = "Sync ~/Cloud with Google Drive";
-        # The timer only checks when it starts, so ~/Cloud may have gone since
-        ConditionPathExists = "%h/Cloud";
-      };
+      Unit.Description = "Sync ~/Cloud with Google Drive";
       Service = {
         Type = "oneshot";
         # A sync caught up on waking would otherwise find the network still

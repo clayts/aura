@@ -24,10 +24,12 @@
 # Cloud/.cloud is kept on both sides: bisync only runs when it can see it on
 # both (--check-access), so a missing or emptied folder is never taken to mean
 # everything in it was deleted. If it's deleted from one side anyway, check
-# nothing else is missing there, then put it back with a resync, which copies
-# whatever is missing from either side, and keeps the newer copy of files that
-# differ:
+# nothing else is missing there, then put it back with a resync (see below):
 #   cloud sync --resync-mode newer --check-access=false
+# That isn't done automatically, as a missing .cloud is the sign that something
+# is wrong. Without a record of the last sync, as after a first sync that
+# failed, a sync is a resync anyway: it copies whatever is missing from either
+# side, keeping the newer copy of files that differ, and deletes nothing.
 # A file changed on both sides since the last sync: the newer copy wins, and
 # the other is kept as name.cloud-conflict-N.ext.
 #
@@ -81,10 +83,9 @@ bisync() {
     # Quick checks first, so a run that can't work (from a timer, say) stops at once,
     # rather than after rclone has listed both sides, or retried for minutes offline.
     need_config
-    # rclone wrongly calls a missing record "retryable without --resync". --recover can
-    # fall back on the backup record, but if that's gone too, only --resync rebuilds it.
-    record lst || record lst-old || [[ $* == *--resync* ]] ||
-        die "there's no record of the last sync; run: cloud sync --resync-mode newer"
+    # With no record of the last sync (lst), nor a backup of it (lst-old) for --recover
+    # to fall back on, only a resync can start a new one.
+    record lst || record lst-old || set -- --resync-mode newer "$@"
     net=$(nmcli -t networking connectivity check || true)
     [[ $net == full ]] || die "no internet connection (NetworkManager says: ${net:-nothing})"
     # Downloads are written to name.xxxxxxxx.cloud.partial and then renamed. If rclone
@@ -99,11 +100,10 @@ bisync() {
         --conflict-resolve newer --conflict-suffix cloud-conflict- --suffix-keep-extension \
         --partial-suffix .cloud.partial --exclude '*.cloud.partial' "$@" && return
     local rc=$?
-    # If copying fails part-way, rclone sets the record aside and says "Must run --resync
-    # to recover". It's wrong too: --recover makes the next sync use the backup record.
-    if [[ $* != *--resync* ]] && ! record lst && record lst-old; then
+    # After some errors, rclone sets the record aside and says "Must run --resync to
+    # recover". It's wrong: the next sync falls back on the backup record, or resyncs.
+    [[ $* == *--resync* ]] || record lst ||
         echo "cloud: no need for --resync; the next sync recovers by itself" >&2
-    fi
     return "$rc"
 }
 
@@ -145,16 +145,16 @@ setup() {
     rclone copyto ~/Cloud/.cloud gdrive:.cloud || die "couldn't upload .cloud to Drive"
     trap - EXIT
 
-    # --resync starts the record, copying each side's files to the other. It makes no
-    # backup record, so an ordinary sync follows to make one, so that a sync that
-    # fails part-way can recover by itself. A subshell, so that bisync's own checks
-    # can't stop setup before the timer starts.
-    ( bisync --resync && bisync ) || synced=false
+    # With no record yet, the first sync is a resync. That makes no backup record, so
+    # an ordinary sync follows to make one, so that a sync that fails part-way can
+    # recover by itself. A subshell, so that bisync's own checks can't stop setup
+    # before the timer starts.
+    ( bisync && bisync ) || synced=false
     # Without ~/Cloud at login, the timer didn't start then. It starts only now, so
     # that its first sync, a minute later, can't run into the one above; and even if
     # that failed, so that timed syncs carry on once it's fixed.
     systemctl --user start cloud.timer
-    $synced || die "the first sync failed; once fixed, run: cloud sync --resync-mode newer"
+    $synced || die "the first sync failed; each timed sync tries again, or run: cloud sync"
     echo "Synced ~/Cloud with $(folder_url "$ids")"
 }
 
@@ -166,15 +166,17 @@ status() {
     # bisync rewrites its record after every successful sync.
     record path1.lst && echo "Last successful sync: $(date -r "$state"/*.path1.lst '+%Y-%m-%d %H:%M')"
 
-    if out=$(bisync --dry-run 2>&1); then
+    if ! out=$(bisync --dry-run 2>&1); then
+        grep -E 'ERROR|CRITICAL|Failed to|^cloud:' <<<"$out" >&2 || true
+        ok=1
+        set --  # skip --verify too: offline, rclone would retry for minutes before failing
+    elif [[ $out == *"Resync is copying"* ]]; then
+        echo "No record of the last sync, so the next sync copies whatever is missing from either side."
+    else
         list "Not synced yet:" "$(sed -nE \
             -e 's/.*- Path1 +(File[^-]*[^ -]) +- (.*)/  ~\/Cloud: \1: \2/p' \
             -e 's/.*- Path2 +(File[^-]*[^ -]) +- (.*)/  Drive:   \1: \2/p' <<<"$out")" ||
             echo "Up to date."
-    else
-        grep -E 'ERROR|CRITICAL|Failed to|^cloud:' <<<"$out" >&2 || true
-        ok=1
-        set --  # skip --verify too: offline, rclone would retry for minutes before failing
     fi
     list "Left in ~/Cloud by interrupted downloads (safe to delete):" \
         "$(find ~/Cloud -name '*.cloud.partial' -printf '  %P\n' 2>/dev/null)" && ok=1
