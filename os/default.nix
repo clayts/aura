@@ -10,10 +10,9 @@
   environment.systemPackages = [ pkgs.hunspellDicts.en_GB-ize ];
   boot = {
     tmp.useTmpfs = true;
-    # 7.3's webcam driver caps gain too low and its digital gain boosts only one
-    # green pixel in four, leaving the picture dark, green and gridded. 7.4
-    # fixes both; go back to linuxPackages_latest once it's released
-    kernelPackages = pkgs.linuxPackages_testing;
+    # 7.3's webcam driver caps gain too low, leaving the picture dark. 7.4 fixes
+    # it, but linuxPackages_testing's 7.4-rc2 crashes the sound driver; rc3 fixes that
+    kernelPackages = pkgs.linuxPackages_latest;
     kernelParams = [
       "quiet"
       "rd.systemd.show_status=false"
