@@ -6,10 +6,9 @@
 #
 # A safe is a folder holding a gocryptfs filesystem in a hidden .encrypted
 # folder, and a file called Access. PATH can be the folder or its Access file.
-# Access only says what it's for, starting with a line that gets it recognised
-# as a safe (safe.xml), so double-clicking it in Nautilus unlocks the safe.
-# .encrypted is an ordinary gocryptfs filesystem, which gocryptfs can also
-# mount by itself. A safe called
+# Access holds just a line that gets it recognised as a safe (safe.xml), so
+# double-clicking it in Nautilus unlocks the safe. .encrypted is an ordinary
+# gocryptfs filesystem, which gocryptfs can also mount by itself. A safe called
 # NAME is unlocked at /run/media/$USER/Safe/NAME, which Nautilus lists in its
 # sidebar, where ejecting it locks the safe again. That folder only exists
 # while the safe is unlocked.
@@ -65,12 +64,8 @@ case $1 in
         [[ $password == "$repeat" ]] || die "passwords don't match"
         mkdir -p -- "$data"
         gocryptfs -init -passfile <(printf %s "$password") -- "$data"
-        # The first line is what gets Access recognised (safe.xml)
-        cat >"$access" <<EOF
-🔒 [Safe] 🔒
-Double-click this file to unlock the safe, or run: safe unlock $name
-Its files are encrypted in the hidden folder .encrypted, using gocryptfs.
-EOF
+        # What gets Access recognised (safe.xml)
+        printf '🔒 [Safe] 🔒\n' >"$access"
         ;;
     unlock)
         if ! is_unlocked; then
