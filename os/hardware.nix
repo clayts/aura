@@ -114,9 +114,11 @@
   '';
   # libcamera has no tuning for the webcam, so it shows the sensor's colours
   # uncorrected, which look grey. This is its generic tuning plus a colour
-  # matrix that raises saturation by 1.5x, rows summing to 1 so greys stay grey
+  # matrix that raises saturation by 1.5x, rows summing to 1 so greys stay grey.
+  # libcamera's GPU image processing draws a grid over the picture, so use the CPU
   systemd.user.services =
     let
+      environment.LIBCAMERA_SOFTISP_MODE = "cpu";
       environment.LIBCAMERA_SIMPLE_TUNING_FILE = toString (
         pkgs.writeText "imx471.yaml" ''
           %YAML 1.1
