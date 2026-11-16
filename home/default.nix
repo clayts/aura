@@ -11,7 +11,7 @@ let
 in
 {
   imports = [
-    ./firefox.nix
+    ./zen.nix
     ./ghostty.nix
     ./gnome.nix
     ./micro.nix

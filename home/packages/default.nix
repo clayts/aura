@@ -99,17 +99,6 @@
     ];
     text = builtins.readFile ./preview.sh;
   };
-  firefox-layout-version = pkgs.python3Packages.buildPythonApplication {
-    pname = "firefox-layout-version";
-    version = "0";
-    pyproject = false;
-    src = ./firefox-layout-version.py;
-    dontUnpack = true;
-    installPhase = ''
-      install -Dm755 $src $out/bin/firefox-layout-version
-    '';
-    meta.mainProgram = "firefox-layout-version";
-  };
   system = pkgs.writeShellApplication {
     name = "system";
     runtimeInputs = [

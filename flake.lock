@@ -21,23 +21,6 @@
         "type": "github"
       }
     },
-    "firefox-theme": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1792416163,
-        "narHash": "sha256-0M5/QfbfHwI7gP+q6IGdidxl5caGXMaEalNj2E2Rxyg=",
-        "owner": "rafaelmardojai",
-        "repo": "firefox-gnome-theme",
-        "rev": "fdc1af075073f93dc63e43b28a499b2251bcfcc2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rafaelmardojai",
-        "ref": "master",
-        "repo": "firefox-gnome-theme",
-        "type": "github"
-      }
-    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -97,10 +80,33 @@
     "root": {
       "inputs": {
         "disko": "disko",
-        "firefox-theme": "firefox-theme",
         "home-manager": "home-manager",
         "nix-index-database": "nix-index-database",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "zen-browser": "zen-browser"
+      }
+    },
+    "zen-browser": {
+      "inputs": {
+        "home-manager": [
+          "home-manager"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794805570,
+        "narHash": "sha256-sG0P1rHWgbPQIeR+peNmapCWQKf0nauyDl500JhX9Qo=",
+        "owner": "0xc000022070",
+        "repo": "zen-browser-flake",
+        "rev": "cb44a9fc1faa18c55dde38a8338f6d46fa2bc6de",
+        "type": "github"
+      },
+      "original": {
+        "owner": "0xc000022070",
+        "repo": "zen-browser-flake",
+        "type": "github"
       }
     }
   },
