@@ -94,7 +94,7 @@
       enable = true;
       settings.hyperlink = "auto";
       icons.name = {
-        intake = "󰉍";
+        inbox = "󰉍";
         projects = "";
         cloud = "󰅟";
         safe = "󰉐";

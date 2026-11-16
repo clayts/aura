@@ -151,7 +151,7 @@ in
     NoDisplay=true
   '';
   # Nautilus prefers a folder's custom icon, kept in its GIO metadata, to its
-  # own choice; these are set at each login. Without them, Intake would get the
+  # own choice; these are set at each login. Without them, Inbox would get the
   # Desktop icon, as GLib checks for the desktop dir before downloads, and
   # Projects, Cloud and Safe, which GLib doesn't treat as special, a plain
   # folder icon.
