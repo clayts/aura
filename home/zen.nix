@@ -24,6 +24,13 @@
         ]
       ];
     };
+    # Zen always keeps at least one workspace, and with only one it hides the
+    # workspace switcher but still shows that workspace's name above the tabs
+    profiles.default.userChrome = ''
+      :root:has(#zen-workspaces-button[dont-show="true"]) .zen-current-workspace-indicator {
+        display: none !important;
+      }
+    '';
     profiles.default.settings = {
       "spellchecker.dictionary_path" = "${pkgs.hunspellDicts.en_GB-ize}/share/hunspell";
       "spellchecker.dictionary" = "en-GB,en_GB";
