@@ -43,6 +43,7 @@
         (pkgs.writeTextDir "share/zsh/site-functions/_create" (builtins.readFile ./create/_create))
       ];
     };
+  vaults = import ./vaults.nix { inherit pkgs; };
   safe = pkgs.writeShellApplication {
     name = "safe";
     runtimeInputs = [ pkgs.gocryptfs ];
