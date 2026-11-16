@@ -5,6 +5,14 @@
   pkgs,
   ...
 }:
+let
+  cfg = config.programs.zen-browser;
+  autoconfig = pkgs.writeText "autoconfig.js" ''
+    pref("general.config.filename", "zen.cfg");
+    pref("general.config.obscure_value", 0);
+    pref("general.config.sandbox_enabled", false);
+  '';
+in
 {
   imports = [ inputs.zen-browser.homeModules.beta ];
   # Only web pages and links; the module's setAsDefaultBrowser would also take
@@ -17,6 +25,22 @@
   ] (_: "zen-beta.desktop");
   programs.zen-browser = {
     enable = true;
+    # Zen reads autoconfig from beside its real binary, which the wrapper's
+    # extraPrefs never reach, so it goes into the unwrapped package (as the
+    # module itself does for policies)
+    unwrappedPackage =
+      (inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.beta-unwrapped.override {
+        inherit (cfg) policies enablePrivateDesktopEntry;
+      }).overrideAttrs
+        (old: {
+          postInstall = (old.postInstall or "") + ''
+            for libdir in "$out"/lib/zen-bin-*; do
+              chmod -R u+w "$libdir/defaults"
+              install -m 644 ${./zen-newtab.js} "$libdir/zen.cfg"
+              install -m 644 ${autoconfig} "$libdir/defaults/pref/zen-autoconfig.js"
+            done
+          '';
+        });
     policies = {
       ExtensionSettings = {
         "uBlock0@raymondhill.net" = {
@@ -33,10 +57,10 @@
         ]
       ];
     };
-    # Zen always keeps at least one workspace, and with only one it hides the
-    # workspace switcher but still shows that workspace's name above the tabs
+    # The workspace's name above the tabs, which the switcher at the bottom of
+    # the sidebar already shows
     profiles.default.userChrome = ''
-      :root:has(#zen-workspaces-button[dont-show="true"]) .zen-current-workspace-indicator {
+      .zen-current-workspace-indicator {
         display: none !important;
       }
     '';
