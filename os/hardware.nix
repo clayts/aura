@@ -105,6 +105,14 @@
     ];
   };
 
+  # The webcam's driver caps analogue gain at about 4.6x, so libcamera runs out
+  # of gain indoors and the picture is dark. Digital gain makes up for it;
+  # libcamera never sets it, and the driver reapplies it whenever streaming
+  # starts. 256 is 1x
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="video4linux", ATTR{name}=="imx471 *", RUN+="${pkgs.lib.getExe' pkgs.v4l-utils "v4l2-ctl"} -d $devnode --set-ctrl=digital_gain=512"
+  '';
+
   services.fprintd.enable = true;
   # The lock screen gives up on the fingerprint after 3 tries or 30 seconds
   security.pam.services.gdm-fingerprint.rules.auth.fprintd.settings = {
