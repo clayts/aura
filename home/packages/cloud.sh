@@ -16,10 +16,12 @@
 # in the config can therefore read and change all of your Drive, not just Cloud.
 #
 # On this computer:
-#   ~/.config/cloud.conf   rclone's config: gdrive, which is Drive rooted at
-#                          Cloud by its ID. It holds the client ID and secret
-#                          and the sign-in, and only you can read it.
-#   ~/.local/state/cloud   bisync's record of the last sync
+#   ~/.config/rclone/rclone.conf
+#       rclone's own config, where setup adds the remote cloud: Drive, rooted at
+#       Cloud by its ID, so rclone can use it too. It holds the client ID and
+#       secret and the sign-in, and only you can read it.
+#   ~/.local/state/cloud
+#       bisync's record of the last sync
 #
 # Cloud/.cloud is kept on both sides: bisync only runs when it can see it on
 # both (--check-access), so a missing or emptied folder is never taken to mean
@@ -33,14 +35,16 @@
 # A file changed on both sides since the last sync: the newer copy wins, and
 # the other is kept as name.cloud-conflict-N.ext.
 #
-# Files in Google's own formats (Docs, Sheets, Slides and so on) are left out,
-# as rclone can only download copies of them and can't upload edits back. Edit
-# them on Drive. A folder holding any can't be deleted from here: Drive keeps it.
+# Files in Google's own formats (Docs, Sheets, Slides and so on) are left out
+# (skip_gdocs), as rclone can only download copies of them and can't upload
+# edits back. Edit them on Drive. A folder holding any can't be deleted from
+# here: Drive keeps it.
 #
 # To remove everything cloud has set up on this computer, stop the timer first
 # so that no sync runs part-way through:
 #   systemctl --user stop cloud.timer cloud.service
-#   rm -rf ~/.config/cloud.conf ~/.local/state/cloud
+#   rclone config delete cloud
+#   rm -rf ~/.local/state/cloud
 #   rm -rf ~/Cloud                  # the local copy; keep it if Drive is going too
 # Then, if wanted, outside this computer:
 #   - delete the Cloud folder on Google Drive
@@ -50,16 +54,17 @@
 # home/packages/default.nix, and the cloud service, timer and ~/Cloud folder
 # icon from home/gnome.nix.
 
-export RCLONE_CONFIG=~/.config/cloud.conf
 export RCLONE_COLOR=NEVER  # plain logs: bisync colours some lines even when not on a terminal
-export RCLONE_DRIVE_SKIP_GDOCS=true  # leave out Google Docs and so on (see above)
 state=~/.local/state/cloud
 
 die() { echo "cloud: $*" >&2; exit 1; }
 
-need_config() {
-    [[ -e $RCLONE_CONFIG ]] ||
-        die "there's no $RCLONE_CONFIG; to set up again, move ~/Cloud aside and run: cloud setup"
+# Does rclone's config have the cloud remote? (-q: no notice if there's no config.)
+has_remote() { grep -qx cloud: <<<"$(rclone -q listremotes)"; }
+
+need_remote() {
+    has_remote ||
+        die "rclone has no cloud remote; to set up again, move ~/Cloud aside and run: cloud setup"
 }
 
 # Is there a bisync record ending in .$1? A glob that matches nothing stays as it is.
@@ -72,7 +77,7 @@ folder_url() { echo "https://drive.google.com/drive/folders/$1"; }
 
 # Prints the IDs of the folders called Cloud at the top of My Drive.
 find_folder() {
-    rclone lsjson gdrive: --dirs-only --no-modtime --no-mimetype |
+    rclone lsjson cloud: --dirs-only --no-modtime --no-mimetype |
         jq -r '.[] | select(.Name == "Cloud") | .ID'
 }
 
@@ -89,7 +94,7 @@ bisync() {
     # is killed, the leftover is excluded so it's never uploaded as a real file.
     # bisync stops if over half the files on one side were deleted; --max-delete is
     # that percentage (rclone's help calls it a count), so 100 lets any number through.
-    rclone bisync ~/Cloud gdrive: --workdir "$state" \
+    rclone bisync ~/Cloud cloud: --workdir "$state" \
         --check-access --check-filename .cloud --create-empty-src-dirs \
         --resilient --recover --max-lock 2m --max-delete 100 \
         --conflict-resolve newer --conflict-suffix cloud-conflict- --suffix-keep-extension \
@@ -105,7 +110,8 @@ bisync() {
 setup() {
     local id secret ids
     [[ ! -e ~/Cloud && ! -L ~/Cloud ]] || die "$HOME/Cloud exists; move it aside to set up again"
-    [[ ! -e $RCLONE_CONFIG ]] || die "$RCLONE_CONFIG exists; delete it to set up again"
+    ! has_remote ||
+        die "rclone already has a cloud remote; to set up again: rclone config delete cloud"
     [[ ! -e $state ]] ||
         die "$state exists, left from before; once you're sure nothing in it is needed," \
             "delete it to set up again"
@@ -119,27 +125,27 @@ setup() {
 
     # Until the first sync starts, a failed setup leaves nothing behind, so it can just
     # be run again. Before then, ~/Cloud only ever holds .cloud.
-    trap 'rm -f "$RCLONE_CONFIG" ~/Cloud/.cloud; rmdir ~/Cloud 2>/dev/null || true' EXIT
+    trap 'rclone -q config delete cloud; rm -f ~/Cloud/.cloud; rmdir ~/Cloud 2>/dev/null; :' EXIT
     # rclone opens a browser to sign in to Google.
-    rclone config create gdrive drive scope=drive client_id="$id" client_secret="$secret" \
-        --no-output
+    rclone config create cloud drive scope=drive skip_gdocs=true \
+        client_id="$id" client_secret="$secret" --no-output
     ids=$(find_folder)
     if [[ -z $ids ]]; then
-        rclone mkdir gdrive:Cloud
+        rclone mkdir cloud:Cloud
         ids=$(find_folder)
         echo "Made Cloud in My Drive."
     fi
     [[ -n $ids && $ids != *$'\n'* ]] ||
         die "My Drive has several folders called Cloud; rename or delete the extra ones"
-    # Root gdrive: at Cloud. config_refresh_token=false keeps the sign-in.
-    rclone config update gdrive root_folder_id="$ids" config_refresh_token=false --no-output
+    # Root cloud: at Cloud. config_refresh_token=false keeps the sign-in.
+    rclone config update cloud root_folder_id="$ids" config_refresh_token=false --no-output
 
     # Put .cloud on both sides; one already on Drive is replaced, as it's always empty.
     mkdir ~/Cloud
     touch ~/Cloud/.cloud
-    rclone copyto ~/Cloud/.cloud gdrive:.cloud || die "couldn't upload .cloud to Drive"
+    rclone copyto ~/Cloud/.cloud cloud:.cloud || die "couldn't upload .cloud to Drive"
 
-    # Without a config at login, the timer didn't start then. It starts as setup ends,
+    # Without ~/Cloud at login, the timer didn't start then. It starts as setup ends,
     # so that its first sync, a minute later, can't run into the one below; and even
     # if that fails, so that timed syncs carry on once it's fixed.
     trap 'systemctl --user start cloud.timer' EXIT
@@ -152,8 +158,8 @@ setup() {
 # Exits 1 if anything needs attention; changes waiting for the next sync don't count.
 status() {
     local ok=0 out
-    need_config
-    echo "Drive folder: $(folder_url "$(sed -n 's/^root_folder_id = //p' "$RCLONE_CONFIG")")"
+    need_remote
+    echo "Drive folder: $(folder_url "$(rclone config dump | jq -r .cloud.root_folder_id)")"
     # bisync rewrites its record after every successful sync.
     record path1.lst && echo "Last successful sync: $(date -r "$state"/*.path1.lst '+%Y-%m-%d %H:%M')"
 
@@ -176,7 +182,7 @@ status() {
 
     if [[ ${1:-} == --verify ]]; then
         echo "Comparing every file with its copy on Drive (changes not synced yet count as differences):"
-        rclone check ~/Cloud gdrive: --exclude '*.cloud.partial' 2>&1 |
+        rclone check ~/Cloud cloud: --exclude '*.cloud.partial' 2>&1 |
             sed -E 's/^[0-9/]+ [0-9:]+ +[A-Z]+ *: /  /' || ok=1
     fi
     return "$ok"
@@ -184,7 +190,7 @@ status() {
 
 case "$*" in
     setup)                      setup ;;
-    "setup --reconnect")        need_config; rclone config reconnect gdrive: --auto-confirm ;;
+    "setup --reconnect")        need_remote; rclone config reconnect cloud: --auto-confirm ;;
     sync | "sync "*)            shift; bisync "$@" ;;
     status | "status --verify") shift; status "$@" ;;
     *) echo "usage: cloud setup [--reconnect] | sync [rclone bisync flags] | status [--verify]" >&2
