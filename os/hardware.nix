@@ -105,6 +105,38 @@
     ];
   };
 
+  # libcamera has no tuning for the webcam, so it shows the sensor's colours
+  # uncorrected, which look grey. This is its generic tuning plus a colour
+  # matrix that raises saturation by 1.5x, rows summing to 1 so greys stay grey.
+  # libcamera's GPU image processing draws a grid over the picture, so use the CPU
+  systemd.user.services =
+    let
+      environment.LIBCAMERA_SOFTISP_MODE = "cpu";
+      environment.LIBCAMERA_SIMPLE_TUNING_FILE = toString (
+        pkgs.writeText "imx471.yaml" ''
+          %YAML 1.1
+          ---
+          version: 1
+          algorithms:
+            - BlackLevel:
+            - Awb:
+            - Ccm:
+                ccms:
+                  - ct: 6500
+                    ccm: [  1.3505, -0.2935, -0.057,
+                           -0.1495,  1.2065, -0.057,
+                           -0.1495, -0.2935,  1.443 ]
+            - Adjust:
+            - Agc:
+          ...
+        ''
+      );
+    in
+    {
+      pipewire = { inherit environment; };
+      wireplumber = { inherit environment; };
+    };
+
   services.fprintd.enable = true;
   # The lock screen gives up on the fingerprint after 3 tries or 30 seconds
   security.pam.services.gdm-fingerprint.rules.auth.fprintd.settings = {
