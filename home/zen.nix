@@ -60,9 +60,6 @@
       "browser.newtabpage.pinned" = "";
       "browser.newtabpage.activity-stream.feeds.section.highlights" = false;
       "browser.newtabpage.activity-stream.showSearch" = true;
-      # Search in the page's own box, rather than moving what's typed to the
-      # address bar, which in Zen floats over the page as it does for new tabs
-      "browser.newtabpage.activity-stream.improvesearch.handoffToAwesomebar" = false;
       "browser.cache.disk.smart_size.enabled" = false; # Otherwise capacity is ignored
       "browser.cache.disk.capacity" = 256 * 1024;
       "browser.cache.disk.parent_directory" = "/run/user/${toString config.home.uid}/zen";
