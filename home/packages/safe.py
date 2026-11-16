@@ -1,19 +1,17 @@
 # Safes in Nautilus: a safe is any folder holding a gocryptfs filesystem (one
-# with a gocryptfs.conf). Safes get a padlock emblem, and right-clicking one
-# offers Unlock…, which asks for its password and unlocks it at
-# /run/media/$USER/Safe/NAME, where Nautilus lists it in its sidebar, or Lock.
-# Ejecting it from the sidebar locks it too, but leaves that folder behind,
-# empty, until the safe is next unlocked and locked, or the computer restarts.
+# with a gocryptfs.conf). Safes look like padlocked folders, and right-clicking
+# a locked one offers Unlock…, which asks for its password and unlocks it at
+# /run/media/$USER/Safe/NAME, where Nautilus lists it in its sidebar. Ejecting
+# it there locks it again, and removes that folder.
 
 import os
-import re
 
 from gi.repository import GLib, GObject, Gio, Nautilus
 
 GOCRYPTFS = "@gocryptfs@"
 ZENITY = "@zenity@"
-FUSERMOUNT = "/run/wrappers/bin/fusermount3"  # NixOS's setuid wrapper
 MEDIA = f"/run/media/{GLib.get_user_name()}/Safe"
+ICON = "metadata::custom-icon-name"  # where Nautilus keeps a file's own icon
 
 
 def safe_path(file):
@@ -24,86 +22,74 @@ def safe_path(file):
     return path if os.path.isfile(os.path.join(path, "gocryptfs.conf")) else None
 
 
-def mount_of(safe):
-    """Where safe is unlocked, or None if it isn't"""
-    with open("/proc/self/mounts") as mounts:
-        for line in mounts:
-            # Mounts' fields escape spaces, tabs, newlines and backslashes
-            source, target, kind = (
-                re.sub(r"\\([0-7]{3})", lambda m: chr(int(m[1], 8)), field)
-                for field in line.split()[:3]
-            )
-            if kind == "fuse.gocryptfs" and source == safe:
-                return target
-    return None
-
-
-def run(argv, done):
-    """Run argv without blocking Nautilus, then call done(status, stderr)"""
-    process = Gio.Subprocess.new(argv, Gio.SubprocessFlags.STDERR_PIPE)
-    process.communicate_utf8_async(
-        None,
-        None,
-        lambda _, result: done(
-            process.get_exit_status(),
-            process.communicate_utf8_finish(result)[2].strip(),
-        ),
-    )
-
-
-def error(text):
-    Gio.Subprocess.new(
-        [ZENITY, "--error", "--no-markup", "--title=Safe", f"--text={text}"],
-        Gio.SubprocessFlags.NONE,
-    )
+def remove(path):
+    """Remove where a safe was unlocked, if it was and it's locked"""
+    if path and os.path.dirname(path) == MEDIA:
+        try:
+            os.rmdir(path)
+        except OSError:  # still unlocked
+            pass
 
 
 def unlock(safe, prompt=None):
     name = os.path.basename(safe)
-    prompt = prompt or f"Password for {name}"
     mount = os.path.join(MEDIA, name)
-    # gocryptfs would mount over it
-    if os.path.ismount(mount):
-        return error(f"Another safe called {name} is unlocked")
     os.makedirs(mount, exist_ok=True)
+    # Several -extpass options are one command's arguments, not split on spaces
+    ask = [ZENITY, "--password", f"--title={prompt or f'Password for {name}'}"]
+    process = Gio.Subprocess.new(
+        [GOCRYPTFS, "-q", *(f"-extpass={arg}" for arg in ask), "--", safe, mount],
+        Gio.SubprocessFlags.STDERR_PIPE,
+    )
 
-    def done(status, message):
+    def done(_, result):
+        error = process.communicate_utf8_finish(result)[2].strip()
+        status = process.get_exit_status()
         if status == 0:
             return
         os.rmdir(mount)
         if status == 12:  # wrong (or empty) password
             unlock(safe, f"Wrong password for {name}, try again")
         elif status != 9:  # 9: cancelled
-            error(f"Couldn't unlock {name}: {message}")
+            Gio.Subprocess.new(
+                [
+                    ZENITY,
+                    "--error",
+                    "--no-markup",
+                    "--title=Safe",
+                    f"--text=Couldn't unlock {name}: {error}",
+                ],
+                Gio.SubprocessFlags.NONE,
+            )
 
-    # Several -extpass options are one command's arguments, not split on spaces
-    ask = [ZENITY, "--password", f"--title={prompt}"]
-    run([GOCRYPTFS, "-q", *(f"-extpass={arg}" for arg in ask), "--", safe, mount], done)
-
-
-def lock(safe, mount):
-    def done(status, message):
-        if status != 0:
-            error(f"Couldn't lock {os.path.basename(safe)}: {message}")
-        elif os.path.dirname(mount) == MEDIA:  # not if unlocked elsewhere by hand
-            os.rmdir(mount)
-
-    run([FUSERMOUNT, "-u", mount], done)
+    process.communicate_utf8_async(None, None, done)
 
 
 class Safes(GObject.GObject, Nautilus.MenuProvider, Nautilus.InfoProvider):
+    def __init__(self):
+        super().__init__()
+        # Remove where safes were unlocked once they're ejected, including any
+        # ejected while Nautilus wasn't running
+        self.monitor = Gio.VolumeMonitor.get()
+        self.monitor.connect("mount-removed", lambda _, mount: remove(mount.get_root().get_path()))
+        for name in os.listdir(MEDIA) if os.path.isdir(MEDIA) else []:
+            remove(os.path.join(MEDIA, name))
+
     def get_file_items(self, files):
         safe = safe_path(files[0]) if len(files) == 1 else None
-        if not safe:
+        if not safe or os.path.ismount(os.path.join(MEDIA, os.path.basename(safe))):
             return []
-        mount = mount_of(safe)
-        item = Nautilus.MenuItem(
-            name="Safe::Lock" if mount else "Safe::Unlock",
-            label="Lock" if mount else "Unlock…",
-        )
-        item.connect("activate", lambda _: lock(safe, mount) if mount else unlock(safe))
+        item = Nautilus.MenuItem(name="Safe::Unlock", label="Unlock…")
+        item.connect("activate", lambda _: unlock(safe))
         return [item]
 
     def update_file_info(self, file):
-        if safe_path(file):
-            file.add_emblem("emblem-readonly")
+        if not safe_path(file):
+            return
+        location = file.get_location()
+        flags = Gio.FileQueryInfoFlags.NONE
+        try:
+            if location.query_info(ICON, flags).get_attribute_string(ICON) != "folder-private":
+                location.set_attribute_string(ICON, "folder-private", flags)
+        except GLib.Error:  # somewhere Nautilus can't keep icons
+            pass
