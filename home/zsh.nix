@@ -97,6 +97,7 @@
         intake = "󰉍";
         projects = "";
         cloud = "󰅟";
+        safe = "󰉐";
         nixos = "";
         "${config.home.username}" = "";
       };

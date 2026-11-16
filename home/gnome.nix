@@ -153,13 +153,15 @@ in
   # Nautilus prefers a folder's custom icon, kept in its GIO metadata, to its
   # own choice; these are set at each login. Without them, Intake would get the
   # Desktop icon, as GLib checks for the desktop dir before downloads, and
-  # Projects and Cloud, which GLib doesn't treat as special, a plain folder icon.
+  # Projects, Cloud and Safe, which GLib doesn't treat as special, a plain
+  # folder icon.
   xdg.configFile."autostart/folder-icons.desktop".text =
     let
       icons = {
         ${config.xdg.userDirs.download} = "folder-download";
         ${config.xdg.userDirs.projects} = "folder-code";
         "${config.home.homeDirectory}/Cloud" = "folder-cloud";
+        "${config.home.homeDirectory}/Safe" = "folder-private";
       };
       script = pkgs.writeShellScript "folder-icons" (
         lib.concatLines (
