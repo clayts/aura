@@ -11,6 +11,8 @@
   environment.systemPackages = [ pkgs.hunspellDicts.en_GB-ize ];
   boot = {
     tmp.useTmpfs = true;
+    # 7.3's webcam driver caps gain too low, leaving the picture dark. 7.4 fixes
+    # it, but linuxPackages_testing's 7.4-rc2 crashes the sound driver; rc3 fixes that
     kernelPackages = pkgs.linuxPackages_latest;
     kernelParams = [
       "quiet"

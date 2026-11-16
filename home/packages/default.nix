@@ -43,11 +43,35 @@
         (pkgs.writeTextDir "share/zsh/site-functions/_create" (builtins.readFile ./create/_create))
       ];
     };
-  safe = pkgs.writeShellApplication {
-    name = "safe";
-    runtimeInputs = [ pkgs.gocryptfs ];
-    text = builtins.readFile ./safe.sh;
-  };
+  safe =
+    let
+      safe = pkgs.writeShellApplication {
+        name = "safe";
+        runtimeInputs = with pkgs; [
+          gocryptfs
+          util-linux # findmnt, setsid
+          zenity
+        ];
+        text = builtins.readFile ./safe/safe.sh;
+      };
+    in
+    pkgs.symlinkJoin {
+      name = "safe";
+      paths = [
+        safe
+        (pkgs.writeTextDir "share/mime/packages/safe.xml" (builtins.readFile ./safe/safe.xml))
+        # Opens safes' Access files, being the only app for them
+        (pkgs.makeDesktopItem {
+          name = "safe";
+          desktopName = "Safe";
+          exec = "${pkgs.lib.getExe safe} unlock %f";
+          icon = "multipart-encrypted";
+          mimeTypes = [ "application/x-safe" ];
+          noDisplay = true;
+        })
+      ];
+      meta.mainProgram = "safe";
+    };
   cloud = pkgs.writeShellApplication {
     name = "cloud";
     runtimeInputs = with pkgs; [

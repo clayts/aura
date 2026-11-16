@@ -37,8 +37,8 @@ in
       createDirectories = true;
       templates = "${homeDirectory}/.Templates";
       publicShare = "${homeDirectory}/.Public";
-      desktop = "${homeDirectory}/Intake";
-      download = "${homeDirectory}/Intake";
+      desktop = "${homeDirectory}/Inbox";
+      download = "${homeDirectory}/Inbox";
       documents = "${homeDirectory}/Documents";
       music = "${homeDirectory}/Media";
       pictures = "${homeDirectory}/Media";
