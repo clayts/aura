@@ -26,9 +26,9 @@ in
     proton-vpn
   ];
   # cloud syncs ~/Cloud with Google Drive (home/packages/cloud.sh) a minute
-  # after login, then every hour. Without ~/Cloud (cloud setup not run) the
-  # timer doesn't start; cloud setup starts it. If ~/Cloud goes later, syncs
-  # fail without touching anything until it's back
+  # after login, then every hour. Without its config (cloud setup not run) the
+  # timer doesn't start; cloud setup starts it. If ~/Cloud goes, syncs fail
+  # without touching anything until it's back
   systemd.user = {
     services.cloud = {
       Unit.Description = "Sync ~/Cloud with Google Drive";
@@ -49,7 +49,7 @@ in
     timers.cloud = {
       Unit = {
         Description = "Sync ~/Cloud with Google Drive every hour";
-        ConditionPathExists = "%h/Cloud";
+        ConditionPathExists = "%h/.config/cloud.conf";
       };
       Timer = {
         # From when the timer starts: at login, or when cloud setup starts it
