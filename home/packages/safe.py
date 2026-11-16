@@ -124,7 +124,7 @@ def show_error(text):
 
 def ask_to_create(folder, problem=None):
     form = [ZENITY, "--forms", "--title=New Encrypted Folder", "--separator=\n"]
-    form += [f"--text={problem}"] if problem else []
+    form += [f"--text={problem or 'Choose a name and a password'}"]
     form += ["--add-entry=Name", "--add-password=Password", "--add-password=Repeat"]
 
     def answered(status, answers, _):
