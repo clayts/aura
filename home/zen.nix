@@ -1,11 +1,20 @@
 {
   inputs,
   config,
+  lib,
   pkgs,
   ...
 }:
 {
   imports = [ inputs.zen-browser.homeModules.beta ];
+  # Only web pages and links; the module's setAsDefaultBrowser would also take
+  # plain text and JSON files
+  xdg.mimeApps.defaultApplications = lib.genAttrs [
+    "text/html"
+    "application/xhtml+xml"
+    "x-scheme-handler/http"
+    "x-scheme-handler/https"
+  ] (_: "zen-beta.desktop");
   programs.zen-browser = {
     enable = true;
     policies = {
