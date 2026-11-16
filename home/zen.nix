@@ -51,6 +51,7 @@
       "intl.regional_prefs.use_os_locales" = true; # en_GB dates, though Zen's own language is en-US
       "zen.theme.hide-unified-extensions-button" = false; # Otherwise uBlock's button can't be reached
       "zen.urlbar.replace-newtab" = false; # A new tab page rather than the floating address bar
+      "browser.search.suggest.enabled" = true; # Search engine suggestions, which Zen turns off
       # The new tab and home page: a search box and three rows of shortcuts. Zen
       # already turns off stories and sponsored shortcuts, but also the
       # shortcuts themselves
