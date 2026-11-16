@@ -13,7 +13,6 @@
   ];
   home.packages = with pkgs; [
     packages.create
-    packages.safe
     packages.cloud
     packages.sing
     packages.system

@@ -16,6 +16,7 @@ in
   home.packages = with pkgs; [
     packages.sabaki
     packages.earthpaper
+    packages.safe
     gnome-firmware
     file-roller
     eyedropper
