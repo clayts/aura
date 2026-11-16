@@ -110,7 +110,7 @@
   # libcamera never sets it, and the driver reapplies it whenever streaming
   # starts. 256 is 1x
   services.udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="video4linux", ATTR{name}=="imx471 *", RUN+="${pkgs.lib.getExe' pkgs.v4l-utils "v4l2-ctl"} -d $devnode --set-ctrl=digital_gain=512"
+    ACTION=="add", SUBSYSTEM=="video4linux", ATTR{name}=="imx471 *", RUN+="${pkgs.lib.getExe' pkgs.v4l-utils "v4l2-ctl"} -d $devnode --set-ctrl=digital_gain=1024"
   '';
 
   services.fprintd.enable = true;
