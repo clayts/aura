@@ -108,10 +108,18 @@
   # The webcam's driver caps analogue gain at about 4.6x, so libcamera runs out
   # of gain indoors and the picture is dark. Digital gain makes up for it;
   # libcamera never sets it, and the driver reapplies it whenever streaming
-  # starts. 256 is 1x
-  services.udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="video4linux", ATTR{name}=="imx471 *", RUN+="${pkgs.lib.getExe' pkgs.v4l-utils "v4l2-ctl"} -d $devnode --set-ctrl=digital_gain=1024"
-  '';
+  # starts. 256 is 1x. Without the GUI, v4l-utils doesn't pull in Qt, and
+  # without BPF (for IR remotes) it builds without clang
+  services.udev.extraRules =
+    let
+      v4l-utils = pkgs.v4l-utils.override {
+        withGUI = false;
+        withBPF = false;
+      };
+    in
+    ''
+      ACTION=="add", SUBSYSTEM=="video4linux", ATTR{name}=="imx471 *", RUN+="${pkgs.lib.getExe' v4l-utils "v4l2-ctl"} -d $devnode --set-ctrl=digital_gain=1024"
+    '';
   # libcamera has no tuning for the webcam, so it shows the sensor's colours
   # uncorrected, which look grey. This is its generic tuning plus a colour
   # matrix that raises saturation by 1.5x, rows summing to 1 so greys stay grey.
