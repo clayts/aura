@@ -67,7 +67,7 @@ case $1 in
         gocryptfs -init -passfile <(printf %s "$password") -- "$data"
         # The first line is what gets Access recognised (safe.xml)
         cat >"$access" <<EOF
-[Safe]
+🔒 [Safe] 🔒
 Double-click this file to unlock the safe, or run: safe unlock $name
 Its files are encrypted in the hidden folder .encrypted, using gocryptfs.
 EOF

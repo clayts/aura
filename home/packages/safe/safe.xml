@@ -5,7 +5,7 @@
     <comment>Safe</comment>
     <icon name="multipart-encrypted"/>
     <magic priority="90">
-      <match type="string" offset="0" value="[Safe]\n"/>
+      <match type="string" offset="0" value="🔒 [Safe] 🔒\n"/>
     </magic>
   </mime-type>
 </mime-info>
