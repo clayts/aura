@@ -43,14 +43,17 @@
         (pkgs.writeTextDir "share/zsh/site-functions/_create" (builtins.readFile ./create/_create))
       ];
     };
-  # The Nautilus extension for safes (safe.py)
-  safe = pkgs.runCommand "safe" { } ''
-    install -D ${
+  # safe.py, as the safe command and as a Nautilus extension
+  safe = pkgs.runCommand "safe" { meta.mainProgram = "safe"; } ''
+    install -Dm755 ${
       pkgs.replaceVars ./safe.py {
+        python3 = pkgs.lib.getExe pkgs.python3;
         gocryptfs = pkgs.lib.getExe' pkgs.gocryptfs "gocryptfs";
         zenity = pkgs.lib.getExe pkgs.zenity;
       }
-    } $out/share/nautilus-python/extensions/safe.py
+    } $out/bin/safe
+    mkdir -p $out/share/nautilus-python/extensions
+    ln -s $out/bin/safe $out/share/nautilus-python/extensions/safe.py
   '';
   cloud = pkgs.writeShellApplication {
     name = "cloud";
