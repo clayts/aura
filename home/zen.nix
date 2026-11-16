@@ -13,6 +13,7 @@
         "uBlock0@raymondhill.net" = {
           install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
           installation_mode = "force_installed";
+          private_browsing = true;
         };
       };
       # uBlock's managed storage, given through policy rather than a managed-storage file
@@ -31,6 +32,8 @@
       "middlemouse.paste" = config.dconf.settings."org/gnome/desktop/interface".gtk-enable-primary-paste;
       "media.webrtc.camera.allow-pipewire" = true; # lets camera work
       "browser.aboutConfig.showWarning" = false;
+      "intl.regional_prefs.use_os_locales" = true; # en_GB dates, though Zen's own language is en-US
+      "zen.theme.hide-unified-extensions-button" = false; # Otherwise uBlock's button can't be reached
       "browser.cache.disk.smart_size.enabled" = false; # Otherwise capacity is ignored
       "browser.cache.disk.capacity" = 256 * 1024;
       "browser.cache.disk.parent_directory" = "/run/user/${toString config.home.uid}/zen";
