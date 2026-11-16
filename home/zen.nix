@@ -51,15 +51,18 @@
       "intl.regional_prefs.use_os_locales" = true; # en_GB dates, though Zen's own language is en-US
       "zen.theme.hide-unified-extensions-button" = false; # Otherwise uBlock's button can't be reached
       "zen.urlbar.replace-newtab" = false; # A new tab page rather than the floating address bar
-      # The new tab page as it was in Firefox: three rows of shortcuts and nothing
-      # else. Zen already turns off stories and sponsored shortcuts, but also the
+      # The new tab and home page: a search box and three rows of shortcuts. Zen
+      # already turns off stories and sponsored shortcuts, but also the
       # shortcuts themselves
       "browser.newtabpage.activity-stream.feeds.topsites" = true;
       "browser.newtabpage.activity-stream.topSitesRows" = 3;
       "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
       "browser.newtabpage.pinned" = "";
       "browser.newtabpage.activity-stream.feeds.section.highlights" = false;
-      "browser.newtabpage.activity-stream.showSearch" = false;
+      "browser.newtabpage.activity-stream.showSearch" = true;
+      # Search in the page's own box, rather than moving what's typed to the
+      # address bar, which in Zen floats over the page as it does for new tabs
+      "browser.newtabpage.activity-stream.improvesearch.handoffToAwesomebar" = false;
       "browser.cache.disk.smart_size.enabled" = false; # Otherwise capacity is ignored
       "browser.cache.disk.capacity" = 256 * 1024;
       "browser.cache.disk.parent_directory" = "/run/user/${toString config.home.uid}/zen";
