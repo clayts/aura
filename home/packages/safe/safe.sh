@@ -4,10 +4,12 @@
 #   safe unlock PATH    unlock the safe at PATH, and print where it's unlocked
 #   safe lock PATH      lock it again
 #
-# A safe is a folder that keeps its encrypted files in a hidden .encrypted
-# folder, and gocryptfs's config in a file called Access. PATH can be the
-# folder or its Access file. Access is recognised as a safe by its contents
-# (safe.xml), so double-clicking it in Nautilus unlocks the safe. A safe called
+# A safe is a folder holding a gocryptfs filesystem in a hidden .encrypted
+# folder, and a file called Access. PATH can be the folder or its Access file.
+# Access only says what it's for, starting with a line that gets it recognised
+# as a safe (safe.xml), so double-clicking it in Nautilus unlocks the safe.
+# .encrypted is an ordinary gocryptfs filesystem, which gocryptfs can also
+# mount by itself. A safe called
 # NAME is unlocked at /run/media/$USER/Safe/NAME, which Nautilus lists in its
 # sidebar, where ejecting it locks the safe again. That folder only exists
 # while the safe is unlocked.
@@ -51,7 +53,7 @@ path=$2
 [[ $1 != create && -f $path ]] && path=$(dirname -- "$path")
 safe=$(realpath -m -- "$path")
 name=$(basename -- "$safe")
-config=$safe/Access
+access=$safe/Access
 data=$safe/.encrypted
 unlocked=$media/$name
 
@@ -62,11 +64,17 @@ case $1 in
         repeat=$(ask Repeat) || exit 1
         [[ $password == "$repeat" ]] || die "passwords don't match"
         mkdir -p -- "$data"
-        gocryptfs -init -config "$config" -passfile <(printf %s "$password") -- "$data"
+        gocryptfs -init -passfile <(printf %s "$password") -- "$data"
+        # The first line is what gets Access recognised (safe.xml)
+        cat >"$access" <<EOF
+[Safe]
+Double-click this file to unlock the safe, or run: safe unlock $name
+Its files are encrypted in the hidden folder .encrypted, using gocryptfs.
+EOF
         ;;
     unlock)
         if ! is_unlocked; then
-            [[ -f $config && -d $data ]] || die "$2 isn't a safe"
+            [[ -f $access && -f $data/gocryptfs.conf ]] || die "$2 isn't a safe"
             ! findmnt --mountpoint "$unlocked" >/dev/null ||
                 die "another safe called $name is unlocked"
             error=$(mktemp)
@@ -81,11 +89,11 @@ case $1 in
                 # unlocked
                 # shellcheck disable=SC2016
                 setsid "$BASH" -c '
-                    gocryptfs -q -fg -config "$1" -passfile "$2" -- "$3" "$4"
+                    gocryptfs -q -fg -passfile "$1" -- "$2" "$3"
                     status=$?
-                    rmdir -- "$4"
+                    rmdir -- "$3"
                     exit "$status"
-                ' gocryptfs "$config" <(printf %s "$password") "$data" "$unlocked" \
+                ' gocryptfs <(printf %s "$password") "$data" "$unlocked" \
                     </dev/null >/dev/null 2>"$error" &
                 pid=$!
                 while kill -0 "$pid" 2>/dev/null && ! is_unlocked; do
