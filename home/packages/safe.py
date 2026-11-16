@@ -6,8 +6,9 @@
 # which Nautilus lists in its sidebar, where ejecting it locks it again.
 #
 # As a Nautilus extension, this shows safes as padlocked folders, and its
-# right-click menus offer New Encrypted Folder… in a folder, and Unlock… on a
-# locked safe, asking for passwords in dialogs. As the safe command:
+# right-click menus offer New Encrypted Folder… in a folder, and Unlock
+# Encrypted Folder… on a locked safe, asking for passwords in dialogs. As the
+# safe command:
 #
 #   safe create DIR    make a new safe at DIR
 #   safe unlock DIR    unlock it, printing where
@@ -201,7 +202,7 @@ class Safes(GObject.GObject, Nautilus.MenuProvider, Nautilus.InfoProvider):
         safe = local_path(files[0]) if len(files) == 1 else None
         if not safe or not is_safe(safe) or os.path.ismount(mount_point(safe)):
             return []
-        item = Nautilus.MenuItem(name="Safe::Unlock", label="Unlock…")
+        item = Nautilus.MenuItem(name="Safe::Unlock", label="Unlock Encrypted Folder…")
         item.connect("activate", lambda _: ask_to_unlock(safe))
         return [item]
 
