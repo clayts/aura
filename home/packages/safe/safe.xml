@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A safe's Access file, which is gocryptfs's config under another name, so
+     it's recognised by what gocryptfs writes at its start -->
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-safe">
+    <comment>Safe</comment>
+    <icon name="multipart-encrypted"/>
+    <magic priority="90">
+      <match type="string" offset="0:64" value="&quot;Creator&quot;: &quot;gocryptfs"/>
+    </magic>
+  </mime-type>
+</mime-info>

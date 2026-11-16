@@ -47,6 +47,15 @@
     ];
   };
 
+  # Each user's /run/media/USER/Safe, where safe (home/packages/safe) unlocks
+  # safes. udisks makes /run/media/USER only when it first mounts something,
+  # owned by root, so it's made here as udisks would make it
+  systemd.tmpfiles.rules = lib.concatMap (user: [
+    "d /run/media/${user.name} 0750 root root -"
+    "a+ /run/media/${user.name} - - - - u:${user.name}:r-x"
+    "d /run/media/${user.name}/Safe 0700 ${user.name} ${user.group} -"
+  ]) (lib.filter (user: user.isNormalUser) (lib.attrValues config.users.users));
+
   # Without ~/.gitconfig, git config --global writes to home-manager's read-only ~/.config/git/config
   system.userActivationScripts.gitconfig = "touch ~/.gitconfig";
 
