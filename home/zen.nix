@@ -51,7 +51,7 @@
       "intl.regional_prefs.use_os_locales" = true; # en_GB dates, though Zen's own language is en-US
       "zen.theme.hide-unified-extensions-button" = false; # Otherwise uBlock's button can't be reached
       "zen.urlbar.replace-newtab" = false; # A new tab page rather than the floating address bar
-      # The new tab and home page: a search box and three rows of shortcuts. Zen
+      # The new tab and home page: three rows of shortcuts and nothing else. Zen
       # already turns off stories and sponsored shortcuts, but also the
       # shortcuts themselves
       "browser.newtabpage.activity-stream.feeds.topsites" = true;
@@ -59,7 +59,7 @@
       "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
       "browser.newtabpage.pinned" = "";
       "browser.newtabpage.activity-stream.feeds.section.highlights" = false;
-      "browser.newtabpage.activity-stream.showSearch" = true;
+      "browser.newtabpage.activity-stream.showSearch" = false;
       "browser.cache.disk.smart_size.enabled" = false; # Otherwise capacity is ignored
       "browser.cache.disk.capacity" = 256 * 1024;
       "browser.cache.disk.parent_directory" = "/run/user/${toString config.home.uid}/zen";
