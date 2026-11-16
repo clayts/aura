@@ -12,7 +12,7 @@
 # Nautilus lists in its sidebar, where ejecting it locks the safe.
 #
 # From a terminal, safe asks for passwords there. Otherwise (from Nautilus) it
-# asks, and reports errors, in dialogs, and opens the safe once it's unlocked.
+# asks, and reports errors, in dialogs.
 
 terminal() { [[ -t 0 ]]; }
 
@@ -86,7 +86,6 @@ case $1 in
             done
         fi
         echo "$unlocked"
-        terminal || gio open "$unlocked"
         ;;
     lock)
         is_unlocked || die "$name isn't unlocked"

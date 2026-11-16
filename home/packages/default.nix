@@ -51,7 +51,6 @@
           gocryptfs
           util-linux # findmnt, setsid
           zenity
-          glib # gio
         ];
         text = builtins.readFile ./safe/safe.sh;
       };
