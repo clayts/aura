@@ -54,6 +54,10 @@
       # out, as Zen keeps an earlier value in prefs.js
       "zen.urlbar.replace-newtab" = true;
       "browser.search.suggest.enabled" = true; # Search engine suggestions, which Zen turns off
+      # Search suggestions in the address bar too, which Zen also turns off. Without
+      # them, the home page search box hands off to the address bar in search mode,
+      # so it only searches instead of also taking addresses
+      "browser.urlbar.suggest.searches" = true;
       # The home page, which Zen also uses as the new tab page when
       # zen.urlbar.replace-newtab is off: a search box and three rows of shortcuts. Zen
       # already turns off stories and sponsored shortcuts, but also the
