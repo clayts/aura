@@ -27,13 +27,24 @@
       #zenCreateNewPopup > menuitem[command="cmd_zenOpenWorkspaceCreation"] {
         display: none !important;
       }
-      /* The library shows only history (see zen.library.hidden-tabs), so without
-         its column of sections; the column's close button floats at the bottom */
+      /* The library shows only history (see zen.library.hidden-tabs), so its
+         column of sections becomes a small box floating at the bottom of it,
+         holding only the close button */
+      zen-library {
+        /* Zen's 418px less the 110px of the column */
+        width: clamp(308px, var(--zen-library-content-width, 0px), 95vw) !important;
+      }
       #zen-library-side {
+        position: absolute !important;
+        bottom: 8px;
+        inset-inline-end: 8px;
+        z-index: 1;
         min-width: 0 !important;
-        width: 0 !important;
-        background: none !important;
-        box-shadow: none !important;
+        width: auto !important;
+        height: auto !important;
+        border-radius: 8px;
+        background: var(--zen-colors-tertiary) !important;
+        box-shadow: 0 1px 4px rgb(0 0 0 / 0.15) !important;
       }
       #zen-library-header,
       #zen-library-sidebar-tabs,
@@ -41,15 +52,7 @@
         display: none !important;
       }
       #zen-library-footer {
-        position: absolute !important;
-        top: auto !important;
-        bottom: 8px !important;
-        inset-inline-start: auto !important;
-        inset-inline-end: 8px !important;
         padding: 2px !important;
-        border-radius: 8px;
-        background: var(--zen-colors-tertiary);
-        box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
       }
     '';
     policies = {
