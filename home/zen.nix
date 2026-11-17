@@ -33,17 +33,6 @@
         ]
       ];
     };
-    # The workspace's name above the tabs, which the switcher at the bottom of
-    # the sidebar already shows; and the library's list of sections when only one
-    # is left in it, keeping the buttons under it that bring the others back
-    profiles.default.userChrome = ''
-      .zen-current-workspace-indicator {
-        display: none !important;
-      }
-      #zen-library-sidebar-tabs:has(> .zen-library-tab:only-child) {
-        display: none !important;
-      }
-    '';
     profiles.default.settings = {
       "spellchecker.dictionary_path" = "${pkgs.hunspellDicts.en_GB-ize}/share/hunspell";
       "spellchecker.dictionary" = "en-GB,en_GB";
