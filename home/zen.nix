@@ -17,6 +17,17 @@
   ] (_: "zen-beta.desktop");
   programs.zen-browser = {
     enable = true;
+    # The workspace's name above the tabs, which the switcher at the bottom of
+    # the sidebar already shows; and the library's list of sections when only one
+    # is left in it, keeping the buttons under it that bring the others back
+    profiles.default.userChrome = ''
+      .zen-current-workspace-indicator {
+        display: none !important;
+      }
+      #zen-library-sidebar-tabs:has(> .zen-library-tab:only-child) {
+        display: none !important;
+      }
+    '';
     policies = {
       ExtensionSettings = {
         "uBlock0@raymondhill.net" = {
