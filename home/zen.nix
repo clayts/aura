@@ -52,6 +52,7 @@ in
       "middlemouse.paste" = config.dconf.settings."org/gnome/desktop/interface".gtk-enable-primary-paste;
       "media.webrtc.camera.allow-pipewire" = true; # lets camera work
       "browser.aboutConfig.showWarning" = false;
+      "zen.welcome-screen.seen" = true; # No first-run wizard, as for guest
       "intl.regional_prefs.use_os_locales" = true; # en_GB dates, though Zen's own language is en-US
       "zen.theme.hide-unified-extensions-button" = false; # Otherwise uBlock's button can't be reached
       # Zen's default, the floating address bar for new tabs; set rather than left
