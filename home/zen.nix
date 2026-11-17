@@ -7,7 +7,7 @@
 }:
 let
   # The zen-browser-flake variant: beta, or twilight (Zen's nightly builds)
-  variant = "twilight";
+  variant = "beta";
 in
 {
   imports = [ inputs.zen-browser.homeModules.${variant} ];
@@ -53,6 +53,7 @@ in
       "media.webrtc.camera.allow-pipewire" = true; # lets camera work
       "browser.aboutConfig.showWarning" = false;
       "zen.welcome-screen.seen" = true; # No first-run wizard, as for guest
+      "zen.updates.show-update-notification" = false; # Nor a note after each update
       "intl.regional_prefs.use_os_locales" = true; # en_GB dates, though Zen's own language is en-US
       "zen.theme.hide-unified-extensions-button" = false; # Otherwise uBlock's button can't be reached
       # Zen's default, the floating address bar for new tabs; set rather than left
