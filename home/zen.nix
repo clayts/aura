@@ -17,42 +17,15 @@
   ] (_: "zen-beta.desktop");
   programs.zen-browser = {
     enable = true;
+    # The workspace's name above the tabs, which the switcher at the bottom of
+    # the sidebar already shows; and the library's list of sections when only one
+    # is left in it, keeping the buttons under it that bring the others back
     profiles.default.userChrome = ''
-      /* The workspace's name above the tabs, which the switcher at the bottom of
-         the sidebar already shows */
       .zen-current-workspace-indicator {
         display: none !important;
       }
-      /* No new spaces from the sidebar's + menu */
-      #zenCreateNewPopup > menuitem[command="cmd_zenOpenWorkspaceCreation"] {
+      #zen-library-sidebar-tabs:has(> .zen-library-tab:only-child) {
         display: none !important;
-      }
-      /* The library shows only history (see zen.library.hidden-tabs), so its
-         column of sections becomes a small box floating at the bottom of it,
-         holding only the close button */
-      zen-library {
-        /* Zen's 418px less the 110px of the column */
-        width: clamp(308px, var(--zen-library-content-width, 0px), 95vw) !important;
-      }
-      #zen-library-side {
-        position: absolute !important;
-        bottom: 8px;
-        inset-inline-end: 8px;
-        z-index: 1;
-        min-width: 0 !important;
-        width: auto !important;
-        height: auto !important;
-        border-radius: 8px;
-        background: var(--zen-colors-tertiary) !important;
-        box-shadow: 0 1px 4px rgb(0 0 0 / 0.15) !important;
-      }
-      #zen-library-header,
-      #zen-library-sidebar-tabs,
-      #zen-library-footer > toolbarbutton:not([data-l10n-id="library-footer-close-button"]) {
-        display: none !important;
-      }
-      #zen-library-footer {
-        padding: 2px !important;
       }
     '';
     policies = {
@@ -92,12 +65,9 @@
       # them, the home page search box hands off to the address bar in search mode,
       # so it only searches instead of also taking addresses
       "browser.urlbar.suggest.searches" = true;
-      # No spaces: none from swiping past the last one (which also stops swiping
-      # past the first one from opening the library), and a library of only
-      # history, the section it opens on
-      "zen.workspaces.swipe-actions.edge-actions" = false;
-      "zen.library.hidden-tabs" = "space-routing,media,downloads,boosts,spaces";
-      "zen.library.last-tab" = "history";
+      # Zen's default, set rather than left out, as Zen keeps an earlier value
+      # (no swiping to new spaces or the library) in prefs.js
+      "zen.workspaces.swipe-actions.edge-actions" = true;
       # The home page, which Zen also uses as the new tab page when
       # zen.urlbar.replace-newtab is off: a search box and three rows of shortcuts. Zen
       # already turns off stories and sponsored shortcuts, but also the
