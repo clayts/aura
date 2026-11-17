@@ -18,13 +18,9 @@
   programs.zen-browser = {
     enable = true;
     # The workspace's name above the tabs, which the switcher at the bottom of
-    # the sidebar already shows; and the library's list of sections when only one
-    # is left in it, keeping the buttons under it that bring the others back
+    # the sidebar already shows
     profiles.default.userChrome = ''
       .zen-current-workspace-indicator {
-        display: none !important;
-      }
-      #zen-library-sidebar-tabs:has(> .zen-library-tab:only-child) {
         display: none !important;
       }
     '';
@@ -65,12 +61,9 @@
       # them, the home page search box hands off to the address bar in search mode,
       # so it only searches instead of also taking addresses
       "browser.urlbar.suggest.searches" = true;
-      # Zen's defaults, set rather than left out, as Zen keeps earlier values (no
-      # swiping to new spaces or the library, a library of only history) in
-      # prefs.js. This brings back any library sections taken out of it at each
-      # start
+      # Zen's default, set rather than left out, as Zen keeps an earlier value
+      # (no swiping to new spaces or the library) in prefs.js
       "zen.workspaces.swipe-actions.edge-actions" = true;
-      "zen.library.hidden-tabs" = "";
       # The home page, which Zen also uses as the new tab page when
       # zen.urlbar.replace-newtab is off: a search box and three rows of shortcuts. Zen
       # already turns off stories and sponsored shortcuts, but also the
