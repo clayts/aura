@@ -197,7 +197,7 @@ in
   };
   dconf.settings = {
     "org/gnome/shell".favorite-apps = [
-      "zen-beta.desktop"
+      "zen-twilight.desktop"
       "org.gnome.Nautilus.desktop"
     ];
     "org/gnome/settings-daemon/plugins/power" = {

@@ -5,8 +5,12 @@
   pkgs,
   ...
 }:
+let
+  # The zen-browser-flake variant: beta, or twilight (Zen's nightly builds)
+  variant = "twilight";
+in
 {
-  imports = [ inputs.zen-browser.homeModules.beta ];
+  imports = [ inputs.zen-browser.homeModules.${variant} ];
   # Only web pages and links; the module's setAsDefaultBrowser would also take
   # plain text and JSON files
   xdg.mimeApps.defaultApplications = lib.genAttrs [
@@ -14,7 +18,7 @@
     "application/xhtml+xml"
     "x-scheme-handler/http"
     "x-scheme-handler/https"
-  ] (_: "zen-beta.desktop");
+  ] (_: "zen-${variant}.desktop");
   programs.zen-browser = {
     enable = true;
     # The workspace's name above the tabs, which the switcher at the bottom of
