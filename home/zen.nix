@@ -46,6 +46,9 @@
       # Zen's default, the floating address bar for new tabs; set rather than left
       # out, as Zen keeps an earlier value in prefs.js
       "zen.urlbar.replace-newtab" = true;
+      # Not the address bar at startup, which Zen opens when the space it starts
+      # in has no tabs
+      "zen.urlbar.open-on-startup" = false;
       "browser.search.suggest.enabled" = true; # Search engine suggestions, which Zen turns off
       # Search suggestions in the address bar too, which Zen also turns off. Without
       # them, the home page search box hands off to the address bar in search mode,
