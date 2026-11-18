@@ -37,8 +37,9 @@ in
         bottom: auto !important;
         height: calc(100% - var(--zen-compact-float)) !important;
       }
-      /* A little space before the compact mode (sidebar) button in the top toolbar */
-      #zen-toggle-compact-mode {
+      /* A little space before the compact mode (sidebar) button in the top
+         toolbar, in compact mode */
+      :root[zen-compact-mode="true"] #zen-toggle-compact-mode {
         margin-inline-start: 8px !important;
       }
     '';
