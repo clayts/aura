@@ -214,6 +214,7 @@ in
       window-preview-caption = false;
       background-menu = false;
       support-notifier-type = 0;
+      workspace-switcher-should-show = true;
     };
     "org/gnome/shell/extensions/appindicator".tray-pos = "left";
     "org/gnome/shell/window-switcher".current-workspace-only = false;
