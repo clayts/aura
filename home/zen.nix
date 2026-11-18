@@ -28,7 +28,7 @@ in
         display: none !important;
       }
       /* In compact mode, the floating sidebar flush with the window's edges,
-         with square corners on that side */
+         with square corners */
       :root[zen-compact-mode="true"] #navigator-toolbox {
         --zen-compact-float: 0px !important;
       }
@@ -39,22 +39,11 @@ in
         bottom: auto !important;
         height: 100% !important;
       }
-      :root[zen-compact-mode="true"] #navigator-toolbox[zen-right-side="true"]
-        .zen-toolbar-background {
+      :root[zen-compact-mode="true"] #navigator-toolbox .zen-toolbar-background {
         &,
         &::before,
         &::after {
-          border-start-end-radius: 0 !important;
-          border-end-end-radius: 0 !important;
-        }
-      }
-      :root[zen-compact-mode="true"] #navigator-toolbox:not([zen-right-side="true"])
-        .zen-toolbar-background {
-        &,
-        &::before,
-        &::after {
-          border-start-start-radius: 0 !important;
-          border-end-start-radius: 0 !important;
+          border-radius: 0 !important;
         }
       }
       /* A little space before the compact mode (sidebar) button in the top
