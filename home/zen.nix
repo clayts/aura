@@ -45,10 +45,6 @@ in
     '';
     # uBlock's button in the extensions menu rather than on the toolbar
     profiles.default.extensionButtons."unified-extensions-area" = [ "uBlock0@raymondhill.net" ];
-    # From Zen's mod store (zen-browser.app/mods), fetched when the system is built
-    profiles.default.mods = [
-      "6c122084-c4ec-4c9e-8cc5-3d87c3a089cb" # NavBar Margin
-    ];
     policies = {
       ExtensionSettings = {
         "uBlock0@raymondhill.net" = {
