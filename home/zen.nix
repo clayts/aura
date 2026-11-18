@@ -101,9 +101,9 @@ in
       "zen.view.use-single-toolbar" = false;
       "zen.view.sidebar-expanded" = true;
       "zen.urlbar.behavior" = "float"; # Always floating
-      # The space around the page (and between Zen's other floating parts), down
-      # from 8px to the 3px between it and the address bar
-      "zen.theme.content-element-separation" = 3;
+      # Zen's default space around the page, set rather than left out, as Zen
+      # keeps an earlier value in prefs.js
+      "zen.theme.content-element-separation" = 8;
       "zen.workspaces.continue-where-left-off" = true;
       # Not the address bar at startup, which Zen opens when the space it starts
       # in has no tabs
