@@ -37,6 +37,12 @@ in
         bottom: auto !important;
         height: calc(100% - var(--zen-compact-float)) !important;
       }
+      /* That sidebar covers the right end of the top toolbar, so a gap before
+         the compact mode button keeps the address bar and the buttons before
+         it clear of a sidebar of Zen's default width (186px) */
+      :root[zen-compact-mode="true"]:not([zen-single-toolbar="true"]) #zen-toggle-compact-mode {
+        margin-inline-start: 136px !important;
+      }
     '';
     # uBlock's button in the extensions menu rather than on the toolbar
     profiles.default.extensionButtons."unified-extensions-area" = [ "uBlock0@raymondhill.net" ];
