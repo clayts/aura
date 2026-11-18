@@ -77,7 +77,6 @@ in
     extensions = map (package: { inherit package; }) (
       with pkgs.gnomeExtensions;
       [
-        grand-theft-focus
         appindicator
         alphabetical-app-grid
         # v37 puts the panel at the bottom of the overview's stack, which is
@@ -215,6 +214,7 @@ in
       background-menu = false;
       support-notifier-type = 0;
       workspace-switcher-should-show = true;
+      window-demands-attention-focus = true;
     };
     "org/gnome/shell/extensions/appindicator".tray-pos = "left";
     "org/gnome/shell/window-switcher".current-workspace-only = false;
