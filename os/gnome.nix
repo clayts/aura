@@ -1,4 +1,9 @@
-{ pkgs, style, ... }:
+{
+  pkgs,
+  lib,
+  style,
+  ...
+}:
 {
   services = {
     desktopManager.gnome.enable = true;
@@ -38,7 +43,10 @@
     {
       settings = {
         "org/gnome/login-screen".enable-fingerprint-authentication = false;
-        "org/gnome/desktop/interface" = style.gnome.interface;
+        # The session gets the cursor size from home-manager's gtk.cursorTheme
+        "org/gnome/desktop/interface" = style.gnome.interface // {
+          cursor-size = lib.gvariant.mkInt32 style.cursors.size;
+        };
       };
     }
   ];
