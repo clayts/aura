@@ -187,12 +187,12 @@
               "text.muted" = "${grey5}ff";
               "text.placeholder" = "${grey4}ff";
               "text.disabled" = "${grey3}ff";
-              "text.accent" = "${blue}ff";
+              "text.accent" = "${accent}ff";
               "icon" = "${grey5}ff";
               "icon.muted" = "${grey4}ff";
               "icon.disabled" = "${grey4}ff";
               "icon.placeholder" = "${grey4}ff";
-              "icon.accent" = "${blue}ff";
+              "icon.accent" = "${accent}ff";
               "status_bar.background" = "${grey2}ff";
               "title_bar.background" = "${grey2}ff";
               "title_bar.inactive_background" = "${grey2}ff";
