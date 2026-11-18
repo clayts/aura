@@ -27,7 +27,23 @@ in
       .zen-current-workspace-indicator {
         display: none !important;
       }
+      /* In compact mode with the top toolbar, the floating sidebar the same
+         distance from the top of the window as from the bottom, as it is with
+         a single toolbar, rather than starting under the top toolbar */
+      :root[zen-compact-mode="true"]:not([zen-single-toolbar="true"])
+        #navigator-toolbox:not([animate="true"]) {
+        margin-top: 0 !important;
+        top: calc(var(--zen-compact-float) / 2) !important;
+        bottom: auto !important;
+        height: calc(100% - var(--zen-compact-float)) !important;
+      }
     '';
+    # uBlock's button in the extensions menu rather than on the toolbar
+    profiles.default.extensionButtons."unified-extensions-area" = [ "uBlock0@raymondhill.net" ];
+    # From Zen's mod store (zen-browser.app/mods), fetched when the system is built
+    profiles.default.mods = [
+      "6c122084-c4ec-4c9e-8cc5-3d87c3a089cb" # NavBar Margin
+    ];
     policies = {
       ExtensionSettings = {
         "uBlock0@raymondhill.net" = {
@@ -59,6 +75,12 @@ in
       # Zen's default, the floating address bar for new tabs; set rather than left
       # out, as Zen keeps an earlier value in prefs.js
       "zen.urlbar.replace-newtab" = true;
+      "zen.view.compact.enable-at-startup" = true;
+      # The "Sidebar and Top Toolbar" layout
+      "zen.view.use-single-toolbar" = false;
+      "zen.view.sidebar-expanded" = true;
+      "zen.urlbar.behavior" = "float"; # Always floating
+      "zen.workspaces.continue-where-left-off" = true;
       # Not the address bar at startup, which Zen opens when the space it starts
       # in has no tabs
       "zen.urlbar.open-on-startup" = false;
