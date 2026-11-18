@@ -27,24 +27,10 @@ in
       .zen-current-workspace-indicator {
         display: none !important;
       }
-      /* In compact mode, the floating sidebar flush with the window's edges and
-         with the window's own corners on that side. Those follow Firefox's
-         rules for rounding the window: GTK's radius for a normal-sized, untiled
-         window, on the bottom corners only with
-         widget.gtk.rounded-bottom-corners.enabled, square otherwise */
+      /* In compact mode, the floating sidebar flush with the window's edges,
+         with square corners on that side */
       :root[zen-compact-mode="true"] #navigator-toolbox {
         --zen-compact-float: 0px !important;
-        --aura-window-top-radius: 0px;
-        --aura-window-bottom-radius: 0px;
-      }
-      @media (-moz-gtk-csd-transparency-available) {
-        :root[zen-compact-mode="true"][customtitlebar][sizemode="normal"]:not([tiled])
-          #navigator-toolbox {
-          --aura-window-top-radius: env(-moz-gtk-csd-titlebar-radius);
-          @media -moz-pref("widget.gtk.rounded-bottom-corners.enabled") {
-            --aura-window-bottom-radius: env(-moz-gtk-csd-titlebar-radius);
-          }
-        }
       }
       :root[zen-compact-mode="true"]:not([zen-single-toolbar="true"])
         #navigator-toolbox:not([animate="true"]) {
@@ -58,8 +44,8 @@ in
         &,
         &::before,
         &::after {
-          border-start-end-radius: var(--aura-window-top-radius) !important;
-          border-end-end-radius: var(--aura-window-bottom-radius) !important;
+          border-start-end-radius: 0 !important;
+          border-end-end-radius: 0 !important;
         }
       }
       :root[zen-compact-mode="true"] #navigator-toolbox:not([zen-right-side="true"])
@@ -67,8 +53,8 @@ in
         &,
         &::before,
         &::after {
-          border-start-start-radius: var(--aura-window-top-radius) !important;
-          border-end-start-radius: var(--aura-window-bottom-radius) !important;
+          border-start-start-radius: 0 !important;
+          border-end-start-radius: 0 !important;
         }
       }
       /* A little space before the compact mode (sidebar) button in the top
