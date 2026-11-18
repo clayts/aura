@@ -27,15 +27,49 @@ in
       .zen-current-workspace-indicator {
         display: none !important;
       }
-      /* In compact mode with the top toolbar, the floating sidebar the same
-         distance from the top of the window as from the bottom, as it is with
-         a single toolbar, rather than starting under the top toolbar */
+      /* In compact mode, the floating sidebar flush with the window's edges and
+         with the window's own corners on that side. Those follow Firefox's
+         rules for rounding the window: GTK's radius for a normal-sized, untiled
+         window, on the bottom corners only with
+         widget.gtk.rounded-bottom-corners.enabled, square otherwise */
+      :root[zen-compact-mode="true"] #navigator-toolbox {
+        --zen-compact-float: 0px !important;
+        --aura-window-top-radius: 0px;
+        --aura-window-bottom-radius: 0px;
+      }
+      @media (-moz-gtk-csd-transparency-available) {
+        :root[zen-compact-mode="true"][customtitlebar][sizemode="normal"]:not([tiled])
+          #navigator-toolbox {
+          --aura-window-top-radius: env(-moz-gtk-csd-titlebar-radius);
+          @media -moz-pref("widget.gtk.rounded-bottom-corners.enabled") {
+            --aura-window-bottom-radius: env(-moz-gtk-csd-titlebar-radius);
+          }
+        }
+      }
       :root[zen-compact-mode="true"]:not([zen-single-toolbar="true"])
         #navigator-toolbox:not([animate="true"]) {
         margin-top: 0 !important;
-        top: calc(var(--zen-compact-float) / 2) !important;
+        top: 0 !important;
         bottom: auto !important;
-        height: calc(100% - var(--zen-compact-float)) !important;
+        height: 100% !important;
+      }
+      :root[zen-compact-mode="true"] #navigator-toolbox[zen-right-side="true"]
+        .zen-toolbar-background {
+        &,
+        &::before,
+        &::after {
+          border-start-end-radius: var(--aura-window-top-radius) !important;
+          border-end-end-radius: var(--aura-window-bottom-radius) !important;
+        }
+      }
+      :root[zen-compact-mode="true"] #navigator-toolbox:not([zen-right-side="true"])
+        .zen-toolbar-background {
+        &,
+        &::before,
+        &::after {
+          border-start-start-radius: var(--aura-window-top-radius) !important;
+          border-end-start-radius: var(--aura-window-bottom-radius) !important;
+        }
       }
       /* A little space before the compact mode (sidebar) button in the top
          toolbar, in compact mode */
