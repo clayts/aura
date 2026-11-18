@@ -40,6 +40,22 @@
       fonts = lib.mapAttrs (_: font: { features = [ ]; } // font) fonts;
       colors = palette // {
         bright = lib.mapAttrs (_: lighten 0.3) palette;
+        # GNOME's accent colour as libadwaita shows it on its own (text, icons)
+        # against a dark background: the accent's own colour, adw_accent_color_to_rgba,
+        # with its OKLab lightness raised to at least 0.85, adw_rgba_to_standalone
+        accent =
+          {
+            blue = "#81d0ff"; # #3584e4
+            teal = "#7bdff4"; # #2190a4
+            green = "#8de698"; # #3a944a
+            yellow = "#ffc057"; # #c88800
+            orange = "#ff9c5b"; # #ed5b00
+            red = "#ff888c"; # #e62d42
+            pink = "#ffa0d8"; # #d56199
+            purple = "#fba7ff"; # #9141ac
+            slate = "#bbd1e5"; # #6f8396
+          }
+          .${gnome.accent};
       };
       gnome.interface = {
         font-name = fontName fonts.sans;
