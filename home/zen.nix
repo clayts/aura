@@ -94,6 +94,7 @@ in
       # keeps an earlier value in prefs.js
       "zen.theme.content-element-separation" = 8;
       "zen.workspaces.continue-where-left-off" = true;
+      "zen.tabs.show-newtab-vertical" = false; # No "New Tab" in the tab list
       # Not the address bar at startup, which Zen opens when the space it starts
       # in has no tabs
       "zen.urlbar.open-on-startup" = false;
