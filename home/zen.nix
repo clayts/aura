@@ -63,10 +63,17 @@ in
       /* The window's outline round its rounded corners, as on its straight
          edges. GTK draws the outline (adw-gtk3's 1px ring) just outside the
          window, so the curves, which fall inside it, are covered by Zen;
-         this draws them from Zen's side, in the same place and colour */
+         this draws them from Zen's side, in the same place and colour (which
+         GTK dims while the window isn't focused) */
       @media (-moz-gtk-csd-transparency-available) {
         :root[customtitlebar][sizemode="normal"]:not([tiled]) body {
           box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+          @media (prefers-color-scheme: dark) {
+            box-shadow: 0 0 0 1px rgb(58, 58, 60) !important;
+          }
+        }
+        :root[customtitlebar][sizemode="normal"]:not([tiled]):-moz-window-inactive body {
+          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.02) !important;
           @media (prefers-color-scheme: dark) {
             box-shadow: 0 0 0 1px rgb(47, 47, 49) !important;
           }
