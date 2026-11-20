@@ -60,22 +60,21 @@ in
           transition: visibility 0.15s !important;
         }
       }
-      /* The window's outline round its rounded corners, as on its straight
-         edges. GTK draws the outline (adw-gtk3's 1px ring) just outside the
-         window, so the curves, which fall inside it, are covered by Zen;
-         this draws them from Zen's side, in the same place and colour (which
-         GTK dims while the window isn't focused) */
+      /* The window's outline unbroken round its corners. GTK draws the
+         outline (adw-gtk3's 1px ring) behind Zen, curving in further at the
+         corners than Zen's own rounding (the theme's 15px), so Zen covered
+         the curves. Rounding Zen's corners at 18px leaves GTK's curves in
+         view, without a gap between them and the window; found by measuring
+         at 1x and 2x scale */
       @media (-moz-gtk-csd-transparency-available) {
-        :root[customtitlebar][sizemode="normal"]:not([tiled]) body {
-          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
-          @media (prefers-color-scheme: dark) {
-            box-shadow: 0 0 0 1px rgb(58, 58, 60) !important;
-          }
-        }
-        :root[customtitlebar][sizemode="normal"]:not([tiled]):-moz-window-inactive body {
-          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.02) !important;
-          @media (prefers-color-scheme: dark) {
-            box-shadow: 0 0 0 1px rgb(47, 47, 49) !important;
+        :root[customtitlebar][sizemode="normal"]:not([tiled])
+          :is(body, #zen-main-app-wrapper, #zen-browser-background) {
+          border-top-left-radius: 18px !important;
+          border-top-right-radius: 18px !important;
+          /* Firefox rounds the bottom corners, of both window and outline,
+             only with this */
+          @media -moz-pref("widget.gtk.rounded-bottom-corners.enabled") {
+            border-radius: 18px !important;
           }
         }
       }
