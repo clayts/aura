@@ -60,6 +60,18 @@ in
           transition: visibility 0.15s !important;
         }
       }
+      /* The window's outline round its rounded corners, as on its straight
+         edges. GTK draws the outline (adw-gtk3's 1px ring) just outside the
+         window, so the curves, which fall inside it, are covered by Zen;
+         this draws them from Zen's side, in the same place and colour */
+      @media (-moz-gtk-csd-transparency-available) {
+        :root[customtitlebar][sizemode="normal"]:not([tiled]) body {
+          box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+          @media (prefers-color-scheme: dark) {
+            box-shadow: 0 0 0 1px rgb(47, 47, 49) !important;
+          }
+        }
+      }
       /* A little space before the compact mode (sidebar) button in the top
          toolbar, in compact mode */
       :root[zen-compact-mode="true"] #zen-toggle-compact-mode {
