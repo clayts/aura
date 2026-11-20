@@ -78,6 +78,26 @@ in
           }
         }
       }
+      /* Zen's frame (the sidebar and top toolbar round the page) in GNOME's
+         sidebar colours, libadwaita's sidebar_bg_color and, while the
+         window isn't focused, sidebar_backdrop_color, rather than Zen's own
+         greys; only for Zen's default theme, so a space's own colour stays */
+      :root[zen-default-theme="true"] :is(#zen-browser-background, .zen-toolbar-background) {
+        --zen-aura-frame: #ebebed;
+        @media (prefers-color-scheme: dark) {
+          --zen-aura-frame: #2e2e32;
+        }
+        &:-moz-window-inactive {
+          --zen-aura-frame: #f2f2f4;
+          @media (prefers-color-scheme: dark) {
+            --zen-aura-frame: #28282c;
+          }
+        }
+        --zen-main-browser-background: var(--zen-aura-frame) !important;
+        --zen-main-browser-background-old: var(--zen-aura-frame) !important;
+        --zen-main-browser-background-toolbar: var(--zen-aura-frame) !important;
+        --zen-main-browser-background-toolbar-old: var(--zen-aura-frame) !important;
+      }
       /* A little space before the compact mode (sidebar) button in the top
          toolbar, in compact mode */
       :root[zen-compact-mode="true"] #zen-toggle-compact-mode {
