@@ -32,18 +32,24 @@ in
       :root[zen-compact-mode="true"] #navigator-toolbox {
         --zen-compact-float: 0px !important;
       }
-      :root[zen-compact-mode="true"]:not([zen-single-toolbar="true"])
-        #navigator-toolbox:not([animate="true"]) {
-        margin-top: 0 !important;
-        top: 0 !important;
-        bottom: auto !important;
-        height: 100% !important;
-      }
       :root[zen-compact-mode="true"] #navigator-toolbox .zen-toolbar-background {
         &,
         &::before,
         &::after {
           border-radius: 0 !important;
+        }
+        /* Its outline (in Zen's colour for it) only on the side facing the
+           page, as the window's own outline already runs along the others */
+        &::before,
+        &::after {
+          outline: none !important;
+          box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.15) !important;
+        }
+      }
+      :root[zen-compact-mode="true"][zen-right-side="true"] #navigator-toolbox .zen-toolbar-background {
+        &::before,
+        &::after {
+          box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.15) !important;
         }
       }
       /* In compact mode, the sidebar kept hidden in a window or space with no
@@ -94,7 +100,7 @@ in
           }
         }
       }
-      /* Zen's frame (the sidebar and top toolbar round the page) in GNOME's
+      /* Zen's frame (the sidebar and the edge round the page) in GNOME's
          sidebar colours, libadwaita's sidebar_bg_color and, while the
          window isn't focused, sidebar_backdrop_color, rather than Zen's own
          greys; only for Zen's default theme, so a space's own colour stays */
@@ -113,11 +119,6 @@ in
         --zen-main-browser-background-old: var(--zen-aura-frame) !important;
         --zen-main-browser-background-toolbar: var(--zen-aura-frame) !important;
         --zen-main-browser-background-toolbar-old: var(--zen-aura-frame) !important;
-      }
-      /* A little space before the compact mode (sidebar) button in the top
-         toolbar, in compact mode */
-      :root[zen-compact-mode="true"] #zen-toggle-compact-mode {
-        margin-inline-start: 8px !important;
       }
     '';
     # uBlock's button in the extensions menu rather than on the toolbar
@@ -154,9 +155,11 @@ in
       # out, as Zen keeps an earlier value in prefs.js
       "zen.urlbar.replace-newtab" = true;
       "zen.view.compact.enable-at-startup" = true;
-      # The "Sidebar and Top Toolbar" layout
-      "zen.view.use-single-toolbar" = false;
+      # The "Only Sidebar" layout, with no top toolbar, and the sidebar on the
+      # right
+      "zen.view.use-single-toolbar" = true;
       "zen.view.sidebar-expanded" = true;
+      "zen.tabs.vertical.right-side" = true;
       "zen.urlbar.behavior" = "float"; # Always floating
       # The space around the page (and between Zen's other floating parts), down
       # from 8px to the 3px between it and the address bar
