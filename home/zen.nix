@@ -77,6 +77,22 @@ in
             border-radius: 18px !important;
           }
         }
+        /* Where Zen's rounded edge meets GTK's curve, each lets a little of
+           what's behind the window through, a dark line inside the outline
+           against Zen's lighter frame. Behind Zen's frame, and over GTK's
+           curve, the outline's colour (lighter while the window's focused),
+           so nothing shows through. In dark mode only: in light the
+           outline is nearly transparent and the frame light, so no line */
+        @media (prefers-color-scheme: dark) {
+          :root[customtitlebar][sizemode="normal"]:not([tiled]) body {
+            --zen-aura-outline: rgb(58, 58, 60);
+            background-color: var(--zen-aura-outline) !important;
+            box-shadow: 0 0 0 1px var(--zen-aura-outline) !important;
+          }
+          :root[customtitlebar][sizemode="normal"]:not([tiled]):-moz-window-inactive body {
+            --zen-aura-outline: rgb(47, 47, 49);
+          }
+        }
       }
       /* Zen's frame (the sidebar and top toolbar round the page) in GNOME's
          sidebar colours, libadwaita's sidebar_bg_color and, while the
