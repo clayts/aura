@@ -46,6 +46,20 @@ in
           border-radius: 0 !important;
         }
       }
+      /* In compact mode, the sidebar kept hidden in a window or space with no
+         tabs (Zen's empty tab), which Zen otherwise shows as if hovered; it
+         still shows on hover and the like */
+      :root[zen-compact-mode="true"]:not([customizing], [inDOMFullscreen="true"], [zen-renaming-tab="true"])
+        #navigator-toolbox[zen-has-empty-tab]:not([zen-has-hover], [zen-user-show], [flash-popup], [has-popup-menu], [movingtab], [zen-compact-mode-active], [animate="true"]) {
+        translate: var(--zen-compact-hidden-translate) !important;
+        transition:
+          translate 0.15s ease,
+          visibility 0.15s ease !important;
+        & #titlebar {
+          visibility: hidden !important;
+          transition: visibility 0.15s !important;
+        }
+      }
       /* A little space before the compact mode (sidebar) button in the top
          toolbar, in compact mode */
       :root[zen-compact-mode="true"] #zen-toggle-compact-mode {
