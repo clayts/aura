@@ -154,7 +154,9 @@ in
       # Zen's default, the floating address bar for new tabs; set rather than left
       # out, as Zen keeps an earlier value in prefs.js
       "zen.urlbar.replace-newtab" = true;
-      "zen.view.compact.enable-at-startup" = true;
+      # Not compact mode (the sidebar hidden until hovered) at startup; it can
+      # still be turned on from the sidebar's menu
+      "zen.view.compact.enable-at-startup" = false;
       # The "Only Sidebar" layout, with no top toolbar, and the sidebar on the
       # right
       "zen.view.use-single-toolbar" = true;
