@@ -151,9 +151,11 @@ in
       "zen.updates.show-update-notification" = false; # Nor a note after each update
       "intl.regional_prefs.use_os_locales" = true; # en_GB dates, though Zen's own language is en-US
       "zen.theme.hide-unified-extensions-button" = false; # Otherwise uBlock's button can't be reached
-      # Zen's default, the floating address bar for new tabs; set rather than left
-      # out, as Zen keeps an earlier value in prefs.js
-      "zen.urlbar.replace-newtab" = true;
+      # New tabs as real tabs, on a blank page with the address bar focused (it
+      # floats once typed in), rather than Zen's floating address bar alone,
+      # over the page that was showing, with the tab made only once it's used
+      "zen.urlbar.replace-newtab" = false;
+      "browser.newtabpage.enabled" = false;
       # Not compact mode (the sidebar hidden until hovered) at startup; it can
       # still be turned on from the sidebar's menu
       "zen.view.compact.enable-at-startup" = false;
@@ -179,10 +181,9 @@ in
       # Zen's default, set rather than left out, as Zen keeps an earlier value
       # (no swiping to new spaces or the library) in prefs.js
       "zen.workspaces.swipe-actions.edge-actions" = true;
-      # The home page, which Zen also uses as the new tab page when
-      # zen.urlbar.replace-newtab is off: a search box and three rows of shortcuts. Zen
-      # already turns off stories and sponsored shortcuts, but also the
-      # shortcuts themselves
+      # The home page (new tabs are blank): a search box and three rows of
+      # shortcuts. Zen already turns off stories and sponsored shortcuts, but
+      # also the shortcuts themselves
       "browser.newtabpage.activity-stream.feeds.topsites" = true;
       "browser.newtabpage.activity-stream.topSitesRows" = 3;
       "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
