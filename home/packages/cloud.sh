@@ -4,18 +4,19 @@
 #                   if there's none; once set up, signs in again, e.g. if
 #                   access has expired
 #   cloud mount     mount Cloud, printing where
-#   cloud unmount   wait for uploads to finish, then unmount it
+#   cloud unmount   unmount it
+#   cloud status    whether it's mounted, what's uploading, downloading or
+#                   waiting to upload, and rclone's latest notices
 #
 # Cloud is mounted at /run/media/$USER/user/cloud, which Nautilus lists in its
 # sidebar. /run/media/$USER/user is the user's own folder for mounts
 # (os/users.nix); cloud in it is made here, as needed. Ejecting it in Nautilus
-# doesn't wait for uploads.
+# unmounts it too.
 #
 # Files are cached in ~/.cache/rclone, so they open like local ones, and edits
 # upload in the background a few seconds after they're closed. Any not
-# uploaded by unmounting, as after ejecting, are uploaded the next time Cloud
-# is mounted. rclone's notices, such as failed uploads, go to
-# ~/.local/state/cloud.log.
+# uploaded by unmounting are uploaded the next time Cloud is mounted. rclone's
+# notices, such as failed uploads, go to ~/.local/state/cloud.log.
 #
 # Files in Google's own formats (Docs, Sheets, Slides and so on) are left out,
 # as rclone can only download copies of them and can't upload edits back. Edit
@@ -35,11 +36,18 @@
 export RCLONE_CONFIG=~/.config/cloud.conf
 export RCLONE_DRIVE_SKIP_GDOCS=true # leave out Google Docs and so on (see above)
 mount=/run/media/$(id -un)/user/cloud
-# The mount's remote control, through which unmount asks about uploads; in the
-# user's runtime folder, so that only they can use it
+log=~/.local/state/cloud.log
+# The mount's remote control, through which status asks about transfers; in
+# the user's runtime folder, so that only they can use it
 socket=/run/user/$(id -u)/cloud.sock
 
 die() { echo "cloud: $*" >&2; exit 1; }
+
+# Asks the mount's rclone something, printing its answer as JSON
+ask() { rclone rc --unix-socket "$socket" "$@" 2>/dev/null; }
+
+# Prints a heading and the lines under it, unless there are none
+list() { [[ -z $2 ]] || printf '%s\n' "$1" "$2"; }
 
 # Prints the IDs of the folders called Cloud at the top of My Drive
 find_folder() {
@@ -91,7 +99,7 @@ mount() {
     # --daemon returns once the mount is ready
     rclone mount gdrive: "$mount" --daemon --vfs-cache-mode full \
         --rc --rc-addr "unix://$socket" --rc-no-auth \
-        --log-file ~/.local/state/cloud.log || {
+        --log-file "$log" || {
         rmdir "$mount"
         exit 1
     }
@@ -99,29 +107,40 @@ mount() {
 }
 
 unmount() {
-    local stats left errors shown=
     mountpoint -q "$mount" || die "not mounted"
-    while true; do
-        stats=$(rclone rc --unix-socket "$socket" vfs/stats 2>/dev/null |
-            jq -r '.diskCache | "\(.uploadsInProgress + .uploadsQueued) \(.erroredFiles)"') ||
-            die "can't tell whether uploads have finished, so it's still mounted;" \
-                "to unmount anyway, eject it in Nautilus"
-        read -r left errors <<<"$stats"
-        ((left > 0)) || break
-        if [[ $stats != "$shown" ]]; then
-            echo "Waiting for $left file(s) to upload (Ctrl-C to stop waiting)" >&2
-            ((errors == 0)) ||
-                echo "  $errors failing so far; see ~/.local/state/cloud.log" >&2
-            shown=$stats
-        fi
-        sleep 1
-    done
     /run/wrappers/bin/fusermount3 -u "$mount" # NixOS's setuid wrapper
     rmdir "$mount"
 }
 
+status() {
+    local stats queue transfers waiting
+    [[ -e $RCLONE_CONFIG ]] || die "not set up yet; run: cloud setup"
+    echo "Drive folder: https://drive.google.com/drive/folders/$(
+        sed -n 's/^root_folder_id = //p' "$RCLONE_CONFIG")"
+    if ! mountpoint -q "$mount"; then
+        echo "Not mounted. Any files not uploaded yet are uploaded when it's next mounted."
+    elif ! stats=$(ask core/stats) || ! queue=$(ask vfs/queue); then
+        echo "Mounted at $mount, but rclone isn't answering, so what it's doing is unknown."
+    else
+        echo "Mounted at $mount"
+        # Uploads and downloads alike
+        transfers=$(jq -r '.transferring[]? |
+            "  " + ("  \(.percentage)" | .[-3:]) + "%  \(.name)"' <<<"$stats")
+        # Files closed a few seconds ago, waiting their turn, or whose uploads failed
+        waiting=$(jq -r '.queue[]? | select(.uploading | not) | "  \(.name)" +
+            if .tries > 0 then " (failed \(.tries) time(s), will try again)" else "" end' <<<"$queue")
+        list "Transferring:" "$transfers"
+        list "Waiting to upload:" "$waiting"
+        [[ -n $transfers$waiting ]] || echo "All uploads and downloads are complete."
+    fi
+    if [[ -s $log ]]; then
+        echo "Latest notices, from $log:"
+        tail -n 10 "$log" | sed 's/^/  /'
+    fi
+}
+
 case "$*" in
-    setup | mount | unmount) "$1" ;;
-    *) echo "usage: cloud setup | mount | unmount" >&2
+    setup | mount | unmount | status) "$1" ;;
+    *) echo "usage: cloud setup | mount | unmount | status" >&2
        exit 2 ;;
 esac
