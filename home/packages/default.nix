@@ -59,6 +59,8 @@
     name = "cloud";
     runtimeInputs = with pkgs; [
       rclone
+      jq
+      networkmanager # nmcli
       util-linux # mountpoint
     ];
     text = builtins.readFile ./cloud.sh;
