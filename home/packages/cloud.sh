@@ -49,6 +49,19 @@ ask() { rclone rc --unix-socket "$socket" "$@" 2>/dev/null; }
 # Prints a heading and the lines under it, unless there are none
 list() { [[ -z $2 ]] || printf '%s\n' "$1" "$2"; }
 
+# Prints the files with changes not uploaded yet, from the cache's records of
+# them, which rclone marks Dirty until they're uploaded. Its records for
+# gdrive: are in vfsMeta/gdrive, or gdrive{SUFFIX} if settings from outside the
+# config change it. Only for when Cloud isn't mounted: rclone then rewrites them
+not_uploaded() {
+    local dir
+    for dir in ~/.cache/rclone/vfsMeta/gdrive ~/.cache/rclone/vfsMeta/gdrive"{"*"}"; do
+        [[ -d $dir ]] || continue # a glob that matches nothing stays as it is
+        (cd "$dir" && find . -type f -exec jq -r 'select(.Dirty) | input_filename' {} +) |
+            sed 's#^\./#  #'
+    done
+}
+
 # Prints the IDs of the folders called Cloud at the top of My Drive
 find_folder() {
     rclone lsjson gdrive: --dirs-only --no-modtime --no-mimetype |
@@ -113,12 +126,15 @@ unmount() {
 }
 
 status() {
-    local stats queue transfers waiting
+    local stats queue transfers waiting files
     [[ -e $RCLONE_CONFIG ]] || die "not set up yet; run: cloud setup"
     echo "Drive folder: https://drive.google.com/drive/folders/$(
         sed -n 's/^root_folder_id = //p' "$RCLONE_CONFIG")"
     if ! mountpoint -q "$mount"; then
-        echo "Not mounted. Any files not uploaded yet are uploaded when it's next mounted."
+        echo "Not mounted."
+        files=$(not_uploaded)
+        list "Not uploaded yet, until it's next mounted:" "$files"
+        [[ -n $files ]] || echo "All changes have been uploaded."
     elif ! stats=$(ask core/stats) || ! queue=$(ask vfs/queue); then
         echo "Mounted at $mount, but rclone isn't answering, so what it's doing is unknown."
     else
