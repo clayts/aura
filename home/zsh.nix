@@ -13,12 +13,12 @@
   ];
   home.packages = with pkgs; [
     packages.create
+    packages.cloud
     packages.sing
     packages.system
     packages.rizzlefetch
     grc
     yt-dlp
-    rclone
   ];
   # gh writes config.yml itself, starting with the first login, so it can't be a read-only link
   xdg.configFile."gh/config.yml".enable = false;

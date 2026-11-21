@@ -60,17 +60,6 @@ in
         }))
         auto-power-profile
         preserve-battery-health
-        # rclone-manager mounts and syncs the remotes in rclone's config from
-        # the panel. v20 only claims GNOME 48 to 50, so GNOME 51 won't load it
-        # until it's told it can; once a release claims 51, this override can go
-        (rclone-manager.overrideAttrs (old: {
-          nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.jq ];
-          postInstall = (old.postInstall or "") + ''
-            metadata=$out/share/gnome-shell/extensions/${old.passthru.extensionUuid}/metadata.json
-            jq '."shell-version" |= (. + ["51"] | unique)' "$metadata" > metadata.json.new
-            mv metadata.json.new "$metadata"
-          '';
-        }))
       ]
     );
   };
@@ -127,14 +116,12 @@ in
   # Nautilus prefers a folder's custom icon, kept in its GIO metadata, to its
   # own choice; these are set at each login. Without them, Inbox would get the
   # Desktop icon, as GLib checks for the desktop dir before downloads, and
-  # Projects, Cloud and Safe, which GLib doesn't treat as special, a plain
-  # folder icon.
+  # Projects and Safe, which GLib doesn't treat as special, a plain folder icon.
   xdg.configFile."autostart/folder-icons.desktop".text =
     let
       icons = {
         ${config.xdg.userDirs.download} = "folder-download";
         ${config.xdg.userDirs.projects} = "folder-code";
-        "${config.home.homeDirectory}/Cloud" = "folder-cloud";
         "${config.home.homeDirectory}/Safe" = "folder-private";
       };
       script = pkgs.writeShellScript "folder-icons" (
