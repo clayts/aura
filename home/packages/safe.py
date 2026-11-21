@@ -2,8 +2,9 @@
 # safe: encrypted folders ("safes"), from Nautilus or a terminal, using gocryptfs.
 #
 # A safe is any folder holding a gocryptfs filesystem (one with a
-# gocryptfs.conf). One called NAME is unlocked at /run/media/$USER/Safe/NAME,
-# which Nautilus lists in its sidebar, where ejecting it locks it again.
+# gocryptfs.conf). One called NAME is unlocked at
+# /run/media/$USER/Safe/HASH/NAME, HASH being a hash of its path, which Nautilus
+# lists in its sidebar as NAME, and where ejecting it locks it again.
 #
 # As a Nautilus extension, this shows safes as padlocked folders, and its
 # right-click menus offer New Encrypted Folder… in a folder, and Unlock
@@ -16,6 +17,8 @@
 #
 # where gocryptfs asks for passwords itself.
 
+import glob
+import hashlib
 import os
 import pwd
 import subprocess
@@ -31,7 +34,12 @@ def is_safe(path):
 
 
 def mount_point(safe):
-    return os.path.join(MEDIA, os.path.basename(safe))
+    """Where safe is unlocked: in a folder named by a hash of its path, so that
+    safes with the same name don't collide, and named after it itself, which is
+    what Nautilus calls it in its sidebar"""
+    safe = os.path.realpath(safe)
+    digest = hashlib.sha256(os.fsencode(safe)).hexdigest()[:16]
+    return os.path.join(MEDIA, digest, os.path.basename(safe))
 
 
 def create(safe, *options):
@@ -44,18 +52,19 @@ def unlock(safe, *options):
     """Make where safe is unlocked, returning the command that unlocks it there"""
     mount = mount_point(safe)
     if os.path.ismount(mount):  # gocryptfs would mount over it
-        raise FileExistsError(f"A safe called {os.path.basename(safe)} is already unlocked")
+        raise FileExistsError(f"{os.path.basename(mount)} is already unlocked")
     os.makedirs(mount, exist_ok=True)
     return [GOCRYPTFS, "-q", *options, "--", safe, mount]
 
 
-def remove(path):
+def remove(mount):
     """Remove where a safe was unlocked, if it was and it's locked"""
-    if path and os.path.dirname(path) == MEDIA:
-        try:
-            os.rmdir(path)
-        except OSError:  # still unlocked
-            pass
+    if mount and os.path.dirname(os.path.dirname(mount)) == MEDIA:
+        for path in (mount, os.path.dirname(mount)):
+            try:
+                os.rmdir(path)
+            except OSError:  # still unlocked
+                return
 
 
 def describe(error):
@@ -187,8 +196,8 @@ class Safes(GObject.GObject, Nautilus.MenuProvider, Nautilus.InfoProvider):
         # ejected while Nautilus wasn't running
         self.monitor = Gio.VolumeMonitor.get()
         self.monitor.connect("mount-removed", lambda _, mount: remove(mount.get_root().get_path()))
-        for name in os.listdir(MEDIA) if os.path.isdir(MEDIA) else []:
-            remove(os.path.join(MEDIA, name))
+        for mount in glob.glob(os.path.join(glob.escape(MEDIA), "*", "*")):
+            remove(mount)
 
     def get_background_items(self, folder):
         path = local_path(folder)
