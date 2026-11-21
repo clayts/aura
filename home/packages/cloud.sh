@@ -8,9 +8,9 @@
 #   cloud status    whether it's mounted, what's uploading, downloading or
 #                   waiting to upload, and rclone's latest notices
 #
-# Cloud is mounted at /run/media/$USER/user/cloud, which Nautilus lists in its
-# sidebar. /run/media/$USER/user is the user's own folder for mounts
-# (os/users.nix); cloud in it is made here, as needed. Ejecting it in Nautilus
+# Cloud is mounted at /run/media/$USER/cloud/Cloud, which Nautilus lists in its
+# sidebar as Cloud. /run/media/$USER/cloud is the user's own folder for it
+# (os/users.nix); Cloud in it is made here, as needed. Ejecting it in Nautilus
 # unmounts it too.
 #
 # Files are cached in ~/.cache/rclone, so they open like local ones, and edits
@@ -35,7 +35,7 @@
 
 export RCLONE_CONFIG=~/.config/cloud.conf
 export RCLONE_DRIVE_SKIP_GDOCS=true # leave out Google Docs and so on (see above)
-mount=/run/media/$(id -un)/user/cloud
+mount=/run/media/$(id -un)/cloud/Cloud
 log=~/.local/state/cloud.log
 # The mount's remote control, through which status asks about transfers; in
 # the user's runtime folder, so that only they can use it
