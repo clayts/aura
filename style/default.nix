@@ -40,8 +40,9 @@
     package = pkgs.morewaita-icon-theme;
   };
   cursors = {
-    name = "Bibata-Modern-Classic";
-    package = pkgs.bibata-cursors;
+    name = "phinger-cursors-dark";
+    package = pkgs.phinger-cursors;
+    size = 32;
   };
   gnome = {
     scheme = "default";
