@@ -48,7 +48,7 @@
   };
 
   # Each user's /run/media/USER/user: a folder of their own for their tools'
-  # mounts, each tool in a subfolder (like safe.py's Safe), which Nautilus
+  # mounts, each tool in a subfolder (like safe.py's safe), which Nautilus
   # lists in its sidebar. /run/media/USER itself stays as udisks makes it,
   # owned by root, since udisks makes folders there and mounts on them as root,
   # and the user mustn't be able to swap those from under it. udisks never
