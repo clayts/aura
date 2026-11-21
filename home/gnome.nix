@@ -26,43 +26,6 @@ in
     mission-center
     proton-vpn
   ];
-  # cloud syncs ~/Cloud with Google Drive (home/packages/cloud.sh) a minute
-  # after login, then every hour. Without its config (cloud setup not run) the
-  # timer doesn't start; cloud setup starts it. If ~/Cloud goes, syncs fail
-  # without touching anything until it's back
-  systemd.user = {
-    services.cloud = {
-      Unit.Description = "Sync ~/Cloud with Google Drive";
-      Service = {
-        Type = "oneshot";
-        # After waking, the internet takes a while to come back (Wi-Fi, then
-        # the VPN), so a sync caught up on waking first gives it up to a minute
-        ExecStartPre = "${pkgs.writeShellScript "cloud-wait-online" ''
-          for _ in {1..30}; do
-            [[ $(${lib.getExe' pkgs.networkmanager "nmcli"} -t networking connectivity check) == full ]] && exit
-            ${lib.getExe' pkgs.coreutils "sleep"} 2
-          done
-        ''}";
-        ExecStart = "${lib.getExe packages.cloud} sync";
-        Nice = 19; # which also gives it the lowest disk priority
-      };
-    };
-    timers.cloud = {
-      Unit = {
-        Description = "Sync ~/Cloud with Google Drive every hour";
-        ConditionPathExists = "%h/.config/cloud.conf";
-      };
-      Timer = {
-        # From when the timer starts: at login, or when cloud setup starts it
-        OnActiveSec = "1min";
-        # Not OnUnitInactiveSec, whose clock stops while the computer sleeps,
-        # so a laptop that sleeps a lot would rarely sync: an hour that passes
-        # while asleep is caught up on waking
-        OnCalendar = "hourly";
-      };
-      Install.WantedBy = [ "timers.target" ];
-    };
-  };
   gtk = {
     enable = true;
     iconTheme = style.icons;

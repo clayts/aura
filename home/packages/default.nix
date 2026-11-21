@@ -55,15 +55,6 @@
     mkdir -p $out/share/nautilus-python/extensions
     ln -s $out/bin/safe $out/share/nautilus-python/extensions/safe.py
   '';
-  cloud = pkgs.writeShellApplication {
-    name = "cloud";
-    runtimeInputs = with pkgs; [
-      rclone
-      networkmanager # nmcli
-      jq
-    ];
-    text = builtins.readFile ./cloud.sh;
-  };
   earthpaper = pkgs.writeShellApplication {
     name = "earthpaper";
     runtimeEnv.ids = ./earthpaper/earthpaper.json;
