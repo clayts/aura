@@ -8,10 +8,10 @@
 #   cloud status    whether it's mounted, what's uploading, downloading or
 #                   waiting to upload, and rclone's latest notices
 #
-# Cloud is mounted at /run/media/$USER/cloud/Cloud, which Nautilus lists in its
-# sidebar as Cloud. /run/media/$USER/cloud is the user's own folder for it
-# (os/users.nix); Cloud in it is made here, as needed. Ejecting it in Nautilus
-# unmounts it too.
+# Cloud is mounted at /run/media/$USER/user/cloud/Cloud, which Nautilus lists
+# in its sidebar as Cloud. /run/media/$USER/user is the user's own folder for
+# mounts (os/users.nix); cloud/Cloud in it is made here, as needed. Ejecting it
+# in Nautilus unmounts it too.
 #
 # Files are cached in ~/.cache/rclone, so they open like local ones, and edits
 # upload in the background a few seconds after they're closed. Any not
@@ -35,7 +35,7 @@
 
 export RCLONE_CONFIG=~/.config/cloud.conf
 export RCLONE_DRIVE_SKIP_GDOCS=true # leave out Google Docs and so on (see above)
-mount=/run/media/$(id -un)/cloud/Cloud
+mount=/run/media/$(id -un)/user/cloud/Cloud
 log=~/.local/state/cloud.log
 # The mount's remote control, through which status asks about transfers; in
 # the user's runtime folder, so that only they can use it
@@ -100,7 +100,7 @@ mount() {
     rclone mount gdrive: "$mount" --daemon --vfs-cache-mode full \
         --rc --rc-addr "unix://$socket" --rc-no-auth \
         --log-file "$log" || {
-        rmdir "$mount"
+        rmdir "$mount" "${mount%/*}"
         exit 1
     }
     echo "$mount"
@@ -109,7 +109,7 @@ mount() {
 unmount() {
     mountpoint -q "$mount" || die "not mounted"
     /run/wrappers/bin/fusermount3 -u "$mount" # NixOS's setuid wrapper
-    rmdir "$mount"
+    rmdir "$mount" "${mount%/*}"
 }
 
 status() {
