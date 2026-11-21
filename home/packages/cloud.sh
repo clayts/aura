@@ -13,7 +13,7 @@
 # mounts (os/users.nix); cloud/Cloud in it is made here, as needed. Ejecting it
 # in Nautilus unmounts it too.
 #
-# Files are cached in ~/.cache/rclone, so they open like local ones, and edits
+# Files are cached in ~/.cache/cloud, so they open like local ones, and edits
 # upload in the background a few seconds after they're closed. Any not
 # uploaded by unmounting are uploaded the next time Cloud is mounted. rclone's
 # notices, such as failed uploads, go to ~/.local/state/cloud.log.
@@ -28,13 +28,14 @@
 # too; it can therefore read and change all of your Drive, not just Cloud.
 #
 # To remove everything cloud has set up on this computer, unmount, then:
-#   rm -rf ~/.config/cloud.conf ~/.local/state/cloud.log ~/.cache/rclone
+#   rm -rf ~/.config/cloud.conf ~/.local/state/cloud.log ~/.cache/cloud
 # and, if wanted, remove rclone's access at
 # https://myaccount.google.com/connections and delete the OAuth client in the
 # Google Cloud console.
 
 export RCLONE_CONFIG=~/.config/cloud.conf
 export RCLONE_DRIVE_SKIP_GDOCS=true # leave out Google Docs and so on (see above)
+export RCLONE_CACHE_DIR=~/.cache/cloud # cloud's alone, so all of it is Cloud's
 mount=/run/media/$(id -un)/user/cloud/Cloud
 log=~/.local/state/cloud.log
 # The mount's remote control, through which status asks about transfers; in
@@ -49,17 +50,13 @@ ask() { rclone rc --unix-socket "$socket" "$@" 2>/dev/null; }
 # Prints a heading and the lines under it, unless there are none
 list() { [[ -z $2 ]] || printf '%s\n' "$1" "$2"; }
 
-# Prints the files with changes not uploaded yet, from the cache's records of
-# them, which rclone marks Dirty until they're uploaded. Its records for
-# gdrive: are in vfsMeta/gdrive, or gdrive{SUFFIX} if settings from outside the
-# config change it. Only for when Cloud isn't mounted: rclone then rewrites them
+# Prints the files with changes not uploaded yet: rclone keeps a record of
+# each cached file in vfsMeta/REMOTE/PATH, and marks it Dirty until it's
+# uploaded. Only for when Cloud isn't mounted: rclone then rewrites them
 not_uploaded() {
-    local dir
-    for dir in ~/.cache/rclone/vfsMeta/gdrive ~/.cache/rclone/vfsMeta/gdrive"{"*"}"; do
-        [[ -d $dir ]] || continue # a glob that matches nothing stays as it is
-        (cd "$dir" && find . -type f -exec jq -r 'select(.Dirty) | input_filename' {} +) |
-            sed 's#^\./#  #'
-    done
+    [[ -d $RCLONE_CACHE_DIR/vfsMeta ]] || return 0
+    (cd "$RCLONE_CACHE_DIR/vfsMeta" && grep -rlE '"Dirty": ?true' . || true) |
+        sed 's#^\./[^/]*/#  #'
 }
 
 # Prints the IDs of the folders called Cloud at the top of My Drive
