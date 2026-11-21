@@ -3,8 +3,10 @@
 #
 # A safe is any folder holding a gocryptfs filesystem (one with a
 # gocryptfs.conf). One called NAME is unlocked at
-# /run/media/$USER/Safe/HASH/NAME, HASH being a hash of its path, which Nautilus
-# lists in its sidebar as NAME, and where ejecting it locks it again.
+# /run/media/$USER/user/Safe/HASH/NAME, HASH being a hash of its path, which
+# Nautilus lists in its sidebar as NAME, and where ejecting it locks it again.
+# /run/media/$USER/user is the user's own folder for mounts (os/users.nix);
+# Safe in it is made here, as needed.
 #
 # As a Nautilus extension, this shows safes as padlocked folders, and its
 # right-click menus offer New Encrypted Folder… in a folder, and Unlock
@@ -26,7 +28,7 @@ import sys
 
 GOCRYPTFS = "@gocryptfs@"
 FUSERMOUNT = "/run/wrappers/bin/fusermount3"  # NixOS's setuid wrapper
-MEDIA = f"/run/media/{pwd.getpwuid(os.getuid()).pw_name}/Safe"
+MEDIA = f"/run/media/{pwd.getpwuid(os.getuid()).pw_name}/user/Safe"
 
 
 def is_safe(path):
