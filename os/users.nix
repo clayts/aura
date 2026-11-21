@@ -47,13 +47,16 @@
     ];
   };
 
-  # Each user's /run/media/USER/Safe, where safes are unlocked
-  # (home/packages/safe.py). udisks makes /run/media/USER only when it first
-  # mounts something, owned by root, so it's made here as udisks would make it
+  # Each user's /run/media/USER/user: a folder of their own for their tools'
+  # mounts, each tool in a subfolder (like safe.py's Safe), which Nautilus
+  # lists in its sidebar. /run/media/USER itself stays as udisks makes it,
+  # owned by root, since udisks makes folders there and mounts on them as root,
+  # and the user mustn't be able to swap those from under it. udisks never
+  # touches user. (A name starting with a dot would hide its mounts)
   systemd.tmpfiles.rules = lib.concatMap (user: [
     "d /run/media/${user.name} 0750 root root -"
     "a+ /run/media/${user.name} - - - - u:${user.name}:r-x"
-    "d /run/media/${user.name}/Safe 0700 ${user.name} ${user.group} -"
+    "d /run/media/${user.name}/user 0700 ${user.name} ${user.group} -"
   ]) (lib.filter (user: user.isNormalUser) (lib.attrValues config.users.users));
 
   # Without ~/.gitconfig, git config --global writes to home-manager's read-only ~/.config/git/config
