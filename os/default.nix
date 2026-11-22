@@ -1,6 +1,7 @@
 { pkgs, style, ... }:
 {
   imports = [
+    ./cosmic.nix
     ./gnome.nix
     ./hardware.nix
     ./users.nix
