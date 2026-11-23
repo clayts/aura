@@ -69,6 +69,11 @@ in
       background-color: alpha(currentColor, 0.1);
       color: inherit;
     }
+    /* Its edge, which runs beside the tabs too, in its own colour, so it
+       joins them, and only the editor's colour marks where it ends */
+    window.nvim-background paned > separator {
+      background-image: image(${style.colors.grey2});
+    }
 
     /* The header bar, flat, and the tabs, a GTK notebook's, under it as
        libadwaita's tab bar is: rounded, with a faint highlight for the
