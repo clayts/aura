@@ -353,37 +353,103 @@ clue.setup({
 
 -- Completion
 
+-- Neovim's API, for lua_ls, in Neovim's own config
 require("lazydev").setup()
 
-require("blink.cmp").setup({
-	keymap = { preset = "super-tab" },
-	completion = {
-		documentation = { auto_show = true, auto_show_delay_ms = 200 },
-		menu = {
-			draw = {
-				columns = { { "kind_icon" }, { "label", "label_description", gap = 1 } },
-				components = {
-					kind_icon = {
-						text = function(ctx)
-							return MiniIcons.get("lsp", ctx.kind) .. ctx.icon_gap
-						end,
-						highlight = function(ctx)
-							return select(2, MiniIcons.get("lsp", ctx.kind))
-						end,
-					},
-				},
-			},
-		},
-	},
-	signature = { enabled = true },
-	sources = {
-		default = { "lazydev", "lsp", "path", "snippets", "buffer" },
-		providers = {
-			lazydev = { name = "LazyDev", module = "lazydev.integrations.blink", score_offset = 100 },
-		},
-	},
-	fuzzy = { prebuilt_binaries = { download = false } },
+-- Neovim's own completion, as you type, from the language servers, then words
+-- in open buffers. Neovim GTK draws its menu as a GTK popup
+vim.o.autocomplete = true
+vim.o.complete = "o,.^5,w^5,b^5"
+vim.opt.shortmess:append("c")
+local gui = vim.g.GtkGuiLoaded == 1
+-- The selected item's docs: in a terminal, beside the menu, as Neovim draws
+-- them; in Neovim GTK, in its popup, below
+vim.o.completeopt = gui and "menuone,noselect" or "menuone,noselect,popup"
+MiniIcons.tweak_lsp_kind("prepend")
+
+autocmd("LspAttach", {
+	group = group,
+	callback = function(args)
+		local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
+		if client:supports_method("textDocument/completion") then
+			-- Accepting an item applies its snippet, imports and other edits
+			vim.lsp.completion.enable(true, client.id, args.buf)
+		end
+	end,
 })
+
+-- Tab takes the selected item, or else the first, or jumps on in a snippet
+vim.keymap.set({ "i", "s" }, "<Tab>", function()
+	if vim.fn.pumvisible() == 1 then
+		return vim.fn.complete_info({ "selected" }).selected == -1 and "<C-n><C-y>" or "<C-y>"
+	elseif vim.snippet.active({ direction = 1 }) then
+		return "<Cmd>lua vim.snippet.jump(1)<CR>"
+	end
+	return "<Tab>"
+end, { expr = true })
+
+-- A function's signature, on typing ( or , in a call
+autocmd("InsertCharPre", {
+	group = group,
+	callback = function()
+		if vim.v.char ~= "(" and vim.v.char ~= "," then
+			return
+		end
+		if next(vim.lsp.get_clients({ bufnr = 0, method = "textDocument/signatureHelp" })) then
+			vim.schedule(function()
+				vim.lsp.buf.signature_help({ focusable = false, silent = true })
+			end)
+		end
+	end,
+})
+
+-- In Neovim GTK, an item's docs, which language servers send when asked for
+-- that item, go to its popup, by the PopupmenuInfo message that
+-- home/neovim/neovim-gtk/completion-docs.patch adds
+local function docs(item)
+	local doc = item.documentation
+	doc = type(doc) == "table" and doc.value or doc or ""
+	-- Markdown's code fences and escapes, which the popup would show as they are
+	doc = vim.trim((doc:gsub("```%w*\n?", ""):gsub("\\(%p)", "%1")))
+	local detail = vim.trim(item.detail or "")
+	if detail ~= "" and not doc:find(detail, 1, true) then
+		return vim.trim(detail .. "\n\n" .. doc)
+	end
+	return doc
+end
+
+if gui then
+	autocmd("CompleteChanged", {
+		group = group,
+		callback = function(args)
+			local lsp = vim.tbl_get(vim.v.event, "completed_item", "user_data", "nvim", "lsp")
+			local ui = vim.api.nvim_list_uis()[1]
+			if not lsp or not ui then
+				return
+			end
+			local selected = vim.fn.complete_info({ "selected" }).selected
+			local function show(item)
+				local text = docs(item)
+				if text ~= "" and vim.fn.complete_info({ "selected" }).selected == selected then
+					vim.rpcnotify(ui.chan, "Gui", "PopupmenuInfo", selected, text)
+				end
+			end
+			local client = vim.lsp.get_client_by_id(lsp.client_id)
+			local item = lsp.completion_item
+			if item.documentation or not (client and client:supports_method("completionItem/resolve")) then
+				show(item)
+				return
+			end
+			client:request("completionItem/resolve", item, function(err, result)
+				if not err and result then
+					vim.schedule(function()
+						show(result)
+					end)
+				end
+			end, args.buf)
+		end,
+	})
+end
 
 -- Formatting, on save, by a formatter or else the language server
 

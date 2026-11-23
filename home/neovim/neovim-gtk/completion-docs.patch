@@ -1,0 +1,119 @@
+diff --git a/src/nvim/redraw_handler.rs b/src/nvim/redraw_handler.rs
+index 59a8121..a88a855 100644
+--- a/src/nvim/redraw_handler.rs
++++ b/src/nvim/redraw_handler.rs
+@@ -179,6 +179,7 @@ pub fn call_gui_event(
+         "Font" => call!(ui->set_font(args: str)),
+         "FontFeatures" => call!(ui->set_font_features(args: str)),
+         "Linespace" => call!(ui->set_line_space(args: str)),
++        "PopupmenuInfo" => call!(ui->popupmenu_info(args: uint, str)),
+         "Clipboard" => match try_str!(args[0]) {
+             "Set" => match try_str!(args[1]) {
+                 "*" => ui.clipboard_primary_set(try_str!(args[2])),
+diff --git a/src/popup_menu/mod.rs b/src/popup_menu/mod.rs
+index e81885a..74f7ad0 100644
+--- a/src/popup_menu/mod.rs
++++ b/src/popup_menu/mod.rs
+@@ -40,6 +40,8 @@ pub struct State {
+     row_height: i32,
+     prev_selected: Option<u32>,
+     preview: bool,
++    // Docs sent by Gui PopupmenuInfo for an item, which win over its own info
++    info_override: Option<(u32, String)>,
+ }
+ 
+ impl State {
+@@ -80,6 +82,7 @@ impl State {
+             .margin_bottom(3)
+             .margin_start(3)
+             .margin_end(3)
++            .css_classes(vec!["nvim-popupmenu-info".to_string()])
+             .build();
+ 
+         let info_scroll = gtk::ScrolledWindow::builder()
+@@ -103,6 +106,7 @@ impl State {
+             open: false,
+             prev_selected: None,
+             preview: true,
++            info_override: None,
+         }
+     }
+ 
+@@ -117,6 +121,7 @@ impl State {
+             ..
+         } = ctx;
+ 
++        self.info_override = None;
+         self.update_list(ctx);
+ 
+         self.info_scroll.set_max_content_width(max_width);
+@@ -232,6 +237,10 @@ impl State {
+                 listview.nvim-popupmenu-list > row:selected {{\
+                     background-color: {bg_sel};\
+                     color: {fg_sel};\
++                }}\
++                label.nvim-popupmenu-info {{\
++                    font-family: \"{font}\";\
++                    font-size: {size}pt;\
+                 }}",
+                 margin = PADDING,
+                 fg_sel = hl.pmenu_fg_sel().to_hex(),
+@@ -275,6 +284,16 @@ impl State {
+     }
+ 
+     fn show_info_column(&self, selected: u32) {
++        if let Some((idx, ref info)) = self.info_override {
++            if idx == selected && !info.trim().is_empty() {
++                self.info_label.set_text(info.trim());
++                self.info_scroll.vadjustment().set_value(0.0);
++                self.info_scroll.hadjustment().set_value(0.0);
++                self.info_scroll.show();
++                return;
++            }
++        }
++
+         let info = self.items[selected as usize].info.trim();
+ 
+         if self.preview && !info.is_empty() {
+@@ -292,6 +311,15 @@ impl State {
+     fn set_preview(&mut self, preview: bool) {
+         self.preview = preview;
+     }
++
++    // Shows docs for an item, as Neovim sends none for items it resolves
++    // after the menu is shown, as LSP completion does
++    fn set_info(&mut self, idx: u32, info: String) {
++        self.info_override = Some((idx, info));
++        if self.open && self.prev_selected == Some(idx) {
++            self.show_info_column(idx);
++        }
++    }
+ }
+ 
+ pub struct PopupMenu {
+@@ -395,6 +423,10 @@ impl PopupMenu {
+         self.state.borrow_mut().set_preview(preview);
+     }
+ 
++    pub fn set_info(&self, idx: u32, info: String) {
++        self.state.borrow_mut().set_info(idx, info);
++    }
++
+     pub fn update_css(&self, hl: &HighlightMap, font_ctx: &render::Context) {
+         self.state.borrow().update_css(hl, font_ctx);
+     }
+diff --git a/src/shell.rs b/src/shell.rs
+index 38c94e2..8da94c8 100644
+--- a/src/shell.rs
++++ b/src/shell.rs
+@@ -665,6 +665,10 @@ impl State {
+         self.set_font_rpc(&font_desc);
+     }
+ 
++    pub fn popupmenu_info(&mut self, idx: u64, info: String) {
++        self.popup_menu.set_info(idx as u32, info);
++    }
++
+     pub fn set_font_rpc(&mut self, font_desc: &str) {
+         {
+             let mut settings = self.settings.borrow_mut();

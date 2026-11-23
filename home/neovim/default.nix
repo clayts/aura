@@ -12,15 +12,23 @@ let
   # its header bar dark like the editor. It takes its font from GNOME's
   # monospace font, and its font features from ginit.vim. nixpkgs builds it
   # looking for its runtime, with GuiFont and its other commands, where it
-  # was built, so it's told where it was installed
+  # was built, so it's told where it was installed. It's patched, so it's
+  # built here, not fetched, to show completion docs in its completion popup
+  # and to give its sidebar a header bar of its own, at the top of the window
+  neovim-gtk-unwrapped = pkgs.neovim-gtk.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [
+      ./neovim-gtk/completion-docs.patch
+      ./neovim-gtk/sidebar.patch
+    ];
+  });
   neovim-gtk = pkgs.symlinkJoin {
     name = "neovim-gtk";
-    paths = [ pkgs.neovim-gtk ];
+    paths = [ neovim-gtk-unwrapped ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/nvim-gtk \
         --add-flags "--nvim-bin-path ${nvim}" \
-        --set NVIM_GTK_RUNTIME_PATH ${pkgs.neovim-gtk}/share/nvim-gtk/runtime \
+        --set NVIM_GTK_RUNTIME_PATH ${neovim-gtk-unwrapped}/share/nvim-gtk/runtime \
         --set NVIM_GTK_PREFER_DARK_THEME 1
     '';
     meta.mainProgram = "nvim-gtk";
@@ -56,25 +64,26 @@ in
   # the nvim-background class
   # Its sidebar, a box with a tree view in it, which adw-gtk3, GNOME's theme
   # for GTK apps, colours as the editor, with a blue selected row, is coloured
-  # as libadwaita colours sidebars: grey2, with a faint highlight
+  # as libadwaita colours sidebars: grey2, with a faint highlight. Its edge
+  # runs from the top of the window, and adw-gtk3 draws it as a line
   gtk.gtk4.extraCss = ''
     window.nvim-background {
       background: ${style.colors.grey0};
     }
-    window.nvim-background paned > box.view,
-    window.nvim-background paned > box.view treeview.view {
+    window.nvim-background .nvim-sidebar,
+    window.nvim-background .nvim-sidebar box.view,
+    window.nvim-background .nvim-sidebar treeview.view {
       background-color: ${style.colors.grey2};
     }
-    window.nvim-background paned > box.view treeview.view:selected {
+    window.nvim-background .nvim-sidebar treeview.view:selected {
       background-color: alpha(currentColor, 0.1);
       color: inherit;
     }
-    /* Its edge, in its own colour, so no line runs beside the tabs, and only
-       the editor's colour marks where it ends. GTK's theme draws it as a
-       background, adw-gtk3's, as GNOME is set to use, as a shadow */
-    window.nvim-background paned.horizontal > separator {
-      background: none;
-      box-shadow: inset 1px 0 ${style.colors.grey2};
+    /* Its header bar, which sidebar.patch adds, flat, in its colour, as
+       libadwaita's are; the editor's, adw-gtk3's, has a shade under it */
+    window.nvim-background .nvim-sidebar > headerbar {
+      background: ${style.colors.grey2};
+      box-shadow: none;
     }
 
     /* The tabs, a GTK notebook's, on the sidebar's colour, under the header
@@ -170,8 +179,6 @@ in
     ];
     plugins = with pkgs.vimPlugins; [
       mini-nvim
-      blink-cmp
-      friendly-snippets
       conform-nvim
       nvim-lspconfig
       lazydev-nvim

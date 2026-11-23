@@ -1,0 +1,156 @@
+diff --git a/src/ui.rs b/src/ui.rs
+index 5fd8bbf..63af202 100644
+--- a/src/ui.rs
++++ b/src/ui.rs
+@@ -151,9 +151,13 @@ impl Ui {
+             window.add_css_class("nvim-background");
+         }
+ 
++        // The editor isn't squeezed below the width its header bar needs, and
++        // the sidebar keeps its width as the window's changes
+         let main = Paned::builder()
+             .orientation(Orientation::Horizontal)
+             .focusable(false)
++            .shrink_end_child(false)
++            .resize_start_child(false)
+             .build();
+ 
+         let comps_ref = &self.comps;
+@@ -217,21 +221,61 @@ impl Ui {
+             app.set_accels_for_action("app.quit", &[]);
+         }
+ 
+-        let (update_subtitle, header_bar) = if use_header_bar {
+-            let (subscription, header_bar) = self.create_header_bar(app);
+-            (Some(subscription), Some(header_bar))
++        let (update_subtitle, header_bar, header_bars) = if use_header_bar {
++            let (subscription, buttons, content_header) = self.create_header_bar(app);
++
++            // A header bar of the sidebar's own, as libadwaita's split views
++            // have, so the sidebar runs to the top of the window, beside the
++            // editor's. The window's own title bar is hidden for them
++            let sidebar_header = HeaderBar::builder()
++                .title_widget(&gtk::Label::new(None))
++                .focusable(false)
++                .build();
++            let titlebar = gtk::Box::new(Orientation::Horizontal, 0);
++            titlebar.set_visible(false);
++            window.set_titlebar(Some(&titlebar));
++
++            (
++                Some(subscription),
++                Some(buttons),
++                Some((sidebar_header, content_header)),
++            )
+         } else {
+-            (None, None)
++            (None, None, None)
+         };
+ 
++        // The sidebar, and the editor, each under its header bar
++        let sidebar = gtk::Box::new(Orientation::Vertical, 0);
++        sidebar.add_css_class("nvim-sidebar");
++        let content = gtk::Box::new(Orientation::Vertical, 0);
++        content.add_css_class("nvim-content");
++        if let Some((ref sidebar_header, ref content_header)) = header_bars {
++            sidebar.append(sidebar_header);
++            content.append(content_header);
++            split_decorations(&window, sidebar_header, content_header, true);
++
++            let settings = window.settings();
++            settings.connect_gtk_decoration_layout_notify(
++                clone!(window, sidebar, header_bars => move |_| {
++                    if let Some((ref sidebar_header, ref content_header)) = header_bars {
++                        split_decorations(&window, sidebar_header, content_header, sidebar.is_visible());
++                    }
++                }),
++            );
++        }
++
+         let show_sidebar_action =
+             SimpleAction::new_stateful("show-sidebar", None, &false.to_variant());
+         show_sidebar_action.connect_change_state(
+-            clone!(file_browser_ref, comps_ref => move |action, value| {
++            clone!(file_browser_ref, comps_ref, sidebar, header_bars, window => move |action, value| {
+                 if let Some(value) = value {
+                     action.set_state(value);
+                     let is_active = value.get::<bool>().unwrap();
+                     file_browser_ref.borrow().set_visible(is_active);
++                    sidebar.set_visible(is_active);
++                    if let Some((ref sidebar_header, ref content_header)) = header_bars {
++                        split_decorations(&window, sidebar_header, content_header, is_active);
++                    }
+                     comps_ref.borrow_mut().window_state.show_sidebar = is_active;
+                 }
+             }),
+@@ -265,8 +309,12 @@ impl Ui {
+ 
+         let shell = self.shell.borrow();
+         let file_browser = self.file_browser.borrow();
+-        main.set_start_child(Some(&**file_browser));
+-        main.set_end_child(Some(&**shell));
++        file_browser.set_vexpand(true);
++        shell.set_vexpand(true);
++        sidebar.append(&**file_browser);
++        content.append(&**shell);
++        main.set_start_child(Some(&sidebar));
++        main.set_end_child(Some(&content));
+         window.set_child(Some(&main));
+ 
+         window.show();
+@@ -492,7 +540,7 @@ impl Ui {
+     fn create_header_bar(
+         &self,
+         app: &gtk::Application,
+-    ) -> (SubscriptionHandle, Box<HeaderBarButtons>) {
++    ) -> (SubscriptionHandle, Box<HeaderBarButtons>, HeaderBar) {
+         let header_bar_title = gtk::Label::builder()
+             .css_classes(vec!["title".to_string()])
+             .vexpand(true)
+@@ -553,8 +601,6 @@ impl Ui {
+         save_btn.set_sensitive(false);
+         header_bar.pack_end(&save_btn);
+ 
+-        window.set_titlebar(Some(&header_bar));
+-
+         let shell = self.shell.borrow();
+ 
+         let update_subtitle = shell.state.borrow().subscribe(
+@@ -572,6 +618,7 @@ impl Ui {
+                 save_btn,
+                 primary_menu_btn,
+             )),
++            header_bar,
+         )
+     }
+ 
+@@ -681,6 +728,29 @@ fn gtk_close_request(comps: &Arc<UiMutex<Components>>, shell: &Rc<RefCell<Shell>
+     })
+ }
+ 
++// Splits the window's buttons between the header bars, as the decoration
++// layout puts them, start and end, while the sidebar is shown, or else
++// leaves them all to the editor's
++fn split_decorations(
++    window: &gtk::ApplicationWindow,
++    sidebar_header: &HeaderBar,
++    content_header: &HeaderBar,
++    sidebar_shown: bool,
++) {
++    if sidebar_shown {
++        let layout = window
++            .settings()
++            .gtk_decoration_layout()
++            .map(|layout| layout.to_string())
++            .unwrap_or_else(|| "menu:close".to_string());
++        let (start, end) = layout.split_once(':').unwrap_or((&layout, ""));
++        sidebar_header.set_decoration_layout(Some(&format!("{}:", start)));
++        content_header.set_decoration_layout(Some(&format!(":{}", end)));
++    } else {
++        content_header.set_decoration_layout(None);
++    }
++}
++
+ fn gtk_window_resize(
+     app_window: &gtk::ApplicationWindow,
+     comps: &mut Components,

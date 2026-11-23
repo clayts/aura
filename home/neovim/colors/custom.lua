@@ -321,26 +321,6 @@ local groups = {
 	MiniIconsRed = { fg = c.red },
 	MiniIconsYellow = { fg = c.yellow },
 	MiniSurround = { link = "IncSearch" },
-
-	-- blink.cmp
-	BlinkCmpMenu = { link = "Pmenu" },
-	BlinkCmpMenuBorder = { link = "FloatBorder" },
-	BlinkCmpMenuSelection = { link = "PmenuSel" },
-	BlinkCmpScrollBarThumb = { link = "PmenuThumb" },
-	BlinkCmpScrollBarGutter = { link = "PmenuSbar" },
-	BlinkCmpLabel = { fg = c.grey5 },
-	BlinkCmpLabelMatch = { fg = c.accent, bold = true },
-	BlinkCmpLabelDeprecated = { fg = c.grey3, strikethrough = true },
-	BlinkCmpLabelDetail = { fg = c.grey4 },
-	BlinkCmpLabelDescription = { fg = c.grey4 },
-	BlinkCmpSource = { fg = c.grey3 },
-	BlinkCmpGhostText = { fg = c.grey3, italic = true },
-	BlinkCmpDoc = { link = "NormalFloat" },
-	BlinkCmpDocBorder = { link = "FloatBorder" },
-	BlinkCmpDocSeparator = { fg = c.grey2, bg = c.grey1 },
-	BlinkCmpSignatureHelp = { link = "NormalFloat" },
-	BlinkCmpSignatureHelpBorder = { link = "FloatBorder" },
-	BlinkCmpSignatureHelpActiveParameter = { link = "LspSignatureActiveParameter" },
 }
 
 for name, spec in pairs(groups) do
