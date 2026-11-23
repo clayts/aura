@@ -54,9 +54,9 @@ in
   # quite meet, as at the sidebar's edge. The user's GTK CSS comes before the
   # app's own, so this makes it the editor's. Only Neovim GTK's window has
   # the nvim-background class
-  # Its sidebar, a box with a tree view in it, is coloured as libadwaita colours
-  # sidebars, which, dark, is grey2, with a faint highlight for the selected
-  # row in place of GTK's blue
+  # Its sidebar, a box with a tree view in it, which adw-gtk3, GNOME's theme
+  # for GTK apps, colours as the editor, with a blue selected row, is coloured
+  # as libadwaita colours sidebars: grey2, with a faint highlight
   gtk.gtk4.extraCss = ''
     window.nvim-background {
       background: ${style.colors.grey0};
@@ -70,22 +70,17 @@ in
       color: inherit;
     }
     /* Its edge, which runs beside the tabs too, in its own colour, so it
-       joins them, and only the editor's colour marks where it ends */
-    window.nvim-background paned > separator {
-      background-image: image(${style.colors.grey2});
+       joins them, and only the editor's colour marks where it ends. GTK's
+       theme draws it as a background, adw-gtk3's, as GNOME is set to use,
+       as a shadow */
+    window.nvim-background paned.horizontal > separator {
+      background: none;
+      box-shadow: inset 1px 0 ${style.colors.grey2};
     }
 
-    /* The header bar, flat, and the tabs, a GTK notebook's, under it as
-       libadwaita's tab bar is: rounded, with a faint highlight for the
-       selected one, in place of a blue underline */
-    window.nvim-background headerbar {
-      background: ${style.colors.grey2};
-      border: none;
-      box-shadow: none;
-    }
-    window.nvim-background headerbar:backdrop {
-      background: ${style.colors.grey1};
-    }
+    /* The tabs, a GTK notebook's, as libadwaita's tab bar is: on the header
+       bar's colour, as adw-gtk3 has it, rounded, with a faint highlight for
+       the selected one, in place of a blue underline */
     window.nvim-background notebook > header {
       background: ${style.colors.grey2};
       border: none;
