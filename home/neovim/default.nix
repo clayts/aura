@@ -78,9 +78,18 @@ in
       box-shadow: inset 1px 0 ${style.colors.grey2};
     }
 
-    /* The tabs, a GTK notebook's, as libadwaita's tab bar is: on the header
-       bar's colour, as adw-gtk3 has it, rounded, with a faint highlight for
-       the selected one, in place of a blue underline */
+    /* The header bar, flat, without the line under it that GTK's theme and
+       adw-gtk3 draw, and the tabs, a GTK notebook's, under it as libadwaita's
+       tab bar is: rounded, with a faint highlight for the selected one, in
+       place of a blue underline */
+    window.nvim-background headerbar {
+      background: ${style.colors.grey2};
+      border: none;
+      box-shadow: none;
+    }
+    window.nvim-background headerbar:backdrop {
+      background: ${style.colors.grey1};
+    }
     window.nvim-background notebook > header {
       background: ${style.colors.grey2};
       border: none;
