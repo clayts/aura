@@ -1,22 +1,52 @@
+diff --git a/src/file_browser/mod.rs b/src/file_browser/mod.rs
+index c1221cd..1f94942 100644
+--- a/src/file_browser/mod.rs
++++ b/src/file_browser/mod.rs
+@@ -73,6 +73,22 @@ enum Column {
+ }
+ 
+ impl FileBrowserWidget {
++    // Takes the folder dropdown out of the sidebar, for a header bar, still
++    // insensitive while the sidebar is, as until Neovim is ready
++    pub fn take_dir_list(&self) -> gtk::ComboBox {
++        let dir_list = self.comps.dir_list.clone();
++        self.widget.remove(&dir_list);
++        dir_list.set_margin_top(0);
++        dir_list.set_margin_bottom(0);
++        dir_list.set_margin_start(0);
++        dir_list.set_margin_end(0);
++        self.widget
++            .bind_property("sensitive", &dir_list, "sensitive")
++            .flags(glib::BindingFlags::SYNC_CREATE)
++            .build();
++        dir_list
++    }
++
+     pub fn new(shell_state: &Arc<UiMutex<shell::State>>) -> Self {
+         let widget = gtk::Box::builder()
+             .focusable(false)
 diff --git a/src/ui.rs b/src/ui.rs
-index 5fd8bbf..63af202 100644
+index 5fd8bbf..f56d8fc 100644
 --- a/src/ui.rs
 +++ b/src/ui.rs
-@@ -151,9 +151,13 @@ impl Ui {
+@@ -151,9 +151,16 @@ impl Ui {
              window.add_css_class("nvim-background");
          }
  
-+        // The editor isn't squeezed below the width its header bar needs, and
-+        // the sidebar keeps its width as the window's changes
++        // The editor isn't squeezed below the width its header bar needs, nor
++        // the sidebar below its own, and the sidebar keeps its width as the
++        // window's changes. Were the sidebar to shrink, GtkPaned, giving it at
++        // least a pixel, would measure the editor a pixel short of its least
          let main = Paned::builder()
              .orientation(Orientation::Horizontal)
              .focusable(false)
++            .shrink_start_child(false)
 +            .shrink_end_child(false)
 +            .resize_start_child(false)
              .build();
  
          let comps_ref = &self.comps;
-@@ -217,21 +221,61 @@ impl Ui {
+@@ -217,21 +224,61 @@ impl Ui {
              app.set_accels_for_action("app.quit", &[]);
          }
  
@@ -83,12 +113,16 @@ index 5fd8bbf..63af202 100644
                      comps_ref.borrow_mut().window_state.show_sidebar = is_active;
                  }
              }),
-@@ -265,8 +309,12 @@ impl Ui {
+@@ -265,8 +312,16 @@ impl Ui {
  
          let shell = self.shell.borrow();
          let file_browser = self.file_browser.borrow();
 -        main.set_start_child(Some(&**file_browser));
 -        main.set_end_child(Some(&**shell));
++        // The sidebar's folder dropdown, as its header bar's title
++        if let Some((ref sidebar_header, _)) = header_bars {
++            sidebar_header.set_title_widget(Some(&file_browser.take_dir_list()));
++        }
 +        file_browser.set_vexpand(true);
 +        shell.set_vexpand(true);
 +        sidebar.append(&**file_browser);
@@ -98,7 +132,7 @@ index 5fd8bbf..63af202 100644
          window.set_child(Some(&main));
  
          window.show();
-@@ -492,7 +540,7 @@ impl Ui {
+@@ -492,7 +547,7 @@ impl Ui {
      fn create_header_bar(
          &self,
          app: &gtk::Application,
@@ -107,7 +141,7 @@ index 5fd8bbf..63af202 100644
          let header_bar_title = gtk::Label::builder()
              .css_classes(vec!["title".to_string()])
              .vexpand(true)
-@@ -553,8 +601,6 @@ impl Ui {
+@@ -553,8 +608,6 @@ impl Ui {
          save_btn.set_sensitive(false);
          header_bar.pack_end(&save_btn);
  
@@ -116,7 +150,7 @@ index 5fd8bbf..63af202 100644
          let shell = self.shell.borrow();
  
          let update_subtitle = shell.state.borrow().subscribe(
-@@ -572,6 +618,7 @@ impl Ui {
+@@ -572,6 +625,7 @@ impl Ui {
                  save_btn,
                  primary_menu_btn,
              )),
@@ -124,7 +158,7 @@ index 5fd8bbf..63af202 100644
          )
      }
  
-@@ -681,6 +728,29 @@ fn gtk_close_request(comps: &Arc<UiMutex<Components>>, shell: &Rc<RefCell<Shell>
+@@ -681,6 +735,29 @@ fn gtk_close_request(comps: &Arc<UiMutex<Components>>, shell: &Rc<RefCell<Shell>
      })
  }
  
