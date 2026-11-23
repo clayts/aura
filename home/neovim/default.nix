@@ -54,9 +54,20 @@ in
   # quite meet, as at the sidebar's edge. The user's GTK CSS comes before the
   # app's own, so this makes it the editor's. Only Neovim GTK's window has
   # the nvim-background class
+  # Its sidebar, a box with a tree view in it, is coloured as libadwaita colours
+  # sidebars, which, dark, is grey2, with a faint highlight for the selected
+  # row in place of GTK's blue
   gtk.gtk4.extraCss = ''
     window.nvim-background {
       background: ${style.colors.grey0};
+    }
+    window.nvim-background paned > box.view,
+    window.nvim-background paned > box.view treeview.view {
+      background-color: ${style.colors.grey2};
+    }
+    window.nvim-background paned > box.view treeview.view:selected {
+      background-color: alpha(currentColor, 0.1);
+      color: inherit;
     }
   '';
   programs.neovim = {
@@ -127,7 +138,9 @@ in
     # Neovim GTK runs ginit.vim once its window is up
     "nvim/ginit.vim".text = ''
       execute 'GuiFontFeatures' join(v:lua.require('aura').font.features, ',')
+      " The sidebar, on F9 as in GNOME's apps
       lua vim.keymap.set("n", "<Leader>E", "<Cmd>NGToggleSidebar<CR>", { desc = "Sidebar" })
+      lua vim.keymap.set({ "n", "i", "x" }, "<F9>", "<Cmd>NGToggleSidebar<CR>", { desc = "Sidebar" })
     '';
   };
   # Neovim takes folders, for Open With, but Files still opens them
