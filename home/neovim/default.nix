@@ -69,6 +69,58 @@ in
       background-color: alpha(currentColor, 0.1);
       color: inherit;
     }
+
+    /* The header bar, flat, and the tabs, a GTK notebook's, under it as
+       libadwaita's tab bar is: rounded, with a faint highlight for the
+       selected one, in place of a blue underline */
+    window.nvim-background headerbar {
+      background: ${style.colors.grey2};
+      border: none;
+      box-shadow: none;
+    }
+    window.nvim-background headerbar:backdrop {
+      background: ${style.colors.grey1};
+    }
+    window.nvim-background notebook > header {
+      background: ${style.colors.grey2};
+      border: none;
+      box-shadow: inset 0 -1px rgba(0, 0, 6, 0.36);
+      padding: 0 4px 6px;
+    }
+    window.nvim-background notebook > header:backdrop {
+      background: ${style.colors.grey1};
+    }
+    window.nvim-background notebook > header > tabs {
+      margin: 0;
+    }
+    window.nvim-background notebook > header > tabs > tab {
+      min-height: 26px;
+      padding: 4px;
+      margin: 0 3px;
+      border: none;
+      border-radius: 9px;
+      outline: none;
+      box-shadow: none;
+      background: none;
+      color: inherit;
+      transition: background 150ms ease-in-out;
+    }
+    window.nvim-background notebook > header > tabs > tab:hover {
+      background-color: alpha(currentColor, 0.07);
+    }
+    window.nvim-background notebook > header > tabs > tab:checked {
+      background-color: alpha(currentColor, 0.1);
+    }
+    window.nvim-background notebook > header > tabs > tab:checked:hover {
+      background-color: alpha(currentColor, 0.13);
+    }
+    window.nvim-background notebook > header > tabs > tab button {
+      min-width: 24px;
+      min-height: 24px;
+      padding: 0;
+      margin: 0;
+      border-radius: 99px;
+    }
   '';
   programs.neovim = {
     enable = true;
