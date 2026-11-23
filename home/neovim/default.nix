@@ -69,35 +69,23 @@ in
       background-color: alpha(currentColor, 0.1);
       color: inherit;
     }
-    /* Its edge, which runs beside the tabs too, in its own colour, so it
-       joins them, and only the editor's colour marks where it ends. GTK's
-       theme draws it as a background, adw-gtk3's, as GNOME is set to use,
-       as a shadow */
+    /* Its edge, in its own colour, so no line runs beside the tabs, and only
+       the editor's colour marks where it ends. GTK's theme draws it as a
+       background, adw-gtk3's, as GNOME is set to use, as a shadow */
     window.nvim-background paned.horizontal > separator {
       background: none;
       box-shadow: inset 1px 0 ${style.colors.grey2};
     }
 
-    /* The header bar, flat, without the line under it that GTK's theme and
-       adw-gtk3 draw, and the tabs, a GTK notebook's, under it as libadwaita's
-       tab bar is: rounded, with a faint highlight for the selected one, in
-       place of a blue underline */
-    window.nvim-background headerbar {
-      background: ${style.colors.grey2};
+    /* The tabs, a GTK notebook's, on the editor's colour, under the header
+       bar, which adw-gtk3 draws as libadwaita does, and as libadwaita's tab
+       bar is: rounded, with a faint highlight for the selected one, in place
+       of a blue underline */
+    window.nvim-background notebook > header {
+      background: ${style.colors.grey0};
       border: none;
       box-shadow: none;
-    }
-    window.nvim-background headerbar:backdrop {
-      background: ${style.colors.grey1};
-    }
-    window.nvim-background notebook > header {
-      background: ${style.colors.grey2};
-      border: none;
-      box-shadow: inset 0 -1px rgba(0, 0, 6, 0.36);
-      padding: 0 4px 6px;
-    }
-    window.nvim-background notebook > header:backdrop {
-      background: ${style.colors.grey1};
+      padding: 6px 4px;
     }
     window.nvim-background notebook > header > tabs {
       margin: 0;
