@@ -15,6 +15,7 @@ in
     ./ghostty.nix
     ./gnome.nix
     ./micro.nix
+    ./neovim
     ./zeditor.nix
     ./zsh.nix
   ];
