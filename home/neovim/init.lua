@@ -175,6 +175,33 @@ autocmd("BufEnter", {
 	end,
 })
 
+-- Insert mode, ready to type, as in Zed, on starting and in a new tab, but not
+-- for a folder or a read-only file. Files opened later, often by jumping to a
+-- definition or a search result, open as usual, in normal mode
+local function insert(buf)
+	local bo = vim.bo[buf]
+	if
+		bo.buftype == ""
+		and bo.modifiable
+		and not bo.readonly
+		and vim.fn.isdirectory(vim.api.nvim_buf_get_name(buf)) == 0
+	then
+		vim.cmd.startinsert()
+	end
+end
+autocmd("VimEnter", {
+	group = group,
+	callback = function()
+		insert(vim.api.nvim_get_current_buf())
+	end,
+})
+autocmd("TabNewEntered", {
+	group = group,
+	callback = function(args)
+		insert(args.buf)
+	end,
+})
+
 -- Trailing whitespace goes on save, as in Zed, unless formatting is off
 autocmd("BufWritePre", {
 	group = group,
@@ -561,6 +588,7 @@ map("n", "<Leader>e", function()
 	local file = vim.api.nvim_buf_get_name(0)
 	MiniFiles.open(vim.uv.fs_stat(file) and file or nil)
 end, "Explore files")
+map("n", "<Leader>n", "<Cmd>tabnew<CR>", "New tab")
 map("n", "<Leader>u", "<Cmd>Undotree<CR>", "Undo history")
 map({ "n", "x" }, "<Leader>=", function()
 	require("conform").format({ async = true })
