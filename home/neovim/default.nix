@@ -12,15 +12,24 @@ let
   # its header bar dark like the editor. It takes its font from GNOME's
   # monospace font, and its font features from ginit.vim. nixpkgs builds it
   # looking for its runtime, with GuiFont and its other commands, where it
-  # was built, so it's told where it was installed
+  # was built, so it's told where it was installed. Its window's background
+  # is transparent, for its NGTransparency command, which lets the desktop
+  # show through wherever its widgets don't quite meet, as at the sidebar's
+  # edge, so it's made the editor's
+  neovim-gtk-unwrapped = pkgs.neovim-gtk.overrideAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      substituteInPlace src/style.css \
+        --replace-fail "background: rgba(0, 0, 0, 0);" "background: ${style.colors.grey0};"
+    '';
+  });
   neovim-gtk = pkgs.symlinkJoin {
     name = "neovim-gtk";
-    paths = [ pkgs.neovim-gtk ];
+    paths = [ neovim-gtk-unwrapped ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/nvim-gtk \
         --add-flags "--nvim-bin-path ${nvim}" \
-        --set NVIM_GTK_RUNTIME_PATH ${pkgs.neovim-gtk}/share/nvim-gtk/runtime \
+        --set NVIM_GTK_RUNTIME_PATH ${neovim-gtk-unwrapped}/share/nvim-gtk/runtime \
         --set NVIM_GTK_PREFER_DARK_THEME 1
     '';
     meta.mainProgram = "nvim-gtk";
@@ -120,6 +129,8 @@ in
       lua vim.keymap.set("n", "<Leader>E", "<Cmd>NGToggleSidebar<CR>", { desc = "Sidebar" })
     '';
   };
+  # Neovim takes folders, for Open With, but Files still opens them
+  xdg.mimeApps.defaultApplications."inode/directory" = "org.gnome.Nautilus.desktop";
   xdg.desktopEntries = {
     # Neovim in a terminal, hidden as Micro is; Neovim GTK is the app
     "nvim" = {
@@ -154,6 +165,7 @@ in
         "application/x-yaml"
         "application/x-shellscript"
         "text/x-shellscript"
+        "inode/directory"
       ];
       startupNotify = true;
     };

@@ -107,7 +107,8 @@ autocmd("FileType", {
 -- and its direnv is loaded, as Zed's load_direnv does. Language servers
 -- restart when it changes PATH, to use the project's own
 local function project(buf)
-	if vim.bo[buf].buftype ~= "" or vim.api.nvim_buf_get_name(buf) == "" then
+	local name = vim.api.nvim_buf_get_name(buf)
+	if vim.bo[buf].buftype ~= "" or name == "" or vim.fn.isdirectory(name) == 1 then
 		return
 	end
 	local root = vim.fs.root(buf, { ".envrc", "flake.nix", ".git" })
@@ -147,6 +148,32 @@ autocmd("BufEnter", {
 	end,
 })
 autocmd({ "VimEnter", "DirChanged" }, { group = group, callback = direnv })
+
+-- A folder, as in nvim-gtk ~/Projects/foo or Open With from Files, becomes the
+-- working directory, and opens in the file explorer, in place of netrw
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+autocmd("BufEnter", {
+	group = group,
+	callback = function(args)
+		local path = vim.api.nvim_buf_get_name(args.buf)
+		if path == "" or vim.fn.isdirectory(path) == 0 then
+			return
+		end
+		local function open()
+			if vim.api.nvim_buf_is_valid(args.buf) then
+				vim.api.nvim_buf_delete(args.buf, { force = true })
+			end
+			vim.cmd.cd(vim.fn.fnameescape(path))
+			MiniFiles.open(path)
+		end
+		if vim.v.vim_did_enter == 1 then
+			vim.schedule(open)
+		else
+			autocmd("VimEnter", { group = group, once = true, callback = open })
+		end
+	end,
+})
 
 -- Trailing whitespace goes on save, as in Zed, unless formatting is off
 autocmd("BufWritePre", {
