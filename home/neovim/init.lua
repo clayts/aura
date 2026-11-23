@@ -194,8 +194,10 @@ autocmd("BufWritePre", {
 require("mini.icons").setup()
 MiniIcons.mock_nvim_web_devicons()
 
-require("mini.notify").setup()
-vim.notify = MiniNotify.make_notify()
+-- Only warnings and errors pop up: not language servers' progress, which
+-- basedpyright reports on every change, nor their info messages
+require("mini.notify").setup({ lsp_progress = { enable = false } })
+vim.notify = MiniNotify.make_notify({ INFO = { duration = 0 } })
 
 require("mini.statusline").setup({
 	content = {
@@ -576,7 +578,7 @@ end, "Blame, or what's at the cursor")
 
 map("n", "<Leader>tf", function()
 	vim.g.autoformat = vim.g.autoformat == false
-	vim.notify("Format on save " .. (vim.g.autoformat and "on" or "off"))
+	vim.api.nvim_echo({ { "Format on save " .. (vim.g.autoformat and "on" or "off") } }, false, {})
 end, "Format on save")
 map("n", "<Leader>ti", function()
 	vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())

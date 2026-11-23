@@ -138,9 +138,7 @@ in
     # Neovim GTK runs ginit.vim once its window is up
     "nvim/ginit.vim".text = ''
       execute 'GuiFontFeatures' join(v:lua.require('aura').font.features, ',')
-      " The sidebar, on F9 as in GNOME's apps
       lua vim.keymap.set("n", "<Leader>E", "<Cmd>NGToggleSidebar<CR>", { desc = "Sidebar" })
-      lua vim.keymap.set({ "n", "i", "x" }, "<F9>", "<Cmd>NGToggleSidebar<CR>", { desc = "Sidebar" })
     '';
   };
   # Neovim takes folders, for Open With, but Files still opens them
